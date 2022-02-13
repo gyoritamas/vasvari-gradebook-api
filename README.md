@@ -10,7 +10,7 @@ MySQL-szerverrel. Swagger-rel készített dokumentáció biztosítja az elérhet
 
 Az adatbázis felépítése a következő:
 
-<img src="https://github.com/gyoritamas/gradebook-api/blob/development/docs/images/db-schema.png" alt="schema"></a>
+<img src="https://github.com/gyoritamas/vasvari-gradebook-api/blob/development/docs/images/db-schema.png" alt="schema"></a>
 
 A *student* tábla tartalma:
 - tanuló vezeték- és keresztneve,
