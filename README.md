@@ -1,55 +1,46 @@
 # Gradebook API 
 
-## Description
+## Az alkalmazás célja
 
-The *Gradebook API* application's main purpose is to keep gradebook entries in a database and to provide a way to access them through HTTP requests.
+A *Gradebook API* egy Spring Boot segítségével létrehozott háromrétegű alkalmazás. Célja, hogy napjlóbejegyzéset tárolhassunk 
+egy adatbázisban, ill. HTTP-kéréseken keresztül hozzáférhessünk azokhoz. Az alkalmazást Docker kapcsolja össze egy 
+MySQL-szerverrel. Swagger-rel készített dokumentáció biztosítja az elérhető végpontok ellenőrzését. 
 
+## Az adatbázis felépítése
 
-## Database schema
-
-The database schema looks as follows:
+Az adatbázis felépítése a következő:
 
 <img src="https://github.com/gyoritamas/gradebook-api/blob/development/docs/images/db-schema.png" alt="schema"></a>
 
-- The student table keeps the data of the students
-- The class table keeps the name of the course
-- The class_students table stores which student has enrolled to which class
-- The assignment table keeps information about the assignments like their name, type, an optional description and when were they created
-- The gradebook_entry table connects the student, class and assignment entities together with a grade
+A *student* tábla tartalma:
+- tanuló vezeték- és keresztneve,
+- évfolyama,
+- email- és lakcíme, telefonszáma
+- születési dátuma
 
-## How to run
-#### Running the application locally
+A *course* tábla a kurzus vagy tantárgy nevét tárolja.
 
-To build the app, use the command below in the project root folder.
+Az *assignment* tábla tárolja a tanár által kiosztott feladatokat és osztályozásra kerülő tevékenységeket (pl. házi feladat, dolgozat, projektmunka). A feladat neve és típusa mellett opcionálisan megadható egy rövid leírás.
 
-```
-mvnw package -DskipTests
-```
+A *gradebook_entry* táblában kerülnek tárolásra a naplóbejegyzések. Egy naplóbejegyzés áll
+- egy tanulói azonosítóból
+- egy tantárgy azonosítóból
+- egy feladat azonosítóból
+- és egy érdemjegyből
 
-After building the app, use the following command to run it.
+## Az alkalmazás futtatása
 
-```
-java -jar target/gradebookapi-0.0.1-SNAPSHOT.jar
-```
-
-#### Running the application in Docker container
-
-To build the application using docker-compose, execute the command below.
-
+Az alkalmazás futtatásához indítsuk el a Dockert, majd adjuk ki a
 ```
 docker-compose -f docker-compose.dev.yml up --build
 ```
-## API documentation
-The API documentation created with Swagger and available at the following url:
+parancsot, vagy használjuk a gradebookapi_run.bat fájlt.
+
+## Dokumentáció
+A dokumentáció böngészőből érhető el a
 
 [http://localhost:8080/swagger-ui.html](http://localhost:8080/swagger-ui.html)
 
-## Technology
-- Spring Boot
-- MariaDB
-- Docker
-- Swagger
+címen.
 
-## Known issues
-- assignments 'createdAt' field doesn't use the correct time zone
 
