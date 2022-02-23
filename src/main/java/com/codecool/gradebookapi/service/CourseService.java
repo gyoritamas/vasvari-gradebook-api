@@ -71,7 +71,6 @@ public class CourseService {
         courseRepository.deleteById(id);
     }
 
-    // TODO: add test cases
     public CourseOutput setTeacherOfCourse(Long teacherId, Long courseId) {
         Teacher teacher = teacherRepository.getById(teacherId);
         Course course = courseRepository.getById(courseId);
@@ -87,6 +86,8 @@ public class CourseService {
 
         return courseMapper.map(courseRepository.save(clazz));
     }
+
+    // TODO: remove student from course
 
     public List<CourseOutput> findCoursesOfStudent(StudentDto studentDto) {
         Student student = studentMapper.map(studentDto);

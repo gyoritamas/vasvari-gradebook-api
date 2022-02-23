@@ -3,8 +3,10 @@ package com.codecool.gradebookapi.unit.service;
 import com.codecool.gradebookapi.dto.CourseInput;
 import com.codecool.gradebookapi.dto.CourseOutput;
 import com.codecool.gradebookapi.dto.StudentDto;
+import com.codecool.gradebookapi.dto.TeacherDto;
 import com.codecool.gradebookapi.service.CourseService;
 import com.codecool.gradebookapi.service.StudentService;
+import com.codecool.gradebookapi.service.TeacherService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -30,9 +32,13 @@ public class CourseServiceTests {
     @Autowired
     private StudentService studentService;
 
+    @Autowired
+    private TeacherService teacherService;
+
     private CourseInput course1;
     private CourseInput course2;
     private StudentDto student;
+    private TeacherDto teacher;
 
     @BeforeEach
     public void setUp() {
@@ -50,6 +56,14 @@ public class CourseServiceTests {
                 .address("666 Armstrong St., Mesa, AZ 85203")
                 .phone("202-555-0198")
                 .birthdate("1990-12-01")
+                .build();
+        teacher = TeacherDto.builder()
+                .firstname("Jane")
+                .lastname("Doe")
+                .email("janedoe@email.com")
+                .address("9351 Morris St., Reisterstown, MD 21136")
+                .phone("202-555-0198")
+                .birthdate("1969-04-13")
                 .build();
     }
 
@@ -120,6 +134,31 @@ public class CourseServiceTests {
 
         assertThat(updatedCourse).isNotNull();
         assertThat(updatedCourse.getName()).isEqualTo("Algebra II");
+    }
+
+    @Test
+    @Transactional
+    @DisplayName("addStudentToCourse should add Student to list of students of Course")
+    public void addStudentToCourse_shouldAddStudentToListOfStudentsOfCourse() {
+        student = studentService.save(student);
+        CourseOutput courseSaved = courseService.save(course1);
+
+        courseSaved = courseService.addStudentToCourse(student.getId(), courseSaved.getId());
+        List<String> listOfStudents = courseSaved.getStudents();
+
+        assertThat(listOfStudents).isEqualTo(List.of(student.getName()));
+    }
+
+    @Test
+    @Transactional
+    @DisplayName("setTeacherOfCourse should set Teacher field of Course")
+    public void setTeacherOfCourse_shouldSetTeacherFieldOfCourse() {
+        TeacherDto teacherSaved = teacherService.save(teacher);
+        CourseOutput courseSaved = courseService.save(course1);
+
+        courseSaved = courseService.setTeacherOfCourse(teacherSaved.getId(), courseSaved.getId());
+
+        assertThat(courseSaved.getTeacherId()).isEqualTo(teacherSaved.getId());
     }
 
     @Test
