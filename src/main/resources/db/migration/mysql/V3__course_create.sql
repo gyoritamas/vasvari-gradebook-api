@@ -3,8 +3,9 @@ drop table if exists course_students CASCADE;
 
 create table course
 (
-    id   bigint NOT NULL AUTO_INCREMENT,
-    name varchar(255),
+    id         bigint NOT NULL AUTO_INCREMENT,
+    name       varchar(255),
+    teacher_id bigint,
     primary key (id)
 );
 
@@ -14,6 +15,11 @@ create table course_students
     students_id bigint not null,
     primary key (course_id, students_id)
 );
+
+alter table course
+    add constraint FKsybhlxoejr4j3teomm5u2bx1n
+        foreign key (teacher_id)
+            references teacher (id);
 
 alter table course_students
     add constraint FK98urt246twcpsnbpa4ejy1uj5

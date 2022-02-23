@@ -31,7 +31,7 @@ public class TeacherServiceTests {
                 .email("johndoe@email.com")
                 .address("666 Armstrong St., Mesa, AZ 85203")
                 .phone("202-555-0198")
-                .birthdate("1990-12-01")
+                .birthdate("1960-12-01")
                 .build();
 
         teacher2 = TeacherDto.builder()
@@ -40,7 +40,7 @@ public class TeacherServiceTests {
                 .email("janedoe@email.com")
                 .address("9351 Morris St., Reisterstown, MD 21136")
                 .phone("202-555-0198")
-                .birthdate("1990-04-13")
+                .birthdate("1962-04-13")
                 .build();
     }
 
@@ -53,7 +53,7 @@ public class TeacherServiceTests {
         assertThat(teacherSaved.getEmail()).isEqualTo("johndoe@email.com");
         assertThat(teacherSaved.getAddress()).isEqualTo("666 Armstrong St., Mesa, AZ 85203");
         assertThat(teacherSaved.getPhone()).isEqualTo("202-555-0198");
-        assertThat(teacherSaved.getBirthdate()).isEqualTo("1990-12-01");
+        assertThat(teacherSaved.getBirthdate()).isEqualTo("1960-12-01");
     }
 
     @Test
