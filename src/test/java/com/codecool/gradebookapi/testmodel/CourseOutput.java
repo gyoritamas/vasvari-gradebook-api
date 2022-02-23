@@ -10,22 +10,25 @@ import java.util.Objects;
 @Getter
 @Setter
 @Builder
-public class ClassOutput {
+public class CourseOutput {
 
     private Long id;
-    private String course;
+    private String name;
+    private Long teacherId;
     private List<String> students;
 
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        ClassOutput that = (ClassOutput) o;
-        return Objects.equals(course, that.course) && Objects.equals(students, that.students);
+        CourseOutput that = (CourseOutput) o;
+        return Objects.equals(name, that.name)
+                && Objects.equals(teacherId, that.teacherId)
+                && Objects.equals(students, that.students);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(course, students);
+        return Objects.hash(name, teacherId, students);
     }
 }

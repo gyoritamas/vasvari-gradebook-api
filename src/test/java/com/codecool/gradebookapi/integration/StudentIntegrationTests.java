@@ -9,7 +9,7 @@ import com.codecool.gradebookapi.dto.CourseInput;
 import com.codecool.gradebookapi.dto.GradebookInput;
 import com.codecool.gradebookapi.dto.GradebookOutput;
 import com.codecool.gradebookapi.testmodel.AssignmentOutput;
-import com.codecool.gradebookapi.testmodel.ClassOutput;
+import com.codecool.gradebookapi.testmodel.CourseOutput;
 import com.codecool.gradebookapi.testmodel.StudentDto;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ParameterContext;
@@ -79,7 +79,7 @@ public class StudentIntegrationTests {
 
     @Nested
     @DisplayName("POST methods")
-    class PostMethods {
+    class PostMethodTests {
         @Test
         @DisplayName("when Student posted with valid parameters, should return created Student")
         public void whenStudentPostedWithValidParameters_shouldReturnCreatedStudent() {
@@ -104,7 +104,7 @@ public class StudentIntegrationTests {
     @DisplayName("GET methods")
     @DirtiesContext(classMode = BEFORE_CLASS)
     @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-    class GetMethods {
+    class GetMethodTests {
         @Test
         @Order(1)
         @DisplayName("given empty database, getAll should return empty list")
@@ -170,37 +170,37 @@ public class StudentIntegrationTests {
             student1 = template.postForObject(baseUrl, student1, StudentDto.class);
             student2 = template.postForObject(baseUrl, student2, StudentDto.class);
 
-            CourseInput courseInput1 = CourseInput.builder().course("Algebra").build();
-            CourseInput courseInput2 = CourseInput.builder().course("Biology").build();
+            CourseInput courseInput1 = CourseInput.builder().name("Algebra").build();
+            CourseInput courseInput2 = CourseInput.builder().name("Biology").build();
 
             Link linkToClasses = linkTo(CourseController.class).withSelfRel();
-            ClassOutput classOutput1 =
-                    template.postForObject(linkToClasses.getHref(), courseInput1, ClassOutput.class);
-            ClassOutput classOutput2 =
-                    template.postForObject(linkToClasses.getHref(), courseInput2, ClassOutput.class);
+            CourseOutput courseOutput1 =
+                    template.postForObject(linkToClasses.getHref(), courseInput1, CourseOutput.class);
+            CourseOutput courseOutput2 =
+                    template.postForObject(linkToClasses.getHref(), courseInput2, CourseOutput.class);
 
             Link linkToClassEnrollment1 = linkTo(methodOn(CourseController.class)
-                    .addStudentToClass(classOutput1.getId(), student1.getId()))
+                    .addStudentToClass(courseOutput1.getId(), student1.getId()))
                     .withSelfRel();
             Link linkToClassEnrollment2 = linkTo(methodOn(CourseController.class)
-                    .addStudentToClass(classOutput2.getId(), student1.getId()))
+                    .addStudentToClass(courseOutput2.getId(), student1.getId()))
                     .withSelfRel();
 
-            classOutput1 = template.postForObject(linkToClassEnrollment1.getHref(), null, ClassOutput.class);
-            classOutput2 = template.postForObject(linkToClassEnrollment2.getHref(), null, ClassOutput.class);
+            courseOutput1 = template.postForObject(linkToClassEnrollment1.getHref(), null, CourseOutput.class);
+            courseOutput2 = template.postForObject(linkToClassEnrollment2.getHref(), null, CourseOutput.class);
 
             String urlToClassesOfStudent = String.format("http://localhost:%d/api/students/%d/classes", port, student1.getId());
             Traverson traverson = new Traverson(URI.create(urlToClassesOfStudent), MediaTypes.HAL_JSON);
-            TypeReferences.CollectionModelType<ClassOutput> collectionModelType =
+            TypeReferences.CollectionModelType<CourseOutput> collectionModelType =
                     new TypeReferences.CollectionModelType<>() {
                     };
-            CollectionModel<ClassOutput> classResource = traverson
+            CollectionModel<CourseOutput> classResource = traverson
                     .follow("$._links.self.href")
                     .toObject(collectionModelType);
 
             assertThat(classResource).isNotNull();
             assertThat(classResource.getContent()).isNotNull();
-            assertThat(classResource.getContent()).containsExactly(classOutput1, classOutput2);
+            assertThat(classResource.getContent()).containsExactly(courseOutput1, courseOutput2);
         }
 
         @Test
@@ -217,7 +217,7 @@ public class StudentIntegrationTests {
 
     @Nested
     @DisplayName("PUT methods")
-    class PutMethods {
+    class PutMethodTests {
         @Test
         @DisplayName("when Student exists with given ID, update should return updated Student")
         public void whenStudentExistsWithGivenId_updateShouldReturnUpdatedStudent() {
@@ -268,7 +268,7 @@ public class StudentIntegrationTests {
 
     @Nested
     @DisplayName("DELETE methods")
-    class DeleteMethods {
+    class DeleteMethodTests {
         @Test
         @DisplayName("when Student exists with given ID, delete should remove Student")
         public void whenStudentExistsWithGivenId_deleteShouldRemoveStudent() {
@@ -306,10 +306,10 @@ public class StudentIntegrationTests {
     }
 
     private void postEntryRelatedToStudent(StudentDto student) {
-        CourseInput clazz = CourseInput.builder().course("Algebra").build();
+        CourseInput clazz = CourseInput.builder().name("Algebra").build();
         Link linkToClasses = linkTo(CourseController.class).withSelfRel();
-        ClassOutput classPosted =
-                template.postForObject(linkToClasses.getHref(), clazz, ClassOutput.class);
+        CourseOutput classPosted =
+                template.postForObject(linkToClasses.getHref(), clazz, CourseOutput.class);
 
         AssignmentInput assignment = AssignmentInput.builder().name("Homework 1").type("HOMEWORK").build();
         Link linkToAssignments = linkTo(AssignmentController.class).withSelfRel();
@@ -319,11 +319,11 @@ public class StudentIntegrationTests {
         Link linkToClassEnrollment = linkTo(methodOn(CourseController.class)
                 .addStudentToClass(classPosted.getId(), student.getId()))
                 .withSelfRel();
-        template.postForObject(linkToClassEnrollment.getHref(), null, ClassOutput.class);
+        template.postForObject(linkToClassEnrollment.getHref(), null, CourseOutput.class);
 
         GradebookInput gradebookInput = GradebookInput.builder()
                 .studentId(student.getId())
-                .classId(classPosted.getId())
+                .courseId(classPosted.getId())
                 .assignmentId(assignmentPosted.getId())
                 .grade(5)
                 .build();

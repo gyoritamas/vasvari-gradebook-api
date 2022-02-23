@@ -10,7 +10,7 @@ import com.codecool.gradebookapi.dto.GradebookOutput;
 import com.codecool.gradebookapi.dto.StudentDto;
 import com.codecool.gradebookapi.model.AssignmentType;
 import com.codecool.gradebookapi.testmodel.AssignmentOutput;
-import com.codecool.gradebookapi.testmodel.ClassOutput;
+import com.codecool.gradebookapi.testmodel.CourseOutput;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -89,7 +89,7 @@ public class AssignmentIntegrationTests {
 
     @Nested
     @DisplayName("POST methods")
-    class PostMethods {
+    class PostMethodTests {
         @Test
         @DisplayName("when Assignment posted with valid parameters, should return created Assignment")
         public void whenAssignmentPostedWithValidParameters_shouldReturnCreatedAssignment() {
@@ -128,7 +128,7 @@ public class AssignmentIntegrationTests {
     @DisplayName("GET methods")
     @DirtiesContext(classMode = BEFORE_CLASS)
     @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-    class GetMethods {
+    class GetMethodTests {
         @Test
         @Order(1)
         @DisplayName("given empty database, getAll should return empty list")
@@ -194,7 +194,7 @@ public class AssignmentIntegrationTests {
 
     @Nested
     @DisplayName("PUT methods")
-    class UpdateMethods {
+    class UpdateMethodTests {
         @Test
         @DisplayName("when Assignment exists with given ID, update should return updated Assignment")
         public void whenAssignmentExistsWithGivenId_updateShouldReturnUpdatedAssignment() {
@@ -258,7 +258,7 @@ public class AssignmentIntegrationTests {
 
     @Nested
     @DisplayName("DELETE methods")
-    class DeleteMethods {
+    class DeleteMethodTests {
         @Test
         @DisplayName("when Assignment exists with given ID, delete should remove Assignment")
         public void whenAssignmentExistsWithGivenId_deleteShouldRemoveAssignment() {
@@ -298,19 +298,19 @@ public class AssignmentIntegrationTests {
     }
 
     private void postEntryRelatedToAssignment(AssignmentOutput assignment) {
-        ClassOutput clazz = ClassOutput.builder().course("Algebra").build();
+        CourseOutput course = CourseOutput.builder().name("Algebra").build();
         Link linkToStudents = linkTo(StudentController.class).withSelfRel();
         student = template.postForObject(linkToStudents.getHref(), student, StudentDto.class);
         Link linkToClasses = linkTo(CourseController.class).withSelfRel();
-        clazz = template.postForObject(linkToClasses.getHref(), clazz, ClassOutput.class);
+        course = template.postForObject(linkToClasses.getHref(), course, CourseOutput.class);
 
         Link linkToClassEnrollment =
-                linkTo(methodOn(CourseController.class).addStudentToClass(clazz.getId(), student.getId())).withSelfRel();
-        template.postForObject(linkToClassEnrollment.getHref(), null, ClassOutput.class);
+                linkTo(methodOn(CourseController.class).addStudentToClass(course.getId(), student.getId())).withSelfRel();
+        template.postForObject(linkToClassEnrollment.getHref(), null, CourseOutput.class);
 
         GradebookInput gradebookInput = GradebookInput.builder()
                 .studentId(student.getId())
-                .classId(clazz.getId())
+                .courseId(course.getId())
                 .assignmentId(assignment.getId())
                 .grade(2)
                 .build();

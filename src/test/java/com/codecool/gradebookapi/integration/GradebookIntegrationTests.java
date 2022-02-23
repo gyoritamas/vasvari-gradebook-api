@@ -8,7 +8,7 @@ import com.codecool.gradebookapi.dto.AssignmentInput;
 import com.codecool.gradebookapi.dto.CourseInput;
 import com.codecool.gradebookapi.dto.GradebookInput;
 import com.codecool.gradebookapi.testmodel.AssignmentOutput;
-import com.codecool.gradebookapi.testmodel.ClassOutput;
+import com.codecool.gradebookapi.testmodel.CourseOutput;
 import com.codecool.gradebookapi.testmodel.GradebookOutput;
 import com.codecool.gradebookapi.testmodel.StudentDto;
 import org.junit.jupiter.api.*;
@@ -87,7 +87,7 @@ public class GradebookIntegrationTests {
                 .birthdate("1990-04-13")
                 .build();
         clazz = CourseInput.builder()
-                .course("Algebra")
+                .name("Algebra")
                 .build();
         assignment = AssignmentInput.builder()
                 .name("Homework 1")
@@ -95,13 +95,13 @@ public class GradebookIntegrationTests {
                 .build();
         gradebookOutput1 = GradebookOutput.builder()
                 .studentId(1L)
-                .classId(1L)
+                .courseId(1L)
                 .assignmentId(1L)
                 .grade(4)
                 .build();
         gradebookOutput2 = GradebookOutput.builder()
                 .studentId(2L)
-                .classId(1L)
+                .courseId(1L)
                 .assignmentId(1L)
                 .grade(5)
                 .build();
@@ -111,7 +111,7 @@ public class GradebookIntegrationTests {
     @DirtiesContext(classMode = BEFORE_CLASS)
     @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
     @DisplayName("GET methods")
-    class GetMethods {
+    class GetMethodTests {
         @Test
         @Order(1)
         @DisplayName("given empty database, getAll should return empty list")
@@ -137,7 +137,7 @@ public class GradebookIntegrationTests {
             long student1Id = template.postForObject(linkToStudents.getHref(), student1, StudentDto.class).getId();
             long student2Id = template.postForObject(linkToStudents.getHref(), student2, StudentDto.class).getId();
             Link linkToClasses = linkTo(CourseController.class).withSelfRel();
-            long classId = template.postForObject(linkToClasses.getHref(), clazz, ClassOutput.class).getId();
+            long classId = template.postForObject(linkToClasses.getHref(), clazz, CourseOutput.class).getId();
             Link linkToAssignments = linkTo(AssignmentController.class).withSelfRel();
             long assignmentId =
                     template.postForObject(linkToAssignments.getHref(), assignment, AssignmentOutput.class).getId();
@@ -146,13 +146,13 @@ public class GradebookIntegrationTests {
 
             GradebookInput gradebookInput1 = GradebookInput.builder()
                     .studentId(student1Id)
-                    .classId(classId)
+                    .courseId(classId)
                     .assignmentId(assignmentId)
                     .grade(4)
                     .build();
             GradebookInput gradebookInput2 = GradebookInput.builder()
                     .studentId(student2Id)
-                    .classId(classId)
+                    .courseId(classId)
                     .assignmentId(assignmentId)
                     .grade(5)
                     .build();
@@ -183,7 +183,7 @@ public class GradebookIntegrationTests {
             Link linkToStudents = linkTo(StudentController.class).withSelfRel();
             long studentId = template.postForObject(linkToStudents.getHref(), student1, StudentDto.class).getId();
             Link linkToClasses = linkTo(CourseController.class).withSelfRel();
-            long classId = template.postForObject(linkToClasses.getHref(), clazz, ClassOutput.class).getId();
+            long classId = template.postForObject(linkToClasses.getHref(), clazz, CourseOutput.class).getId();
             Link linkToAssignments = linkTo(AssignmentController.class).withSelfRel();
             long assignmentId =
                     template.postForObject(linkToAssignments.getHref(), assignment, AssignmentOutput.class).getId();
@@ -191,7 +191,7 @@ public class GradebookIntegrationTests {
 
             GradebookInput gradebookInput = GradebookInput.builder()
                     .studentId(studentId)
-                    .classId(classId)
+                    .courseId(classId)
                     .assignmentId(assignmentId)
                     .grade(4)
                     .build();
@@ -222,20 +222,20 @@ public class GradebookIntegrationTests {
         public void whenStudentExistsWithGivenId_getGradesOfStudentShouldReturnListOfEntries() {
             long student1Id = template.postForObject(studentBaseUrl, student1, StudentDto.class).getId();
             long student2Id = template.postForObject(studentBaseUrl, student2, StudentDto.class).getId();
-            long classId = template.postForObject(classBaseUrl, clazz, ClassOutput.class).getId();
+            long classId = template.postForObject(classBaseUrl, clazz, CourseOutput.class).getId();
             long assignmentId =
                     template.postForObject(assignmentBaseUrl, assignment, AssignmentOutput.class).getId();
             classId = addStudentToClass(student1Id, classId).getId();
             classId = addStudentToClass(student2Id, classId).getId();
             GradebookInput gradebookInput1 = GradebookInput.builder()
                     .studentId(student1Id)
-                    .classId(classId)
+                    .courseId(classId)
                     .assignmentId(assignmentId)
                     .grade(4)
                     .build();
             GradebookInput gradebookInput2 = GradebookInput.builder()
                     .studentId(student2Id)
-                    .classId(classId)
+                    .courseId(classId)
                     .assignmentId(assignmentId)
                     .grade(5)
                     .build();
@@ -269,7 +269,7 @@ public class GradebookIntegrationTests {
         public void whenClassExistsWithGivenId_getGradesOfClassShouldReturnListOfEntries() {
             long student1Id = template.postForObject(studentBaseUrl, student1, StudentDto.class).getId();
             long student2Id = template.postForObject(studentBaseUrl, student2, StudentDto.class).getId();
-            long classId = template.postForObject(classBaseUrl, clazz, ClassOutput.class).getId();
+            long classId = template.postForObject(classBaseUrl, clazz, CourseOutput.class).getId();
             long assignmentId =
                     template.postForObject(assignmentBaseUrl, assignment, AssignmentOutput.class).getId();
             classId = addStudentToClass(student1Id, classId).getId();
@@ -277,13 +277,13 @@ public class GradebookIntegrationTests {
 
             GradebookInput gradebookInput1 = GradebookInput.builder()
                     .studentId(student1Id)
-                    .classId(classId)
+                    .courseId(classId)
                     .assignmentId(assignmentId)
                     .grade(4)
                     .build();
             GradebookInput gradebookInput2 = GradebookInput.builder()
                     .studentId(student2Id)
-                    .classId(classId)
+                    .courseId(classId)
                     .assignmentId(assignmentId)
                     .grade(5)
                     .build();
@@ -319,19 +319,19 @@ public class GradebookIntegrationTests {
 
     @Nested
     @DisplayName("POST methods")
-    class PostMethods {
+    class PostMethodTests {
         @Test
         @DisplayName("when entities found with given IDs, gradeAssignment should return created GradebookEntry")
         public void whenEntitiesFoundWithGivenIds_gradeAssignmentShouldReturnCreatedGradebookEntry() {
             long studentId = template.postForObject(studentBaseUrl, student1, StudentDto.class).getId();
-            long classId = template.postForObject(classBaseUrl, clazz, ClassOutput.class).getId();
+            long classId = template.postForObject(classBaseUrl, clazz, CourseOutput.class).getId();
             long assignmentId =
                     template.postForObject(assignmentBaseUrl, assignment, AssignmentOutput.class).getId();
-            classId = addStudentToClass(studentId, classId).getId();
+            addStudentToClass(studentId, classId);
 
             GradebookInput gradebookInput = GradebookInput.builder()
                     .studentId(studentId)
-                    .classId(classId)
+                    .courseId(classId)
                     .assignmentId(assignmentId)
                     .grade(4)
                     .build();
@@ -346,12 +346,12 @@ public class GradebookIntegrationTests {
         @DisplayName("when an entry exists with the given IDs, gradeAssignment should return response 'Conflict'")
         public void whenAnEntryExistsWithTheGivenIds_gradeAssignmentShouldReturnResponseConflict() {
             long studentId = template.postForObject(studentBaseUrl, student2, StudentDto.class).getId();
-            long classId = template.postForObject(classBaseUrl, clazz, ClassOutput.class).getId();
+            long classId = template.postForObject(classBaseUrl, clazz, CourseOutput.class).getId();
             long assignmentId = template.postForObject(assignmentBaseUrl, assignment, AssignmentOutput.class).getId();
             addStudentToClass(studentId, classId);
             GradebookInput gradebookInput = GradebookInput.builder()
                     .studentId(studentId)
-                    .classId(classId)
+                    .courseId(classId)
                     .assignmentId(assignmentId)
                     .grade(5)
                     .build();
@@ -376,13 +376,13 @@ public class GradebookIntegrationTests {
         @Test
         @DisplayName("when Student does not exist with given ID, gradeAssignment should return response 'Not Found'")
         public void whenStudentDoesNotExistWithGivenId_gradeAssignmentShouldReturnResponseNotFound() {
-            long classId = template.postForObject(classBaseUrl, clazz, ClassOutput.class).getId();
+            long classId = template.postForObject(classBaseUrl, clazz, CourseOutput.class).getId();
             long assignmentId =
                     template.postForObject(assignmentBaseUrl, assignment, AssignmentOutput.class).getId();
 
             GradebookInput gradebookInput = GradebookInput.builder()
                     .studentId(99L)
-                    .classId(classId)
+                    .courseId(classId)
                     .assignmentId(assignmentId)
                     .grade(5)
                     .build();
@@ -400,7 +400,7 @@ public class GradebookIntegrationTests {
 
             GradebookInput gradebookInput = GradebookInput.builder()
                     .studentId(student1.getId())
-                    .classId(99L)
+                    .courseId(99L)
                     .assignmentId(assignmentPosted.getId())
                     .grade(2)
                     .build();
@@ -413,11 +413,11 @@ public class GradebookIntegrationTests {
         @DisplayName("when Assignment does not exist with given ID, gradeAssignment should return response 'Not Found'")
         public void whenAssignmentDoesNotExistWithGivenId_gradeAssignmentShouldReturnResponseNotFound() {
             student1 = template.postForObject(studentBaseUrl, student1, StudentDto.class);
-            ClassOutput classPosted = template.postForObject(classBaseUrl, clazz, ClassOutput.class);
+            CourseOutput classPosted = template.postForObject(classBaseUrl, clazz, CourseOutput.class);
 
             GradebookInput gradebookInput = GradebookInput.builder()
                     .studentId(student1.getId())
-                    .classId(classPosted.getId())
+                    .courseId(classPosted.getId())
                     .assignmentId(99L)
                     .grade(1)
                     .build();
@@ -427,11 +427,11 @@ public class GradebookIntegrationTests {
         }
     }
 
-    private ClassOutput addStudentToClass(Long studentId, Long classId) {
+    private CourseOutput addStudentToClass(Long studentId, Long classId) {
         Link linkToClassEnrollment =
                 linkTo(methodOn(CourseController.class).addStudentToClass(classId, studentId)).withSelfRel();
-        ResponseEntity<ClassOutput> response =
-                template.postForEntity(linkToClassEnrollment.getHref(), null, ClassOutput.class);
+        ResponseEntity<CourseOutput> response =
+                template.postForEntity(linkToClassEnrollment.getHref(), null, CourseOutput.class);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
 
@@ -444,7 +444,7 @@ public class GradebookIntegrationTests {
                 throws ArgumentsAggregationException {
             return GradebookInput.builder()
                     .studentId(accessor.getLong(0))
-                    .classId(accessor.getLong(1))
+                    .courseId(accessor.getLong(1))
                     .assignmentId(accessor.getLong(2))
                     .grade(accessor.getInteger(3))
                     .build();

@@ -13,7 +13,7 @@ public class GradebookOutput {
 
     private Long id;
     private Long studentId;
-    private Long classId;
+    private Long courseId;
     private Long assignmentId;
     private Integer grade;
 
@@ -23,14 +23,14 @@ public class GradebookOutput {
         if (o == null || getClass() != o.getClass()) return false;
         GradebookOutput that = (GradebookOutput) o;
         return Objects.equals(studentId, that.studentId)
-                && Objects.equals(classId, that.classId)
+                && Objects.equals(courseId, that.courseId)
                 && Objects.equals(assignmentId, that.assignmentId)
                 && Objects.equals(grade, that.grade);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(studentId, classId, assignmentId, grade);
+        return Objects.hash(studentId, courseId, assignmentId, grade);
     }
 
     //    @Override

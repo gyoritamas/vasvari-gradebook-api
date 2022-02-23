@@ -21,7 +21,7 @@ public class GradebookModelAssembler implements RepresentationModelAssembler<Gra
         return EntityModel.of(entry,
                 linkTo(methodOn(GradebookController.class).getById(entry.getId())).withSelfRel(),
                 linkTo(methodOn(StudentController.class).getById(entry.getStudentId())).withRel("student"),
-                linkTo(methodOn(CourseController.class).getById(entry.getClassId())).withRel("class"),
+                linkTo(methodOn(CourseController.class).getById(entry.getCourseId())).withRel("class"),
                 linkTo(methodOn(AssignmentController.class).getById(entry.getAssignmentId())).withRel("assignment"),
                 linkTo(methodOn(GradebookController.class).getAll()).withRel("entries"));
     }

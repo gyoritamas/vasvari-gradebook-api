@@ -80,34 +80,34 @@ public class GradebookControllerTests {
                 .lastname("Doe")
                 .build();
         clazz = CourseOutput.builder()
-                .course("Algebra")
+                .name("Algebra")
                 .build();
         assignment = AssignmentOutput.builder()
                 .name("Homework 1")
                 .build();
         entry1 = GradebookInput.builder()
                 .studentId(1L)
-                .classId(1L)
+                .courseId(1L)
                 .assignmentId(1L)
                 .grade(4)
                 .build();
         entry2 = GradebookInput.builder()
                 .studentId(2L)
-                .classId(1L)
+                .courseId(1L)
                 .assignmentId(1L)
                 .grade(5)
                 .build();
         savedEntry1 = GradebookOutput.builder()
                 .id(1L)
                 .studentId(1L)
-                .classId(1L)
+                .courseId(1L)
                 .assignmentId(1L)
                 .grade(4)
                 .build();
         savedEntry2 = GradebookOutput.builder()
                 .id(1L)
                 .studentId(2L)
-                .classId(1L)
+                .courseId(1L)
                 .assignmentId(1L)
                 .grade(5)
                 .build();
@@ -149,7 +149,7 @@ public class GradebookControllerTests {
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.studentId", is(1)))
-                .andExpect(jsonPath("$.classId", is(1)))
+                .andExpect(jsonPath("$.courseId", is(1)))
                 .andExpect(jsonPath("$.assignmentId", is(1)))
                 .andExpect(jsonPath("$.grade", is(4)));
     }
@@ -188,7 +188,7 @@ public class GradebookControllerTests {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$._embedded.entries", hasSize(1)))
                 .andExpect(jsonPath("$._embedded.entries[0].studentId", is(1)))
-                .andExpect(jsonPath("$._embedded.entries[0].classId", is(1)))
+                .andExpect(jsonPath("$._embedded.entries[0].courseId", is(1)))
                 .andExpect(jsonPath("$._embedded.entries[0].assignmentId", is(1)))
                 .andExpect(jsonPath("$._embedded.entries[0].grade", is(4)));
     }
@@ -217,11 +217,11 @@ public class GradebookControllerTests {
                 .andExpect(jsonPath("$._embedded.entries", hasSize(2)))
 
                 .andExpect(jsonPath("$._embedded.entries[0].studentId", is(1)))
-                .andExpect(jsonPath("$._embedded.entries[0].classId", is(1)))
+                .andExpect(jsonPath("$._embedded.entries[0].courseId", is(1)))
                 .andExpect(jsonPath("$._embedded.entries[0].grade", is(4)))
 
                 .andExpect(jsonPath("$._embedded.entries[1].studentId", is(2)))
-                .andExpect(jsonPath("$._embedded.entries[1].classId", is(1)))
+                .andExpect(jsonPath("$._embedded.entries[1].courseId", is(1)))
                 .andExpect(jsonPath("$._embedded.entries[1].grade", is(5)));
     }
 
@@ -232,7 +232,7 @@ public class GradebookControllerTests {
         when(courseService.findById(1L)).thenReturn(Optional.of(clazz));
         when(assignmentService.findById(1L)).thenReturn(Optional.of(assignment));
 
-        GradebookInput entry = GradebookInput.builder().studentId(99L).classId(1L).assignmentId(1L).grade(4).build();
+        GradebookInput entry = GradebookInput.builder().studentId(99L).courseId(1L).assignmentId(1L).grade(4).build();
         String entryAsString = mapper.writeValueAsString(entry);
 
         this.mockMvc
@@ -252,7 +252,7 @@ public class GradebookControllerTests {
         when(courseService.findById(99L)).thenReturn(Optional.empty());
         when(assignmentService.findById(1L)).thenReturn(Optional.of(assignment));
 
-        GradebookInput entry = GradebookInput.builder().studentId(1L).classId(99L).assignmentId(1L).grade(5).build();
+        GradebookInput entry = GradebookInput.builder().studentId(1L).courseId(99L).assignmentId(1L).grade(5).build();
         String entryAsString = mapper.writeValueAsString(entry);
 
         this.mockMvc
@@ -272,7 +272,7 @@ public class GradebookControllerTests {
         when(courseService.findById(1L)).thenReturn(Optional.of(clazz));
         when(assignmentService.findById(99L)).thenReturn(Optional.empty());
 
-        GradebookInput entry = GradebookInput.builder().studentId(1L).classId(1L).assignmentId(99L).grade(4).build();
+        GradebookInput entry = GradebookInput.builder().studentId(1L).courseId(1L).assignmentId(99L).grade(4).build();
         String entryAsString = mapper.writeValueAsString(entry);
 
         this.mockMvc
@@ -291,7 +291,7 @@ public class GradebookControllerTests {
         when(studentService.findById(2L)).thenReturn(Optional.of(student2));
         when(courseService.findById(1L)).thenReturn(Optional.of(clazz));
         when(assignmentService.findById(1L)).thenReturn(Optional.of(assignment));
-        when(courseService.isStudentInClass(2L, 1L)).thenReturn(true);
+        when(courseService.isStudentInCourse(2L, 1L)).thenReturn(true);
         when(gradebookService.isDuplicateEntry(entry2)).thenReturn(true);
 
         String entry2AsString = mapper.writeValueAsString(entry2);
@@ -312,7 +312,7 @@ public class GradebookControllerTests {
         when(studentService.findById(2L)).thenReturn(Optional.of(student2));
         when(courseService.findById(1L)).thenReturn(Optional.of(clazz));
         when(assignmentService.findById(1L)).thenReturn(Optional.of(assignment));
-        when(courseService.isStudentInClass(2L, 1L)).thenReturn(false);
+        when(courseService.isStudentInCourse(2L, 1L)).thenReturn(false);
 
         String entry2AsString = mapper.writeValueAsString(entry2);
 
@@ -351,7 +351,7 @@ public class GradebookControllerTests {
         when(courseService.findById(1L)).thenReturn(Optional.of(clazz));
         when(assignmentService.findById(1L)).thenReturn(Optional.of(assignment));
         when(gradebookService.save(entry1)).thenReturn(savedEntry1);
-        when(courseService.isStudentInClass(1L, 1L)).thenReturn(true);
+        when(courseService.isStudentInCourse(1L, 1L)).thenReturn(true);
 
         String entry1AsString = mapper.writeValueAsString(entry1);
 
@@ -364,7 +364,7 @@ public class GradebookControllerTests {
                 .andDo(print())
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.studentId", is(1)))
-                .andExpect(jsonPath("$.classId", is(1)))
+                .andExpect(jsonPath("$.courseId", is(1)))
                 .andExpect(jsonPath("$.assignmentId", is(1)))
                 .andExpect(jsonPath("$.grade", is(4)));
     }
@@ -375,7 +375,7 @@ public class GradebookControllerTests {
                 throws ArgumentsAggregationException {
             return GradebookInput.builder()
                     .studentId(accessor.getLong(0))
-                    .classId(accessor.getLong(1))
+                    .courseId(accessor.getLong(1))
                     .assignmentId(accessor.getLong(2))
                     .grade(accessor.getInteger(3))
                     .build();

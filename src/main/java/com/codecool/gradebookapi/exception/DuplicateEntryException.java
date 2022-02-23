@@ -7,6 +7,6 @@ public class DuplicateEntryException extends RuntimeException {
             "Entry with student %d, class %d and assignment %d already exists";
 
     public DuplicateEntryException(GradebookInput entry) {
-        super(String.format(ERROR_MESSAGE, entry.getStudentId(), entry.getClassId(), entry.getAssignmentId()));
+        super(String.format(ERROR_MESSAGE, entry.getStudentId(), entry.getCourseId(), entry.getAssignmentId()));
     }
 }

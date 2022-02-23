@@ -59,19 +59,19 @@ public class CourseControllerTests {
     @BeforeEach
     public void setUp() {
         courseInput1 = CourseInput.builder()
-                .course("Algebra")
+                .name("Algebra")
                 .build();
         courseInput2 = CourseInput.builder()
-                .course("Biology")
+                .name("Biology")
                 .build();
         courseOutput1 = CourseOutput.builder()
                 .id(1L)
-                .course("Algebra")
+                .name("Algebra")
                 .students(List.of("Diophantus", "Brahmagupta"))
                 .build();
         courseOutput2 = CourseOutput.builder()
                 .id(2L)
-                .course("Biology")
+                .name("Biology")
                 .students(List.of("Charles Darwin", "Gregor Mendel"))
                 .build();
     }
@@ -97,9 +97,9 @@ public class CourseControllerTests {
                 .perform(get("/api/classes"))
                 .andDo(print())
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$._embedded.classes", hasSize(2)))
-                .andExpect(jsonPath("$._embedded.classes[0].course", is("Algebra")))
-                .andExpect(jsonPath("$._embedded.classes[1].course", is("Biology")));
+                .andExpect(jsonPath("$._embedded.courses", hasSize(2)))
+                .andExpect(jsonPath("$._embedded.courses[0].name", is("Algebra")))
+                .andExpect(jsonPath("$._embedded.courses[1].name", is("Biology")));
     }
 
     @Test
@@ -111,7 +111,7 @@ public class CourseControllerTests {
                 .perform(get("/api/classes/1"))
                 .andDo(print())
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.course", is("Algebra")));
+                .andExpect(jsonPath("$.name", is("Algebra")));
     }
 
     @Test
@@ -141,13 +141,13 @@ public class CourseControllerTests {
                 .andDo(print())
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.id", is(1)))
-                .andExpect(jsonPath("$.course", is("Algebra")));
+                .andExpect(jsonPath("$.name", is("Algebra")));
     }
 
     @Test
     @DisplayName("given ClassInput has invalid parameters, add should return response 'Bad Request")
     public void givenClassInputHasInvalidParameters_addShouldReturnResponseBadRequest() throws Exception {
-        CourseInput inputWithBlankName = CourseInput.builder().course("  ").build();
+        CourseInput inputWithBlankName = CourseInput.builder().name("  ").build();
 
         String inputAsString = mapper.writeValueAsString(inputWithBlankName);
 
@@ -182,8 +182,8 @@ public class CourseControllerTests {
     @DisplayName("when Class exists with given ID and ClassInput parameters are valid, update should return updated Class")
     public void whenClassExistsWithGivenIdAndClassInputParametersAreValid_updateShouldReturnUpdatedClass() throws Exception {
         when(courseService.findById(1L)).thenReturn(Optional.of(courseOutput1));
-        CourseInput updateInput = CourseInput.builder().course("Algebra II").build();
-        CourseOutput classUpdated = CourseOutput.builder().id(1L).course("Algebra II").build();
+        CourseInput updateInput = CourseInput.builder().name("Algebra II").build();
+        CourseOutput classUpdated = CourseOutput.builder().id(1L).name("Algebra II").build();
         when(courseService.update(1L, updateInput)).thenReturn(classUpdated);
 
         String inputAsString = mapper.writeValueAsString(updateInput);
@@ -203,7 +203,7 @@ public class CourseControllerTests {
     @Test
     @DisplayName("given ClassInput has invalid parameters, update should return response 'Bad Request")
     public void givenClassInputHasInvalidParameters_updateShouldReturnResponseBadRequest() throws Exception {
-        CourseInput inputWithBlankName = CourseInput.builder().course("  ").build();
+        CourseInput inputWithBlankName = CourseInput.builder().name("  ").build();
         when(courseService.findById(1L)).thenReturn(Optional.of(courseOutput1));
 
         String inputAsString = mapper.writeValueAsString(inputWithBlankName);
@@ -243,7 +243,7 @@ public class CourseControllerTests {
     @Test
     @DisplayName("when Class is used by a GradebookEntry, delete should return response 'Method Not Allowed'")
     public void whenClassIsUsedByAnEntry_deleteShouldReturnResponseMethodNotAllowed() throws Exception {
-        GradebookOutput savedEntry = GradebookOutput.builder().id(1L).classId(1L).build();
+        GradebookOutput savedEntry = GradebookOutput.builder().id(1L).courseId(1L).build();
         when(courseService.findById(1L)).thenReturn(Optional.of(courseOutput1));
         when(gradebookService.findByClassId(1L)).thenReturn(List.of(savedEntry));
 
@@ -257,18 +257,18 @@ public class CourseControllerTests {
     @DisplayName("when entities exist with given IDs, addStudentToClass should return Class with added Student")
     public void whenEntitiesExistWithGivenIds_addStudentToClass_shouldReturnClassWithAddedStudent() throws Exception {
         StudentDto student = StudentDto.builder().id(1L).firstname("John").lastname("Doe").build();
-        CourseOutput clazz = CourseOutput.builder().id(1L).course("Algebra").students(List.of("John Doe")).build();
+        CourseOutput clazz = CourseOutput.builder().id(1L).name("Algebra").students(List.of("John Doe")).build();
 
         when(studentService.findById(1L)).thenReturn(Optional.of(student));
         when(courseService.findById(1L)).thenReturn(Optional.of(clazz));
-        when(courseService.addStudentToClass(1L, 1L)).thenReturn(clazz);
+        when(courseService.addStudentToCourse(1L, 1L)).thenReturn(clazz);
 
         this.mockMvc
                 .perform(post("/api/classes/1/class_enrollment/1"))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id", is(1)))
-                .andExpect(jsonPath("$.course", is("Algebra")))
+                .andExpect(jsonPath("$.name", is("Algebra")))
                 .andExpect(jsonPath("$.students", hasSize(1)))
                 .andExpect(jsonPath("$.students[0]", is("John Doe")));
     }

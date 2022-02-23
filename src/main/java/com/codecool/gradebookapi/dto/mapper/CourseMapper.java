@@ -11,16 +11,22 @@ import java.util.stream.Collectors;
 @Component
 public class CourseMapper {
 
-    public CourseOutput map(Course clazz) {
-        return CourseOutput.builder()
-                .id(clazz.getId())
-                .course(clazz.getName())
+    public CourseOutput map(Course course) {
+        CourseOutput courseOutput = CourseOutput.builder()
+                .id(course.getId())
+                .name(course.getName())
                 .students(
-                        clazz.getStudents().stream()
+                        course.getStudents().stream()
                                 .map(Student::getName)
                                 .collect(Collectors.toList())
                 )
                 .build();
+
+        if (course.getTeacher() != null) {
+            courseOutput.setTeacherId(course.getTeacher().getId());
+        }
+
+        return courseOutput;
     }
 
     public List<CourseOutput> mapAll(List<Course> courses) {

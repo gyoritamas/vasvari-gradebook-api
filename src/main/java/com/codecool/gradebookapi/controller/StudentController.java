@@ -128,6 +128,6 @@ public class StudentController {
         log.info("Returned list of all classes related to student {}", id);
 
         return ResponseEntity.
-                ok(courseModelAssembler.toCollectionModel(courseService.findClassesOfStudent(student)));
+                ok(courseModelAssembler.toCollectionModel(courseService.findCoursesOfStudent(student)));
     }
 }

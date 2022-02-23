@@ -279,25 +279,25 @@ public class StudentControllerTests {
     @DisplayName("when Student exists with given ID, getClassesOfStudent should return list of Classes")
     public void whenStudentExistsWithGivenId_getClassesOfStudentShouldReturnListOfClasses() throws Exception {
         CourseOutput class1 = CourseOutput.builder()
-                .course("Biology")
+                .name("Biology")
                 .students(List.of("John Doe"))
                 .build();
         CourseOutput class2 = CourseOutput.builder()
-                .course("Social science")
+                .name("Social science")
                 .students(List.of("John Doe", "Jane Doe"))
                 .build();
         List<CourseOutput> classesOfStudent1 = List.of(class1, class2);
 
         when(studentService.findById(1L)).thenReturn(Optional.of(student1));
-        when(courseService.findClassesOfStudent(student1)).thenReturn(classesOfStudent1);
+        when(courseService.findCoursesOfStudent(student1)).thenReturn(classesOfStudent1);
 
         this.mockMvc
                 .perform(get("/api/students/1/classes"))
                 .andDo(print())
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$._embedded.classes", hasSize(2)))
-                .andExpect(jsonPath("$._embedded.classes[0].course", is("Biology")))
-                .andExpect(jsonPath("$._embedded.classes[1].course", is("Social science")));
+                .andExpect(jsonPath("$._embedded.courses", hasSize(2)))
+                .andExpect(jsonPath("$._embedded.courses[0].name", is("Biology")))
+                .andExpect(jsonPath("$._embedded.courses[1].name", is("Social science")));
     }
 
     private static class StudentAggregator implements ArgumentsAggregator {

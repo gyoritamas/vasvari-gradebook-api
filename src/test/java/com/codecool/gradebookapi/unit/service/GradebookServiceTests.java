@@ -55,10 +55,10 @@ public class GradebookServiceTests {
                 .birthdate("1990-04-13")
                 .build();
         CourseInput class1 = CourseInput.builder()
-                .course("Algebra")
+                .name("Algebra")
                 .build();
         CourseInput class2 = CourseInput.builder()
-                .course("Biology")
+                .name("Biology")
                 .build();
         AssignmentInput assignment = AssignmentInput.builder()
                 .name("Homework 1")
@@ -73,13 +73,13 @@ public class GradebookServiceTests {
 
         entry1 = GradebookInput.builder()
                 .studentId(student1Id)
-                .classId(class1Id)
+                .courseId(class1Id)
                 .assignmentId(assignmentId)
                 .grade(4)
                 .build();
         entry2 = GradebookInput.builder()
                 .studentId(student2Id)
-                .classId(class2Id)
+                .courseId(class2Id)
                 .assignmentId(assignmentId)
                 .grade(5)
                 .build();
@@ -92,7 +92,7 @@ public class GradebookServiceTests {
         GradebookOutput entrySaved = gradebookService.save(entry1);
 
         assertThat(entrySaved.getStudentId()).isEqualTo(entry1.getStudentId());
-        assertThat(entrySaved.getClassId()).isEqualTo(entry1.getClassId());
+        assertThat(entrySaved.getCourseId()).isEqualTo(entry1.getCourseId());
         assertThat(entrySaved.getAssignmentId()).isEqualTo(entry1.getAssignmentId());
         assertThat(entrySaved.getGrade()).isEqualTo(entry1.getGrade());
     }
@@ -173,7 +173,7 @@ public class GradebookServiceTests {
     public void whenEntriesRelatedToGivenClassExist_findByClassShouldReturnListOfEntries() {
         GradebookOutput entrySaved = gradebookService.save(entry1);
 
-        List<GradebookOutput> entriesOfClass1 = gradebookService.findByClassId(entry1.getClassId());
+        List<GradebookOutput> entriesOfClass1 = gradebookService.findByClassId(entry1.getCourseId());
 
         assertThat(entriesOfClass1).containsExactly(entrySaved);
     }

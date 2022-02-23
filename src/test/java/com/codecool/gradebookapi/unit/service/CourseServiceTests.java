@@ -30,17 +30,17 @@ public class CourseServiceTests {
     @Autowired
     private StudentService studentService;
 
-    private CourseInput class1;
-    private CourseInput class2;
+    private CourseInput course1;
+    private CourseInput course2;
     private StudentDto student;
 
     @BeforeEach
     public void setUp() {
-        class1 = CourseInput.builder()
-                .course("Algebra")
+        course1 = CourseInput.builder()
+                .name("Algebra")
                 .build();
-        class2 = CourseInput.builder()
-                .course("Biology")
+        course2 = CourseInput.builder()
+                .name("Biology")
                 .build();
         student = StudentDto.builder()
                 .firstname("John")
@@ -54,107 +54,107 @@ public class CourseServiceTests {
     }
 
     @Test
-    @DisplayName("save should return saved Class")
-    public void saveShouldReturnSavedClass() {
-        CourseOutput classSaved = courseService.save(class1);
+    @DisplayName("save should return saved Course")
+    public void saveShouldReturnSavedCourse() {
+        CourseOutput courseSaved = courseService.save(course1);
 
-        assertThat(classSaved.getId()).isNotNull();
-        assertThat(classSaved.getCourse()).isEqualTo("Algebra");
-        assertThat(classSaved.getStudents()).isEmpty();
+        assertThat(courseSaved.getId()).isNotNull();
+        assertThat(courseSaved.getName()).isEqualTo("Algebra");
+        assertThat(courseSaved.getStudents()).isEmpty();
     }
 
     @Test
     @DirtiesContext(methodMode = BEFORE_METHOD)
-    @DisplayName("findAll should return list of Classes")
-    public void findAll_shouldReturnListOfClasses() {
-        CourseOutput output1 = courseService.save(class1);
-        CourseOutput output2 = courseService.save(class2);
+    @DisplayName("findAll should return list of Courses")
+    public void findAll_shouldReturnListOfCourses() {
+        CourseOutput output1 = courseService.save(course1);
+        CourseOutput output2 = courseService.save(course2);
 
-        List<CourseOutput> classes = courseService.findAll();
+        List<CourseOutput> courses = courseService.findAll();
 
-        assertThat(classes).hasSize(2);
-        assertThat(classes).containsExactly(output1, output2);
+        assertThat(courses).hasSize(2);
+        assertThat(courses).containsExactly(output1, output2);
     }
 
     @Test
-    @DisplayName("when Class with given ID exists, findById should return Class")
-    public void whenClassWithGivenIdExists_findByIdShouldReturnClass() {
-        Long id = courseService.save(class1).getId();
+    @DisplayName("when Course with given ID exists, findById should return Course")
+    public void whenCourseWithGivenIdExists_findByIdShouldReturnCourse() {
+        Long id = courseService.save(course1).getId();
 
-        Optional<CourseOutput> classFound = courseService.findById(id);
+        Optional<CourseOutput> courseFound = courseService.findById(id);
 
-        assertThat(classFound).isPresent();
-        assertThat(classFound.get().getCourse()).isEqualTo("Algebra");
+        assertThat(courseFound).isPresent();
+        assertThat(courseFound.get().getName()).isEqualTo("Algebra");
     }
 
     @Test
-    @DisplayName("when Class with given ID does not exist, findById should return empty Optional")
-    public void whenClassWithGivenIdDoesNotExist_findByIdShouldReturnEmptyOptional() {
-        Long id = courseService.save(class2).getId();
+    @DisplayName("when Course with given ID does not exist, findById should return empty Optional")
+    public void whenCourseWithGivenIdDoesNotExist_findByIdShouldReturnEmptyOptional() {
+        Long id = courseService.save(course2).getId();
 
-        Optional<CourseOutput> classFound = courseService.findById(id + 1);
+        Optional<CourseOutput> courseFound = courseService.findById(id + 1);
 
-        assertThat(classFound).isEqualTo(Optional.empty());
+        assertThat(courseFound).isEqualTo(Optional.empty());
     }
 
     @Test
-    @DisplayName("deleteById should delete Class with given ID")
-    public void deleteById_shouldDeleteClassWithGivenId() {
-        long id = courseService.save(class1).getId();
+    @DisplayName("deleteById should delete Course with given ID")
+    public void deleteById_shouldDeleteCourseWithGivenId() {
+        long id = courseService.save(course1).getId();
 
         courseService.deleteById(id);
-        Optional<CourseOutput> classFound = courseService.findById(id);
+        Optional<CourseOutput> courseFound = courseService.findById(id);
 
-        assertThat(classFound).isEmpty();
+        assertThat(courseFound).isEmpty();
     }
 
     @Test
     @Transactional
-    @DisplayName("when Class with given ID exists, save should update existing Class")
-    public void whenClassWithGivenIdExists_saveShouldUpdateExistingClass() {
-        long id = courseService.save(class1).getId();
-        class1.setCourse("Algebra II");
-        courseService.update(id, class1);
+    @DisplayName("when Course with given ID exists, save should update existing Course")
+    public void whenCourseWithGivenIdExists_saveShouldUpdateExistingCourse() {
+        long id = courseService.save(course1).getId();
+        course1.setName("Algebra II");
+        courseService.update(id, course1);
 
-        CourseOutput updatedClass = courseService.findById(id).orElse(null);
+        CourseOutput updatedCourse = courseService.findById(id).orElse(null);
 
-        assertThat(updatedClass).isNotNull();
-        assertThat(updatedClass.getCourse()).isEqualTo("Algebra II");
+        assertThat(updatedCourse).isNotNull();
+        assertThat(updatedCourse.getName()).isEqualTo("Algebra II");
     }
 
     @Test
     @Transactional
-    @DisplayName("when Student exists with given ID, findClassesOfStudent should return list of Classes")
-    public void whenStudentExistsWithGivenId_findClassesOfStudentShouldReturnListOfClasses() {
+    @DisplayName("when Student exists with given ID, findCoursesOfStudent should return list of Courses")
+    public void whenStudentExistsWithGivenId_findCoursesOfStudentShouldReturnListOfCourses() {
         student = studentService.save(student);
-        CourseOutput class1Saved = courseService.save(class1);
-        CourseOutput class2Saved = courseService.save(class2);
-        class1Saved = courseService.addStudentToClass(student.getId(), class1Saved.getId());
-        class2Saved = courseService.addStudentToClass(student.getId(), class2Saved.getId());
+        CourseOutput course1Saved = courseService.save(course1);
+        CourseOutput course2Saved = courseService.save(course2);
+        course1Saved = courseService.addStudentToCourse(student.getId(), course1Saved.getId());
+        course2Saved = courseService.addStudentToCourse(student.getId(), course2Saved.getId());
 
-        List<CourseOutput> listOfClasses = courseService.findClassesOfStudent(student);
+        List<CourseOutput> listOfCourses = courseService.findCoursesOfStudent(student);
 
-        assertThat(listOfClasses).containsExactly(class1Saved, class2Saved);
+        assertThat(listOfCourses).containsExactly(course1Saved, course2Saved);
     }
 
     @Test
     @Transactional
-    @DisplayName("when Student is enrolled in given Class, isStudentInClass should return true")
-    public void whenStudentIsEnrolledInGivenClass_isStudentInClassShouldReturnTrue() {
+    @DisplayName("when Student is enrolled in given Course, isStudentInCourse should return true")
+    public void whenStudentIsEnrolledInGivenCourse_isStudentInCourseShouldReturnTrue() {
         long studentId = studentService.save(student).getId();
-        long classId = courseService.save(class1).getId();
-        courseService.addStudentToClass(studentId, classId);
+        long courseId = courseService.save(course1).getId();
+        courseService.addStudentToCourse(studentId, courseId);
 
-        assertTrue(courseService.isStudentInClass(studentId, classId));
+        assertTrue(courseService.isStudentInCourse(studentId, courseId));
     }
 
     @Test
-    @DisplayName("when Student is not enrolled in given Class, isStudentInClass should return false")
-    public void whenStudentIsNotEnrolledInGivenClass_isStudentInClassShouldReturnFalse() {
+    @DisplayName("when Student is not enrolled in given Course, isStudentInCourse should return false")
+    public void whenStudentIsNotEnrolledInGivenCourse_isStudentInCourseShouldReturnFalse() {
         long studentId = studentService.save(student).getId();
-        long classId = courseService.save(class1).getId();
+        long courseId = courseService.save(course1).getId();
 
-        assertFalse(courseService.isStudentInClass(studentId, classId));
+        assertFalse(courseService.isStudentInCourse(studentId, courseId));
     }
 
 }

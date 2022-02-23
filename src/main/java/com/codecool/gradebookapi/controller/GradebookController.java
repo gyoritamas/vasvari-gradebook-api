@@ -132,13 +132,13 @@ public class GradebookController {
     })
     public ResponseEntity<EntityModel<GradebookOutput>> gradeAssignment(@RequestBody @Valid GradebookInput gradebookInput) {
         Long studentId = gradebookInput.getStudentId();
-        Long classId = gradebookInput.getClassId();
+        Long classId = gradebookInput.getCourseId();
         Long assignmentId = gradebookInput.getAssignmentId();
 
         studentService.findById(studentId).orElseThrow(() -> new StudentNotFoundException(studentId));
         courseService.findById(classId).orElseThrow(() -> new CourseNotFoundException(classId));
         assignmentService.findById(assignmentId).orElseThrow(() -> new AssignmentNotFoundException(assignmentId));
-        if (!courseService.isStudentInClass(studentId, classId))
+        if (!courseService.isStudentInCourse(studentId, classId))
             throw new StudentNotInCourseException(studentId, classId);
         if (gradebookService.isDuplicateEntry(gradebookInput)) throw new DuplicateEntryException(gradebookInput);
 

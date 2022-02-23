@@ -7,8 +7,10 @@ import com.codecool.gradebookapi.dto.mapper.CourseMapper;
 import com.codecool.gradebookapi.dto.mapper.StudentMapper;
 import com.codecool.gradebookapi.model.Course;
 import com.codecool.gradebookapi.model.Student;
+import com.codecool.gradebookapi.model.Teacher;
 import com.codecool.gradebookapi.repository.CourseRepository;
 import com.codecool.gradebookapi.repository.StudentRepository;
+import com.codecool.gradebookapi.repository.TeacherRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -26,6 +28,9 @@ public class CourseService {
     private StudentRepository studentRepository;
 
     @Autowired
+    private TeacherRepository teacherRepository;
+
+    @Autowired
     private CourseMapper courseMapper;
 
     @Autowired
@@ -37,7 +42,7 @@ public class CourseService {
 
     public CourseOutput save(CourseInput courseInput) {
         Course course = Course.builder()
-                .name(courseInput.getCourse())
+                .name(courseInput.getName())
                 .students(new HashSet<>())
                 .build();
 
@@ -49,7 +54,7 @@ public class CourseService {
     public CourseOutput update(Long id, CourseInput courseInput) {
         Course clazz = Course.builder()
                 .id(id)
-                .name(courseInput.getCourse())
+                .name(courseInput.getName())
                 .students(courseRepository.getById(id).getStudents())
                 .build();
 
@@ -66,7 +71,15 @@ public class CourseService {
         courseRepository.deleteById(id);
     }
 
-    public CourseOutput addStudentToClass(Long studentId, Long classId) {
+    public CourseOutput setTeacherOfCourse(Long teacherId, Long courseId) {
+        Teacher teacher = teacherRepository.getById(teacherId);
+        Course course = courseRepository.getById(courseId);
+        course.setTeacher(teacher);
+
+        return courseMapper.map(courseRepository.save(course));
+    }
+
+    public CourseOutput addStudentToCourse(Long studentId, Long classId) {
         Student student = studentRepository.getById(studentId);
         Course clazz = courseRepository.getById(classId);
         clazz.addStudent(student);
@@ -74,14 +87,14 @@ public class CourseService {
         return courseMapper.map(courseRepository.save(clazz));
     }
 
-    public List<CourseOutput> findClassesOfStudent(StudentDto studentDto) {
+    public List<CourseOutput> findCoursesOfStudent(StudentDto studentDto) {
         Student student = studentMapper.map(studentDto);
         List<Course> courses = courseRepository.findCoursesByStudentsContaining(student);
 
         return courseMapper.mapAll(courses);
     }
 
-    public boolean isStudentInClass(Long studentId, Long classId) {
+    public boolean isStudentInCourse(Long studentId, Long classId) {
         Student student = studentRepository.getById(studentId);
 
         return courseRepository.findCoursesByStudentsContainingAndId(student, classId).isPresent();

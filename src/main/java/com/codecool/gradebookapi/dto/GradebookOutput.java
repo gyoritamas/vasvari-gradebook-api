@@ -20,7 +20,7 @@ public class GradebookOutput {
     private Long studentId;
 
     @Schema(example = "1")
-    private Long classId;
+    private Long courseId;
 
     @Schema(example = "1")
     private Long assignmentId;

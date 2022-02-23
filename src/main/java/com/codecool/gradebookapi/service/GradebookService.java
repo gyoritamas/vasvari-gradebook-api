@@ -59,7 +59,7 @@ public class GradebookService {
 
     public boolean isDuplicateEntry(GradebookInput entry) {
         return repository
-                .findByStudent_IdAndCourse_IdAndAssignment_Id(entry.getStudentId(), entry.getClassId(), entry.getAssignmentId())
+                .findByStudent_IdAndCourse_IdAndAssignment_Id(entry.getStudentId(), entry.getCourseId(), entry.getAssignmentId())
                 .isPresent();
     }
 }

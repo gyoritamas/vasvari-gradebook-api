@@ -66,15 +66,15 @@ public class CourseController {
     }
 
     @PostMapping
-    @Operation(summary = "Creates a new class")
+    @Operation(summary = "Creates a new course")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "201", description = "Created new class"),
-            @ApiResponse(responseCode = "400", description = "Could not create class due to invalid parameters")
+            @ApiResponse(responseCode = "201", description = "Created new course"),
+            @ApiResponse(responseCode = "400", description = "Could not create course due to invalid parameters")
     })
-    public ResponseEntity<EntityModel<CourseOutput>> add(@RequestBody @Valid CourseInput clazz) {
-        CourseOutput classCreated = courseService.save(clazz);
-        EntityModel<CourseOutput> entityModel = assembler.toModel(classCreated);
-        log.info("Created class with ID {}", classCreated.getId());
+    public ResponseEntity<EntityModel<CourseOutput>> add(@RequestBody @Valid CourseInput course) {
+        CourseOutput courseCreated = courseService.save(course);
+        EntityModel<CourseOutput> entityModel = assembler.toModel(courseCreated);
+        log.info("Created course with ID {}", courseCreated.getId());
 
         return ResponseEntity
                 .created(entityModel.getRequiredLink(IanaLinkRelations.SELF).toUri())
@@ -113,19 +113,19 @@ public class CourseController {
         return ResponseEntity.noContent().build();
     }
 
-    @PostMapping("/{classId}/class_enrollment/{studentId}")
-    @Operation(summary = "Adds a student to a class")
+    @PostMapping("/{courseId}/class_enrollment/{studentId}")
+    @Operation(summary = "Adds a student to a course")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Added student to class"),
-            @ApiResponse(responseCode = "404", description = "Could not find class/student with given ID")
+            @ApiResponse(responseCode = "200", description = "Added student to course"),
+            @ApiResponse(responseCode = "404", description = "Could not find course/student with given ID")
     })
-    public ResponseEntity<EntityModel<CourseOutput>> addStudentToClass(@PathVariable("classId") Long classId,
+    public ResponseEntity<EntityModel<CourseOutput>> addStudentToClass(@PathVariable("courseId") Long courseId,
                                                                        @PathVariable("studentId") Long studentId) {
-        courseService.findById(classId).orElseThrow(() -> new CourseNotFoundException(classId));
+        courseService.findById(courseId).orElseThrow(() -> new CourseNotFoundException(courseId));
         studentService.findById(studentId).orElseThrow(() -> new StudentNotFoundException(studentId));
-        log.info("Added student {} to class {}", studentId, classId);
+        log.info("Added student {} to class {}", studentId, courseId);
 
         return ResponseEntity
-                .ok(assembler.toModel(courseService.addStudentToClass(studentId, classId)));
+                .ok(assembler.toModel(courseService.addStudentToCourse(studentId, courseId)));
     }
 }

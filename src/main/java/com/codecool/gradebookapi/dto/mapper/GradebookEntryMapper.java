@@ -27,7 +27,7 @@ public class GradebookEntryMapper {
         return GradebookOutput.builder()
                 .id(gradebookEntry.getId())
                 .studentId(gradebookEntry.getStudent().getId())
-                .classId(gradebookEntry.getCourse().getId())
+                .courseId(gradebookEntry.getCourse().getId())
                 .assignmentId(gradebookEntry.getAssignment().getId())
                 .grade(gradebookEntry.getGrade())
                 .build();
@@ -39,7 +39,7 @@ public class GradebookEntryMapper {
                         studentRepository.getById(gradebookInput.getStudentId())
                 )
                 .course(
-                        courseRepository.getById(gradebookInput.getClassId())
+                        courseRepository.getById(gradebookInput.getCourseId())
                 )
                 .assignment(
                         assignmentRepository.getById(gradebookInput.getAssignmentId())

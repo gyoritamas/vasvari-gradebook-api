@@ -13,8 +13,8 @@ import javax.validation.constraints.NotBlank;
 @EqualsAndHashCode
 public class CourseInput {
 
-    @NotBlank(message = "Course field cannot be empty")
+    @NotBlank(message = "Name field cannot be empty")
     @Schema(example = "Algebra")
-    private String course;
+    private String name;
 
 }
