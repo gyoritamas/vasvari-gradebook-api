@@ -9,6 +9,7 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import java.time.LocalDate;
 
 @Entity
 @Data
@@ -21,6 +22,10 @@ public class Teacher {
     private Long id;
     private String firstname;
     private String lastname;
+    private String email;
+    private String address;
+    private String phone;
+    private LocalDate birthdate;
 
     public String getName() {
         return firstname + " " + lastname;

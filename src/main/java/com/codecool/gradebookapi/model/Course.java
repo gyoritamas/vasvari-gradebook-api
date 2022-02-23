@@ -18,6 +18,9 @@ public class Course {
 
     private String name;
 
+    @ManyToOne
+    private Teacher teacher;
+
     @ManyToMany(fetch = FetchType.EAGER)
     private Set<Student> students;
 

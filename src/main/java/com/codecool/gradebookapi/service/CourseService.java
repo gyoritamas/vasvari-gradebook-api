@@ -76,7 +76,7 @@ public class CourseService {
 
     public List<CourseOutput> findClassesOfStudent(StudentDto studentDto) {
         Student student = studentMapper.map(studentDto);
-        List<Course> courses = courseRepository.findClassByStudentsContaining(student);
+        List<Course> courses = courseRepository.findCoursesByStudentsContaining(student);
 
         return courseMapper.mapAll(courses);
     }
@@ -84,6 +84,6 @@ public class CourseService {
     public boolean isStudentInClass(Long studentId, Long classId) {
         Student student = studentRepository.getById(studentId);
 
-        return courseRepository.findClassByStudentsContainingAndId(student, classId).isPresent();
+        return courseRepository.findCoursesByStudentsContainingAndId(student, classId).isPresent();
     }
 }
