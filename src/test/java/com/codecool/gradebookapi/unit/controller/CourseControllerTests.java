@@ -1,14 +1,12 @@
 package com.codecool.gradebookapi.unit.controller;
 
 import com.codecool.gradebookapi.controller.CourseController;
-import com.codecool.gradebookapi.dto.CourseInput;
-import com.codecool.gradebookapi.dto.CourseOutput;
-import com.codecool.gradebookapi.dto.GradebookOutput;
-import com.codecool.gradebookapi.dto.StudentDto;
+import com.codecool.gradebookapi.dto.*;
 import com.codecool.gradebookapi.dto.assembler.CourseModelAssembler;
 import com.codecool.gradebookapi.service.CourseService;
 import com.codecool.gradebookapi.service.GradebookService;
 import com.codecool.gradebookapi.service.StudentService;
+import com.codecool.gradebookapi.service.TeacherService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -41,6 +39,9 @@ public class CourseControllerTests {
 
     @MockBean
     private StudentService studentService;
+
+    @MockBean
+    private TeacherService teacherService;
 
     @MockBean
     private GradebookService gradebookService;
@@ -292,6 +293,48 @@ public class CourseControllerTests {
 
         this.mockMvc
                 .perform(post("/api/classes/99/class_enrollment/1"))
+                .andDo(print())
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    @DisplayName("when entities exist with given IDs, setTeacherOfCourse should return Course with added Teacher")
+    public void whenEntitiesExistWithGivenIds_setTeacherOfCourse_shouldReturnCourseWithAddedTeacher() throws Exception {
+        TeacherDto teacher = TeacherDto.builder().id(1L).firstname("John").lastname("Smith").build();
+        CourseOutput course = CourseOutput.builder().id(1L).name("Algebra").teacherId(1L).build();
+
+        when(teacherService.findById(1L)).thenReturn(Optional.of(teacher));
+        when(courseService.findById(1L)).thenReturn(Optional.of(course));
+        when(courseService.setTeacherOfCourse(1L, 1L)).thenReturn(course);
+
+        this.mockMvc
+                .perform(post("/api/classes/1/set_teacher/1"))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id", is(1)))
+                .andExpect(jsonPath("$.name", is("Algebra")))
+                .andExpect(jsonPath("$.teacherId", is(1)));
+    }
+
+    @Test
+    @DisplayName("when Teacher does not exist with given ID, setTeacherOfCourse should return response 'Not Found'")
+    public void whenTeacherDoesNotExistWithGivenId_setTeacherOfCourse_shouldReturnResponseNotFound() throws Exception {
+        when(teacherService.findById(99L)).thenReturn(Optional.empty());
+        when(courseService.findById(1L)).thenReturn(Optional.of(courseOutput1));
+
+        this.mockMvc
+                .perform(post("/api/classes/1/set_teacher/99"))
+                .andDo(print())
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    @DisplayName("when Course does not exist with given ID, setTeacherOfCourse should return response 'Not Found'")
+    public void whenCourseDoesNotExistWithGivenId_setTeacherOfCourse_shouldReturnResponseNotFound() throws Exception {
+        when(courseService.findById(99L)).thenReturn(Optional.empty());
+
+        this.mockMvc
+                .perform(post("/api/classes/99/set_teacher/1"))
                 .andDo(print())
                 .andExpect(status().isNotFound());
     }
