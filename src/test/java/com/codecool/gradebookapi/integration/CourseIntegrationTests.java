@@ -1,9 +1,6 @@
 package com.codecool.gradebookapi.integration;
 
-import com.codecool.gradebookapi.controller.AssignmentController;
-import com.codecool.gradebookapi.controller.CourseController;
-import com.codecool.gradebookapi.controller.GradebookController;
-import com.codecool.gradebookapi.controller.StudentController;
+import com.codecool.gradebookapi.controller.*;
 import com.codecool.gradebookapi.dto.*;
 import com.codecool.gradebookapi.testmodel.CourseOutput;
 import org.junit.jupiter.api.*;
@@ -39,17 +36,20 @@ public class CourseIntegrationTests {
 
     private Link linkToClasses;
     private Link linkToStudents;
+    private Link linkToTeachers;
 
     private CourseInput courseInput1;
     private CourseInput courseInput2;
     private CourseOutput courseOutput1;
     private CourseOutput courseOutput2;
     private StudentDto student;
+    private TeacherDto teacher;
 
     @BeforeEach
     public void setUp() {
         linkToClasses = linkTo(CourseController.class).withSelfRel();
         linkToStudents = linkTo(StudentController.class).withSelfRel();
+        linkToTeachers = linkTo(TeacherController.class).withSelfRel();
 
         courseInput1 = CourseInput.builder()
                 .name("Algebra")
@@ -77,6 +77,16 @@ public class CourseIntegrationTests {
                 .phone("202-555-0198")
                 .birthdate("2005-12-01")
                 .build();
+
+        teacher = TeacherDto.builder()
+                .firstname("John")
+                .lastname("Smith")
+                .email("johnsmith@email.com")
+                .address("9351 Morris St., Reisterstown, MD 21136")
+                .phone("202-555-9810")
+                .birthdate("1984-04-13")
+                .build();
+
     }
 
     @Nested
@@ -140,6 +150,48 @@ public class CourseIntegrationTests {
                     linkTo(methodOn(CourseController.class).addStudentToClass(99L, studentId)).withSelfRel();
             ResponseEntity<?> response =
                     template.postForEntity(linkToClassEnrollment.getHref(), null, String.class);
+
+            assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
+        }
+
+        @Test
+        @DisplayName("setTeacherOfCourse should return Course with set teacherId")
+        public void setTeacherOfCourse_shouldReturnCourseWithGivenTeacherSetAsParameter() {
+            long teacherId = template.postForObject(linkToTeachers.getHref(), teacher, TeacherDto.class).getId();
+            long courseId = template.postForObject(linkToClasses.getHref(), courseInput1, CourseOutput.class).getId();
+
+            Link linkToSetTeacher =
+                    linkTo(methodOn(CourseController.class).setTeacherOfCourse(courseId, teacherId)).withSelfRel();
+            ResponseEntity<CourseOutput> response =
+                    template.postForEntity(linkToSetTeacher.getHref(), null, CourseOutput.class);
+
+            assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+            assertThat(response.getBody()).isNotNull();
+            assertThat(response.getBody().getTeacherId()).isEqualTo(teacherId);
+        }
+
+        @Test
+        @DisplayName("when Teacher does not exist with given ID, should return response 'Not Found'")
+        public void whenTeacherDoesNotExistWithGivenId_shouldReturnResponseNotFound() {
+            long courseId = template.postForObject(linkToClasses.getHref(), courseInput1, CourseOutput.class).getId();
+
+            Link linkToSetTeacher =
+                    linkTo(methodOn(CourseController.class).setTeacherOfCourse(courseId, 99L)).withSelfRel();
+            ResponseEntity<?> response =
+                    template.postForEntity(linkToSetTeacher.getHref(), null, String.class);
+
+            assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
+        }
+
+        @Test
+        @DisplayName("when Course does not exist with given ID, should return response 'Not Found'")
+        public void whenCourseDoesNotExistWithGivenId_shouldReturnResponseNotFound() {
+            long teacherId = template.postForObject(linkToTeachers.getHref(), teacher, TeacherDto.class).getId();
+
+            Link linkToSetTeacher =
+                    linkTo(methodOn(CourseController.class).setTeacherOfCourse(99L, teacherId)).withSelfRel();
+            ResponseEntity<?> response =
+                    template.postForEntity(linkToSetTeacher.getHref(), null, String.class);
 
             assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
         }
