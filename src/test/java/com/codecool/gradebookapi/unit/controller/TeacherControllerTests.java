@@ -1,14 +1,16 @@
 package com.codecool.gradebookapi.unit.controller;
 
+import com.codecool.gradebookapi.auth.ApplicationUserService;
 import com.codecool.gradebookapi.controller.TeacherController;
-import com.codecool.gradebookapi.dto.StudentDto;
 import com.codecool.gradebookapi.dto.TeacherDto;
 import com.codecool.gradebookapi.dto.assembler.CourseModelAssembler;
 import com.codecool.gradebookapi.dto.assembler.TeacherModelAssembler;
+import com.codecool.gradebookapi.security.PasswordConfig;
 import com.codecool.gradebookapi.service.TeacherService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -24,6 +26,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.List;
@@ -33,13 +36,11 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(TeacherController.class)
-@Import({TeacherModelAssembler.class, CourseModelAssembler.class})
+@Import({TeacherModelAssembler.class, CourseModelAssembler.class, PasswordConfig.class})
 public class TeacherControllerTests {
 
     @Autowired
@@ -48,12 +49,16 @@ public class TeacherControllerTests {
     @MockBean
     private TeacherService service;
 
+    @MockBean
+    private ApplicationUserService applicationUserService;
+
     private static ObjectMapper mapper;
 
     private TeacherDto teacher1;
     private TeacherDto teacher2;
 
-    public TeacherControllerTests() {
+    @BeforeAll
+    public static void init() {
         mapper = new ObjectMapper();
         mapper.registerModule(new JavaTimeModule());
         mapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
@@ -83,6 +88,7 @@ public class TeacherControllerTests {
     }
 
     @Test
+    @WithMockUser(username = "admin", password = "admin", roles = "ADMIN")
     @DisplayName("given empty database, getAll should return empty list")
     public void givenEmptyDatabase_getAllShouldReturnEmptyList() throws Exception {
         when(service.findAll()).thenReturn(List.of());
@@ -95,6 +101,7 @@ public class TeacherControllerTests {
     }
 
     @Test
+    @WithMockUser(username = "admin", password = "admin", roles = "ADMIN")
     @DisplayName("when Teachers posted, getAll should return list of Teachers")
     public void whenTeachersPosted_getAllShouldReturnListOfTeachers() throws Exception {
         when(service.findAll()).thenReturn(List.of(teacher1, teacher2));
@@ -109,6 +116,7 @@ public class TeacherControllerTests {
     }
 
     @Test
+    @WithMockUser(username = "admin", password = "admin", roles = "ADMIN")
     @DisplayName("when Teacher with given ID exists, getById should return Teacher")
     public void whenTeacherWithGivenIdExists_getByIdShouldReturnTeacher() throws Exception {
         when(service.findById(1L)).thenReturn(Optional.of(teacher1));
@@ -121,6 +129,7 @@ public class TeacherControllerTests {
     }
 
     @Test
+    @WithMockUser(username = "admin", password = "admin", roles = "ADMIN")
     @DisplayName("when Teacher with given ID does not exist, getById should return response 'Not Found'")
     public void whenTeacherWithGivenIdDoesNotExist_getByIdShouldReturnResponseNotFound() throws Exception {
         when(service.findById(99L)).thenReturn(Optional.empty());
@@ -132,6 +141,7 @@ public class TeacherControllerTests {
     }
 
     @Test
+    @WithMockUser(username = "admin", password = "admin", roles = "ADMIN")
     @DisplayName("given valid Teacher parameters, add should return created Teacher")
     public void givenValidTeacherParameters_addShouldReturnCreatedTeacher() throws Exception {
         when(service.save(teacher2)).thenReturn(teacher2);
@@ -150,6 +160,7 @@ public class TeacherControllerTests {
     }
 
     @ParameterizedTest
+    @WithMockUser(username = "admin", password = "admin", roles = "ADMIN")
     @CsvFileSource(resources = "/invalid_teacher_data.csv", numLinesToSkip = 1, delimiter = ';')
     @DisplayName("when Teacher has invalid parameters, add should return response 'Bad Request'")
     public void whenTeacherHasInvalidParameters_addShouldReturnResponseBadRequest(
@@ -168,6 +179,7 @@ public class TeacherControllerTests {
     }
 
     @Test
+    @WithMockUser(username = "admin", password = "admin", roles = "ADMIN")
     @DisplayName("when Teacher does not exist with given ID, update should return response 'Not Found'")
     public void whenTeacherDoesNotExistWithGivenId_updateShouldReturnResponseNotFound() throws Exception {
         when(service.findById(99L)).thenReturn(Optional.empty());
@@ -184,6 +196,7 @@ public class TeacherControllerTests {
     }
 
     @ParameterizedTest
+    @WithMockUser(username = "admin", password = "admin", roles = "ADMIN")
     @CsvFileSource(resources = "/invalid_teacher_data.csv", numLinesToSkip = 1, delimiter = ';')
     @DisplayName("when Teacher has invalid parameters, update should return response 'Bad Request'")
     public void whenTeacherHasInvalidParameters_updateShouldReturnResponseBadRequest(
@@ -202,6 +215,7 @@ public class TeacherControllerTests {
     }
 
     @Test
+    @WithMockUser(username = "admin", password = "admin", roles = "ADMIN")
     @DisplayName("when Teacher exists with given ID, update should return updated Teacher")
     public void whenTeacherExistsWithGivenId_updateShouldReturnUpdatedTeacher() throws Exception {
         when(service.findById(1L)).thenReturn(Optional.of(teacher1));
@@ -222,6 +236,7 @@ public class TeacherControllerTests {
     }
 
     @Test
+    @WithMockUser(username = "admin", password = "admin", roles = "ADMIN")
     @DisplayName("when Teacher does not exist with given ID, delete should return response 'Not Found'")
     public void whenTeacherDoesNotExistWithGivenId_deleteShouldReturnResponseNotFound() throws Exception {
         when(service.findById(99L)).thenReturn(Optional.empty());
@@ -233,6 +248,7 @@ public class TeacherControllerTests {
     }
 
     @Test
+    @WithMockUser(username = "admin", password = "admin", roles = "ADMIN")
     @DisplayName("when Teacher exists with given ID, delete should return response 'No Content'")
     public void whenTeacherExistsWithGivenId_deleteShouldReturnResponseNoContent() throws Exception {
         when(service.findById(1L)).thenReturn(Optional.of(teacher1));

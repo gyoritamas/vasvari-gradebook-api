@@ -20,6 +20,7 @@ import org.springframework.hateoas.MediaTypes;
 import org.springframework.hateoas.client.Traverson;
 import org.springframework.hateoas.server.core.TypeReferences;
 import org.springframework.http.*;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.annotation.DirtiesContext;
 
 import java.net.URI;
@@ -72,7 +73,9 @@ public class TeacherIntegrationTests {
         @Test
         @DisplayName("when Teacher posted with valid parameters, should return created Teacher")
         public void whenStudentPostedWithValidParameters_shouldReturnCreatedStudent() {
-            ResponseEntity<TeacherDto> response = template.postForEntity(baseLink.getHref(), teacher1, TeacherDto.class);
+            ResponseEntity<TeacherDto> response = template
+                    .withBasicAuth("admin", "admin")
+                    .postForEntity(baseLink.getHref(), teacher1, TeacherDto.class);
 
             assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
             assertThat(response.getBody()).isEqualTo(teacher1);
