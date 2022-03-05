@@ -6,6 +6,7 @@ import com.codecool.gradebookapi.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
@@ -44,10 +45,37 @@ public class ApplicationSecurityConfig extends WebSecurityConfigurerAdapter {
     protected void configure(HttpSecurity http) throws Exception {
         http.csrf().disable()
                 .authorizeRequests()
-                .antMatchers("/api/students/**").hasAnyRole(ADMIN.name(), TEACHER.name())
-                .antMatchers("/api/teachers/**").hasAnyRole(ADMIN.name())
+                .antMatchers(
+                        "/api/students/**"
+                ).hasAnyRole(ADMIN.name(), TEACHER.name())
+                .antMatchers(
+                        "/api/assignments/**",
+                        "/api/gradebook/**",
+                        "/api/student_gradebook/**",
+                        "/api/class_gradebook/**"
+                ).hasAnyRole(TEACHER.name())
+                .antMatchers(
+                        "/api/teachers/**",
+                        "/api/classes/**",
+                        "/api/users/**"
+                ).hasAnyRole(ADMIN.name())
+//                .antMatchers(
+//                        HttpMethod.GET,
+//                        "/",
+//                        "/v2/api-docs",
+//                        "/v3/api-docs",
+//                        "/webjars/**",
+//                        "/swagger-resources/**",
+//                        "/configuration/**",
+//                        "/*.html",
+//                        "/favicon.ico",
+//                        "/**/*.html",
+//                        "/**/*.css",
+//                        "/**/*.js"
+//                ).permitAll()
+                .antMatchers("/auth/**").permitAll()
                 // Permit all other request without authentication
-                .and().authorizeRequests().anyRequest().permitAll()
+                //.and().authorizeRequests().anyRequest().permitAll()
                 // Reject every unauthenticated request and send error code 401.
                 .and().exceptionHandling().authenticationEntryPoint(entryPoint)
                 // We don't need sessions to be created.
