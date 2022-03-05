@@ -35,6 +35,8 @@ public class UserController {
     public ResponseEntity<CollectionModel<EntityModel<UserDto>>> getAll() {
         log.info("Returned list of all users");
 
+
+
         return ResponseEntity
                 .ok(assembler.toCollectionModel(userService.findAll()));
     }

@@ -1,13 +1,11 @@
 package com.codecool.gradebookapi.jwt;
 
-import com.codecool.gradebookapi.auth.ApplicationUserService;
 import com.codecool.gradebookapi.service.UserService;
 import io.jsonwebtoken.ExpiredJwtException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -22,7 +20,7 @@ import java.io.IOException;
 @RequiredArgsConstructor
 public class JwtRequestFilter extends OncePerRequestFilter {
 
-    private final ApplicationUserService userDetailsService;
+    private final UserService userDetailsService;
     private final JwtTokenUtil jwtTokenUtil;
 
     @Override

@@ -1,8 +1,8 @@
 package com.codecool.gradebookapi.security;
 
-import com.codecool.gradebookapi.auth.ApplicationUserService;
 import com.codecool.gradebookapi.jwt.JwtAuthenticationEntryPoint;
 import com.codecool.gradebookapi.jwt.JwtRequestFilter;
+import com.codecool.gradebookapi.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -25,19 +25,19 @@ import static com.codecool.gradebookapi.security.ApplicationUserRole.TEACHER;
 public class ApplicationSecurityConfig extends WebSecurityConfigurerAdapter {
 
     private final JwtAuthenticationEntryPoint entryPoint;
-    private final ApplicationUserService userService;
+    private final UserService userService;
     private final JwtRequestFilter requestFilter;
     private final PasswordEncoder passwordEncoder;
 
     @Override
     protected void configure(AuthenticationManagerBuilder auth) throws Exception {
         auth.authenticationProvider(daoAuthenticationProvider());
-        auth.inMemoryAuthentication()
-                .withUser("admin").password(passwordEncoder.encode("admin")).roles("ADMIN")
-                .and()
-                .withUser("teacher").password(passwordEncoder.encode("teacher")).roles("TEACHER")
-                .and()
-                .withUser("student").password(passwordEncoder.encode("student")).roles("STUDENT");
+//        auth.inMemoryAuthentication()
+//                .withUser("admin").password(passwordEncoder.encode("admin")).roles("ADMIN")
+//                .and()
+//                .withUser("teacher").password(passwordEncoder.encode("teacher")).roles("TEACHER")
+//                .and()
+//                .withUser("student").password(passwordEncoder.encode("student")).roles("STUDENT");
     }
 
     @Override

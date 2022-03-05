@@ -1,12 +1,12 @@
 package com.codecool.gradebookapi.unit.controller;
 
-import com.codecool.gradebookapi.auth.ApplicationUserService;
 import com.codecool.gradebookapi.controller.TeacherController;
 import com.codecool.gradebookapi.dto.TeacherDto;
 import com.codecool.gradebookapi.dto.assembler.CourseModelAssembler;
 import com.codecool.gradebookapi.dto.assembler.TeacherModelAssembler;
 import com.codecool.gradebookapi.security.PasswordConfig;
 import com.codecool.gradebookapi.service.TeacherService;
+import com.codecool.gradebookapi.service.UserService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
@@ -50,7 +50,7 @@ public class TeacherControllerTests {
     private TeacherService service;
 
     @MockBean
-    private ApplicationUserService applicationUserService;
+    private UserService applicationUserService;
 
     private static ObjectMapper mapper;
 

@@ -44,7 +44,7 @@ public class StudentController {
     @Autowired
     private CourseModelAssembler courseModelAssembler;
 
-    @RequestMapping(value="/", method = RequestMethod.GET, headers="content-type=application/json")
+    @GetMapping
     @Operation(summary = "Lists all students")
     @ApiResponse(responseCode = "200", description = "Returned list of all students")
     public ResponseEntity<CollectionModel<EntityModel<StudentDto>>> getAll() {

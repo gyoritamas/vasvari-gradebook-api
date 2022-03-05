@@ -1,5 +1,6 @@
 package com.codecool.gradebookapi.jwt;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.stereotype.Component;
@@ -10,13 +11,12 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
 @Component
+@Slf4j
 public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint {
-    private static final long serialVersionUID = -7858869558953243875L;
 
     @Override
-    public void commence(HttpServletRequest request, HttpServletResponse response, AuthenticationException e)
-            throws IOException, ServletException {
+    public void commence(HttpServletRequest request, HttpServletResponse response, AuthenticationException e) throws IOException {
+        log.warn("Unauthorized");
         response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Unauthorized");
-
     }
 }

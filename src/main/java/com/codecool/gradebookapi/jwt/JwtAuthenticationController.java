@@ -15,16 +15,20 @@ import org.springframework.web.bind.annotation.RestController;
 @CrossOrigin
 @RequiredArgsConstructor
 public class JwtAuthenticationController {
+
     private final AuthenticationManager authenticationManager;
     private final JwtTokenUtil jwtTokenUtil;
 
-    @PostMapping("/authenticate")
-    public ResponseEntity<?> createAuthenticationToken(@RequestBody JwtRequest authenticationRequest) throws Exception {
+    @PostMapping("/api/authenticate")
+    public JwtResponse createAuthenticationToken(@RequestBody JwtRequest authenticationRequest) throws Exception {
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(authenticationRequest.getUsername(), authenticationRequest.getPassword())
         );
         final UserDetails userDetails = (UserDetails) authentication.getPrincipal();
         final String token = jwtTokenUtil.generateToken(userDetails);
-        return ResponseEntity.ok(new JwtResponse(token));
+
+        //return ResponseEntity.ok(new JwtResponse(token));
+        // TODO: make it return ResponseEntity
+        return new JwtResponse(token);
     }
 }

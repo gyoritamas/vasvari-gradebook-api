@@ -25,5 +25,4 @@ public class User {
     @Enumerated(EnumType.STRING)
     private ApplicationUserRole role;
 
-    // TODO: add fields from ApplicationUser (?)
 }
