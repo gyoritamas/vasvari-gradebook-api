@@ -73,7 +73,7 @@ public class ApplicationSecurityConfig extends WebSecurityConfigurerAdapter {
 //                        "/**/*.css",
 //                        "/**/*.js"
 //                ).permitAll()
-                .antMatchers("/auth/**").permitAll()
+                .antMatchers("/api/authenticate/**").permitAll()
                 // Permit all other request without authentication
                 //.and().authorizeRequests().anyRequest().permitAll()
                 // Reject every unauthenticated request and send error code 401.

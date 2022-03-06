@@ -7,6 +7,8 @@ import org.springframework.hateoas.server.core.Relation;
 
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
 
 @NoArgsConstructor
 @AllArgsConstructor
@@ -18,12 +20,15 @@ import javax.persistence.Enumerated;
 public class UserDto {
     private Long id;
 
+    @NotBlank(message = "Username field cannot be empty")
     @Schema(example = "username")
     private String username;
 
+    @NotBlank(message = "Password field cannot be empty")
     @Schema(example = "password")
     private String password;
 
+    @NotNull(message = "Role field cannot be empty")
     @Enumerated(EnumType.STRING)
     private ApplicationUserRole role;
 }
