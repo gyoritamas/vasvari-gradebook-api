@@ -22,6 +22,7 @@ import org.springframework.hateoas.CollectionModel;
 import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.IanaLinkRelations;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
@@ -78,6 +79,7 @@ public class CourseController {
             @ApiResponse(responseCode = "201", description = "Created new course"),
             @ApiResponse(responseCode = "400", description = "Could not create course due to invalid parameters")
     })
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<EntityModel<CourseOutput>> add(@RequestBody @Valid CourseInput course) {
         CourseOutput courseCreated = courseService.save(course);
         EntityModel<CourseOutput> entityModel = assembler.toModel(courseCreated);
@@ -95,6 +97,7 @@ public class CourseController {
             @ApiResponse(responseCode = "400", description = "Could not update course due to invalid parameters"),
             @ApiResponse(responseCode = "404", description = "Could not find course with given ID")
     })
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<EntityModel<CourseOutput>> update(@RequestBody @Valid CourseInput course,
                                                             @PathVariable("id") Long id) {
         courseService.findById(id).orElseThrow(() -> new CourseNotFoundException(id));
@@ -111,6 +114,7 @@ public class CourseController {
             @ApiResponse(responseCode = "404", description = "Could not find course with given ID"),
             @ApiResponse(responseCode = "405", description = "Could not delete course with given ID")
     })
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> delete(@PathVariable("id") Long id) {
         courseService.findById(id).orElseThrow(() -> new CourseNotFoundException(id));
         if (!gradebookService.findByClassId(id).isEmpty()) throw new CourseInUseException(id);
@@ -126,6 +130,7 @@ public class CourseController {
             @ApiResponse(responseCode = "200", description = "Set the teacher of the course"),
             @ApiResponse(responseCode = "404", description = "Could not find course/teacher with given ID")
     })
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<EntityModel<CourseOutput>> setTeacherOfCourse(@PathVariable("courseId") Long courseId,
                                                                         @PathVariable("teacherId") Long teacherId) {
         courseService.findById(courseId).orElseThrow(() -> new CourseNotFoundException(courseId));

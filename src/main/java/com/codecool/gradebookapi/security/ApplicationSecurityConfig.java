@@ -10,6 +10,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
+import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
@@ -23,6 +24,7 @@ import static com.codecool.gradebookapi.security.ApplicationUserRole.TEACHER;
 @Configuration
 @EnableWebSecurity
 @RequiredArgsConstructor
+@EnableGlobalMethodSecurity(prePostEnabled = true)
 public class ApplicationSecurityConfig extends WebSecurityConfigurerAdapter {
 
     private final JwtAuthenticationEntryPoint entryPoint;
@@ -45,18 +47,18 @@ public class ApplicationSecurityConfig extends WebSecurityConfigurerAdapter {
     protected void configure(HttpSecurity http) throws Exception {
         http.csrf().disable()
                 .authorizeRequests()
-                .antMatchers(
-                        "/api/students/**"
-                ).hasAnyRole(ADMIN.name(), TEACHER.name())
+//                .antMatchers(
+//                        "/api/students/**", "/api/classes/**"
+//                ).hasAnyRole(ADMIN.name(), TEACHER.name())
                 .antMatchers(
                         "/api/assignments/**",
                         "/api/gradebook/**",
                         "/api/student_gradebook/**",
                         "/api/class_gradebook/**"
-                ).hasAnyRole(TEACHER.name())
+                ).hasAnyRole(ADMIN.name(), TEACHER.name())
                 .antMatchers(
                         "/api/teachers/**",
-                        "/api/classes/**",
+                        //"/api/classes/**",
                         "/api/users/**"
                 ).hasAnyRole(ADMIN.name())
 //                .antMatchers(

@@ -1,10 +1,12 @@
 package com.codecool.gradebookapi.jwt;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -14,6 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @CrossOrigin
 @RequiredArgsConstructor
+@Slf4j
 public class JwtAuthenticationController {
 
     private final AuthenticationManager authenticationManager;
@@ -25,6 +28,7 @@ public class JwtAuthenticationController {
                 new UsernamePasswordAuthenticationToken(authenticationRequest.getUsername(), authenticationRequest.getPassword())
         );
         final UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+        log.info(String.format("User %s (%s) authenticated", userDetails.getUsername(), userDetails.getAuthorities().stream().map(GrantedAuthority::getAuthority).findFirst()));
         final String token = jwtTokenUtil.generateToken(userDetails);
 
         //return ResponseEntity.ok(new JwtResponse(token));

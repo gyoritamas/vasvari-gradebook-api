@@ -24,6 +24,7 @@ public class CourseOutput {
     @Schema(example = "1")
     private Long teacherId;
 
+    // TODO: change to IDs
     @Schema(example = "[\"John Doe\", \"Jane Doe\"]")
     private List<String> students;
 
