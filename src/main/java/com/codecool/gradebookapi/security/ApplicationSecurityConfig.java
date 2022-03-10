@@ -50,14 +50,14 @@ public class ApplicationSecurityConfig extends WebSecurityConfigurerAdapter {
 //                        "/api/students/**", "/api/classes/**"
 //                ).hasAnyRole(ADMIN.name(), TEACHER.name())
                 .antMatchers(
-
+                        "/api/student_gradebook/**"
                 ).hasAnyRole(ADMIN.name(), TEACHER.name(), STUDENT.name())
                 .antMatchers(
                         "/api/classes/**",
                         "/api/students/**",
                         "/api/assignments/**",
                         "/api/gradebook/**",
-                        "/api/student_gradebook/**",
+                        //"/api/student_gradebook/**",
                         "/api/class_gradebook/**"
                 ).hasAnyRole(ADMIN.name(), TEACHER.name())
                 .antMatchers(

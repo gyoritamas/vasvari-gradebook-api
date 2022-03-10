@@ -5,10 +5,7 @@ import com.codecool.gradebookapi.dto.GradebookOutput;
 import com.codecool.gradebookapi.dto.assembler.GradebookModelAssembler;
 import com.codecool.gradebookapi.exception.CourseNotFoundException;
 import com.codecool.gradebookapi.exception.*;
-import com.codecool.gradebookapi.service.AssignmentService;
-import com.codecool.gradebookapi.service.CourseService;
-import com.codecool.gradebookapi.service.GradebookService;
-import com.codecool.gradebookapi.service.StudentService;
+import com.codecool.gradebookapi.service.*;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -53,6 +50,9 @@ public class GradebookController {
     @Autowired
     private GradebookModelAssembler assembler;
 
+    @Autowired
+    private UserService userService;
+
     @GetMapping("/gradebook")
     @Operation(summary = "Finds all gradebook entries")
     @ApiResponse(responseCode = "200", description = "Returned list of all gradebook entries")
@@ -84,8 +84,33 @@ public class GradebookController {
             @ApiResponse(responseCode = "200", description = "Returned list of all gradebook entries related to student"),
             @ApiResponse(responseCode = "404", description = "Could not find student with given ID")
     })
+    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
     public ResponseEntity<CollectionModel<EntityModel<GradebookOutput>>> getGradesOfStudent(
             @PathVariable("studentId") Long studentId) {
+        studentService.findById(studentId).orElseThrow(() -> new StudentNotFoundException(studentId));
+
+        List<EntityModel<GradebookOutput>> entityModels = gradebookService.findByStudentId(studentId).stream()
+                .map(entry -> assembler.toModel(entry))
+                .collect(Collectors.toList());
+
+        log.info("Returned list of all gradebook entries related to student {}", studentId);
+
+        return ResponseEntity
+                .ok(CollectionModel.of(entityModels,
+                        linkTo(methodOn(GradebookController.class).getGradesOfStudent(studentId))
+                                .withRel("student_gradebook")));
+    }
+
+    @GetMapping("/student_gradebook")
+    @Operation(summary = "Finds all gradebook entries related to student")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Returned list of all gradebook entries related to student"),
+            @ApiResponse(responseCode = "404", description = "Could not find student with given ID")
+    })
+    @PreAuthorize("hasRole('STUDENT')")
+    public ResponseEntity<CollectionModel<EntityModel<GradebookOutput>>> getGradesOfCurrentUserAsStudent() {
+        Long studentId = userService.getStudentIdOfCurrentUser();
+
         studentService.findById(studentId).orElseThrow(() -> new StudentNotFoundException(studentId));
 
         List<EntityModel<GradebookOutput>> entityModels = gradebookService.findByStudentId(studentId).stream()

@@ -5,10 +5,13 @@ import com.codecool.gradebookapi.dto.mapper.UserMapper;
 import com.codecool.gradebookapi.model.SchoolActorApplicationUserRelation;
 import com.codecool.gradebookapi.model.User;
 import com.codecool.gradebookapi.repository.SchoolActorApplicationUserRelationRepository;
+import com.codecool.gradebookapi.repository.StudentRepository;
+import com.codecool.gradebookapi.repository.TeacherRepository;
 import com.codecool.gradebookapi.repository.UserRepository;
 import com.codecool.gradebookapi.security.ApplicationUserRole;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomStringUtils;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -25,15 +28,21 @@ import static com.codecool.gradebookapi.security.ApplicationUserRole.*;
 @Slf4j
 public class UserService implements UserDetailsService {
     private final UserRepository userRepository;
+    private final StudentRepository studentRepository;
+    private final TeacherRepository teacherRepository;
     private final SchoolActorApplicationUserRelationRepository relationRepository;
     private final PasswordEncoder passwordEncoder;
     private final UserMapper mapper;
 
     public UserService(UserRepository userRepository,
+                       StudentRepository studentRepository,
+                       TeacherRepository teacherRepository,
                        SchoolActorApplicationUserRelationRepository relationRepository,
                        PasswordEncoder passwordEncoder,
                        UserMapper mapper) {
         this.userRepository = userRepository;
+        this.studentRepository = studentRepository;
+        this.teacherRepository = teacherRepository;
         this.relationRepository = relationRepository;
         this.passwordEncoder = passwordEncoder;
         this.mapper = mapper;
@@ -126,6 +135,36 @@ public class UserService implements UserDetailsService {
 
     public void deleteById(Long id) {
         userRepository.deleteById(id);
+    }
+
+    public Long findStudentIdByUserId(Long userId) {
+        SchoolActorApplicationUserRelation relation = relationRepository.findFirstByAppUserId(userId)
+                .orElseThrow(() -> new RuntimeException("No school actor related to user exists"));
+        if (!relation.getUserRole().equals(STUDENT)) throw new RuntimeException("User role is incorrect");
+        return relation.getSchoolActorId();
+    }
+
+    public Long findTeacherIdByUserId(Long userId) {
+        SchoolActorApplicationUserRelation relation = relationRepository.findFirstByAppUserId(userId)
+                .orElseThrow(() -> new RuntimeException("No school actor related to user exists"));
+        if (!relation.getUserRole().equals(TEACHER)) throw new RuntimeException("User role is incorrect");
+        return relation.getSchoolActorId();
+    }
+
+    public Long getStudentIdOfCurrentUser() {
+        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+        UserDto user = findByUsername(username)
+                .orElseThrow(() -> new RuntimeException(String.format("No user with the name '%s' exists", username)));
+
+        return findStudentIdByUserId(user.getId());
+    }
+
+    public Long getTeacherIdOfCurrentUser() {
+        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+        UserDto user = findByUsername(username)
+                .orElseThrow(() -> new RuntimeException(String.format("No user with the name '%s' exists", username)));
+
+        return findTeacherIdByUserId(user.getId());
     }
 
     @Override
