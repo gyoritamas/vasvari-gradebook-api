@@ -87,18 +87,7 @@ public class GradebookController {
     @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
     public ResponseEntity<CollectionModel<EntityModel<GradebookOutput>>> getGradesOfStudent(
             @PathVariable("studentId") Long studentId) {
-        studentService.findById(studentId).orElseThrow(() -> new StudentNotFoundException(studentId));
-
-        List<EntityModel<GradebookOutput>> entityModels = gradebookService.findByStudentId(studentId).stream()
-                .map(entry -> assembler.toModel(entry))
-                .collect(Collectors.toList());
-
-        log.info("Returned list of all gradebook entries related to student {}", studentId);
-
-        return ResponseEntity
-                .ok(CollectionModel.of(entityModels,
-                        linkTo(methodOn(GradebookController.class).getGradesOfStudent(studentId))
-                                .withRel("student_gradebook")));
+        return getGradebookEntriesByStudentId(studentId);
     }
 
     @GetMapping("/student_gradebook")
@@ -111,6 +100,10 @@ public class GradebookController {
     public ResponseEntity<CollectionModel<EntityModel<GradebookOutput>>> getGradesOfCurrentUserAsStudent() {
         Long studentId = userService.getStudentIdOfCurrentUser();
 
+        return getGradebookEntriesByStudentId(studentId);
+    }
+
+    private ResponseEntity<CollectionModel<EntityModel<GradebookOutput>>> getGradebookEntriesByStudentId(Long studentId) {
         studentService.findById(studentId).orElseThrow(() -> new StudentNotFoundException(studentId));
 
         List<EntityModel<GradebookOutput>> entityModels = gradebookService.findByStudentId(studentId).stream()
