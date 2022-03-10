@@ -18,8 +18,7 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
-import static com.codecool.gradebookapi.security.ApplicationUserRole.ADMIN;
-import static com.codecool.gradebookapi.security.ApplicationUserRole.TEACHER;
+import static com.codecool.gradebookapi.security.ApplicationUserRole.*;
 
 @Configuration
 @EnableWebSecurity
@@ -51,6 +50,11 @@ public class ApplicationSecurityConfig extends WebSecurityConfigurerAdapter {
 //                        "/api/students/**", "/api/classes/**"
 //                ).hasAnyRole(ADMIN.name(), TEACHER.name())
                 .antMatchers(
+
+                ).hasAnyRole(ADMIN.name(), TEACHER.name(), STUDENT.name())
+                .antMatchers(
+                        "/api/classes/**",
+                        "/api/students/**",
                         "/api/assignments/**",
                         "/api/gradebook/**",
                         "/api/student_gradebook/**",

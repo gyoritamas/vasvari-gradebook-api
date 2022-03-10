@@ -21,6 +21,7 @@ import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.IanaLinkRelations;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
@@ -132,6 +133,7 @@ public class GradebookController {
             @ApiResponse(responseCode = "409", description =
                     "Could not create gradebook entry because an entry already exists with the same IDs")
     })
+    @PreAuthorize("hasAnyRole('TEACHER', 'ADMIN')")
     public ResponseEntity<EntityModel<GradebookOutput>> gradeAssignment(@RequestBody @Valid GradebookInput gradebookInput) {
         Long studentId = gradebookInput.getStudentId();
         Long classId = gradebookInput.getCourseId();

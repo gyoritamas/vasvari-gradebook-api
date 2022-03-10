@@ -1,8 +1,13 @@
 package com.codecool.gradebookapi.controller;
 
-import com.codecool.gradebookapi.dto.UserDto;
+import com.codecool.gradebookapi.dto.*;
+import com.codecool.gradebookapi.dto.assembler.InitialCredentialsModelAssembler;
 import com.codecool.gradebookapi.dto.assembler.UserModelAssembler;
+import com.codecool.gradebookapi.exception.StudentNotFoundException;
+import com.codecool.gradebookapi.exception.TeacherNotFoundException;
 import com.codecool.gradebookapi.exception.UserNotFoundException;
+import com.codecool.gradebookapi.service.StudentService;
+import com.codecool.gradebookapi.service.TeacherService;
 import com.codecool.gradebookapi.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -29,7 +34,16 @@ public class UserController {
     private UserService userService;
 
     @Autowired
-    private UserModelAssembler assembler;
+    private StudentService studentService;
+
+    @Autowired
+    private TeacherService teacherService;
+
+    @Autowired
+    private UserModelAssembler userModelAssembler;
+
+    @Autowired
+    private InitialCredentialsModelAssembler credentialsModelAssembler;
 
     @GetMapping
     @Operation(summary = "Lists all users")
@@ -37,10 +51,8 @@ public class UserController {
     public ResponseEntity<CollectionModel<EntityModel<UserDto>>> getAll() {
         log.info("Returned list of all users");
 
-
-
         return ResponseEntity
-                .ok(assembler.toCollectionModel(userService.findAll()));
+                .ok(userModelAssembler.toCollectionModel(userService.findAll()));
     }
 
     @GetMapping("/{id}")
@@ -54,7 +66,7 @@ public class UserController {
         log.info("Returned user {}", id);
 
         return ResponseEntity
-                .ok(assembler.toModel(userFound));
+                .ok(userModelAssembler.toModel(userFound));
     }
 
     @PostMapping
@@ -65,8 +77,67 @@ public class UserController {
     })
     public ResponseEntity<EntityModel<UserDto>> add(@RequestBody @Valid UserDto user) {
         UserDto userCreated = userService.save(user);
-        EntityModel<UserDto> entityModel = assembler.toModel(userCreated);
+        EntityModel<UserDto> entityModel = userModelAssembler.toModel(userCreated);
         log.info("Created user with ID {}", userCreated.getId());
+
+        return ResponseEntity
+                .created(entityModel.getRequiredLink(IanaLinkRelations.SELF).toUri())
+                .body(entityModel);
+    }
+
+    @PostMapping("/create-student-user")
+    @Operation(summary = "Creates user account for a student")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "201", description = "Created new user"),
+            @ApiResponse(responseCode = "400", description = "Could not create user due to invalid parameters")
+    })
+    public ResponseEntity<EntityModel<InitialCredentials>> createAccountForStudent(@RequestParam("studentId") Long studentId) {
+        StudentDto student = studentService.findById(studentId)
+                .orElseThrow(() -> new StudentNotFoundException(studentId));
+        InitialCredentials credentials = userService.createStudentUser(student);
+        log.info("Created student user account | username: {}, password: {}", credentials.getUsername(), credentials.getPassword());
+
+        EntityModel<InitialCredentials> entityModel = credentialsModelAssembler.toModel(credentials);
+
+        return ResponseEntity
+                .created(entityModel.getRequiredLink(IanaLinkRelations.SELF).toUri())
+                .body(entityModel);
+    }
+
+    @PostMapping("/create-teacher-user")
+    @Operation(summary = "Creates user account for a teacher")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "201", description = "Created new user"),
+            @ApiResponse(responseCode = "400", description = "Could not create user due to invalid parameters")
+    })
+    public ResponseEntity<EntityModel<InitialCredentials>> createAccountForTeacher(@RequestParam("teacherId") Long teacherId) {
+        TeacherDto teacher = teacherService.findById(teacherId)
+                .orElseThrow(() -> new TeacherNotFoundException(teacherId));
+        InitialCredentials credentials = userService.createTeacherUser(teacher);
+        log.info("Created teacher user account | username: {}, password: {}", credentials.getUsername(), credentials.getPassword());
+
+        EntityModel<InitialCredentials> entityModel = credentialsModelAssembler.toModel(credentials);
+
+        return ResponseEntity
+                .created(entityModel.getRequiredLink(IanaLinkRelations.SELF).toUri())
+                .body(entityModel);
+    }
+
+    @PostMapping("/create-admin-user")
+    @Operation(summary = "Creates user account for an admin")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "201", description = "Created new user"),
+            @ApiResponse(responseCode = "400", description = "Could not create user due to invalid parameters")
+    })
+    public ResponseEntity<EntityModel<InitialCredentials>> createAccountForAdmin(@RequestBody @Valid UsernameInput usernameInput) {
+        String username = usernameInput.getUsername();
+        // TODO: create custom exception
+        if (userService.isUsernameAlreadyTaken(username)) throw new RuntimeException("Username already taken");
+
+        InitialCredentials credentials = userService.createAdminUser(username);
+        log.info("Created admin user account | username: {}, password: {}", credentials.getUsername(), credentials.getPassword());
+
+        EntityModel<InitialCredentials> entityModel = credentialsModelAssembler.toModel(credentials);
 
         return ResponseEntity
                 .created(entityModel.getRequiredLink(IanaLinkRelations.SELF).toUri())
@@ -81,13 +152,13 @@ public class UserController {
             @ApiResponse(responseCode = "404", description = "Could not find user with given ID")
     })
     public ResponseEntity<EntityModel<UserDto>> update(@RequestBody @Valid UserDto user,
-                                                          @PathVariable("id") Long id) {
+                                                       @PathVariable("id") Long id) {
         userService.findById(id).orElseThrow(() -> new UserNotFoundException(id));
         user.setId(id);
         log.info("Updated user {}", id);
 
         return ResponseEntity
-                .ok(assembler.toModel(userService.save(user)));
+                .ok(userModelAssembler.toModel(userService.save(user)));
     }
 
     @DeleteMapping("/{id}")
@@ -104,4 +175,6 @@ public class UserController {
 
         return ResponseEntity.noContent().build();
     }
+
+
 }

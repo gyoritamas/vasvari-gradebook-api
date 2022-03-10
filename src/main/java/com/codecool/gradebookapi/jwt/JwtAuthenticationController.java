@@ -28,7 +28,9 @@ public class JwtAuthenticationController {
                 new UsernamePasswordAuthenticationToken(authenticationRequest.getUsername(), authenticationRequest.getPassword())
         );
         final UserDetails userDetails = (UserDetails) authentication.getPrincipal();
-        log.info(String.format("User %s (%s) authenticated", userDetails.getUsername(), userDetails.getAuthorities().stream().map(GrantedAuthority::getAuthority).findFirst()));
+        String role = userDetails.getAuthorities().stream().map(GrantedAuthority::getAuthority).findFirst().orElseThrow(() -> new RuntimeException("Role not found"));
+        role = role.toLowerCase().substring("role_".length());
+        log.info(String.format("User %s (%s) authenticated", userDetails.getUsername(), role));
         final String token = jwtTokenUtil.generateToken(userDetails);
 
         //return ResponseEntity.ok(new JwtResponse(token));

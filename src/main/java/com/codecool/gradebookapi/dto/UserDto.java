@@ -31,4 +31,10 @@ public class UserDto {
     @NotNull(message = "Role field cannot be empty")
     @Enumerated(EnumType.STRING)
     private ApplicationUserRole role;
+
+    public UserDto(String username, String password, ApplicationUserRole role) {
+        this.username = username;
+        this.password = password;
+        this.role = role;
+    }
 }
