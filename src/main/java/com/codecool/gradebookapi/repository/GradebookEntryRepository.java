@@ -13,5 +13,7 @@ public interface GradebookEntryRepository extends JpaRepositoryImplementation<Gr
 
     List<GradebookEntry> findAllByAssignment_Id(long id);
 
+    List<GradebookEntry> findAllByStudent_IdAndCourse_Id(long studentId, long courseId);
+
     Optional<GradebookEntry> findByStudent_IdAndCourse_IdAndAssignment_Id(long studentId, long courseId, long assignmentId);
 }

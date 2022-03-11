@@ -13,5 +13,5 @@ public interface CourseRepository extends JpaRepositoryImplementation<Course, Lo
 
     Optional<Course> findCoursesByStudentsContainingAndId(Student student, long classId);
 
-    List<Course> findCoursesByTeacherContaining(Teacher teacher);
+    List<Course> findCoursesByTeacher(Teacher teacher);
 }

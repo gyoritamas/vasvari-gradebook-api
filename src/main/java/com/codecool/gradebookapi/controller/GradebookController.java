@@ -3,9 +3,11 @@ package com.codecool.gradebookapi.controller;
 import com.codecool.gradebookapi.dto.GradebookInput;
 import com.codecool.gradebookapi.dto.GradebookOutput;
 import com.codecool.gradebookapi.dto.assembler.GradebookModelAssembler;
-import com.codecool.gradebookapi.exception.CourseNotFoundException;
 import com.codecool.gradebookapi.exception.*;
-import com.codecool.gradebookapi.service.*;
+import com.codecool.gradebookapi.service.AssignmentService;
+import com.codecool.gradebookapi.service.CourseService;
+import com.codecool.gradebookapi.service.GradebookService;
+import com.codecool.gradebookapi.service.StudentService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -48,10 +50,7 @@ public class GradebookController {
     private AssignmentService assignmentService;
 
     @Autowired
-    private GradebookModelAssembler assembler;
-
-    @Autowired
-    private UserService userService;
+    private GradebookModelAssembler gradebookModelAssembler;
 
     @GetMapping("/gradebook")
     @Operation(summary = "Finds all gradebook entries")
@@ -60,7 +59,7 @@ public class GradebookController {
         log.info("Returned list of all gradebook entries");
 
         return ResponseEntity
-                .ok(assembler.toCollectionModel(gradebookService.findAll()));
+                .ok(gradebookModelAssembler.toCollectionModel(gradebookService.findAll()));
     }
 
     @GetMapping("/gradebook/{id}")
@@ -75,7 +74,7 @@ public class GradebookController {
         log.info("Returned gradebook entry {}", id);
 
         return ResponseEntity
-                .ok(assembler.toModel(entryFound));
+                .ok(gradebookModelAssembler.toModel(entryFound));
     }
 
     @GetMapping("/student_gradebook/{studentId}")
@@ -84,30 +83,12 @@ public class GradebookController {
             @ApiResponse(responseCode = "200", description = "Returned list of all gradebook entries related to student"),
             @ApiResponse(responseCode = "404", description = "Could not find student with given ID")
     })
-    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
     public ResponseEntity<CollectionModel<EntityModel<GradebookOutput>>> getGradesOfStudent(
             @PathVariable("studentId") Long studentId) {
-        return getGradebookEntriesByStudentId(studentId);
-    }
-
-    @GetMapping("/student_gradebook")
-    @Operation(summary = "Finds all gradebook entries related to student")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Returned list of all gradebook entries related to student"),
-            @ApiResponse(responseCode = "404", description = "Could not find student with given ID")
-    })
-    @PreAuthorize("hasRole('STUDENT')")
-    public ResponseEntity<CollectionModel<EntityModel<GradebookOutput>>> getGradesOfCurrentUserAsStudent() {
-        Long studentId = userService.getStudentIdOfCurrentUser();
-
-        return getGradebookEntriesByStudentId(studentId);
-    }
-
-    private ResponseEntity<CollectionModel<EntityModel<GradebookOutput>>> getGradebookEntriesByStudentId(Long studentId) {
         studentService.findById(studentId).orElseThrow(() -> new StudentNotFoundException(studentId));
 
         List<EntityModel<GradebookOutput>> entityModels = gradebookService.findByStudentId(studentId).stream()
-                .map(entry -> assembler.toModel(entry))
+                .map(entry -> gradebookModelAssembler.toModel(entry))
                 .collect(Collectors.toList());
 
         log.info("Returned list of all gradebook entries related to student {}", studentId);
@@ -129,7 +110,7 @@ public class GradebookController {
         courseService.findById(classId).orElseThrow(() -> new CourseNotFoundException(classId));
 
         List<EntityModel<GradebookOutput>> entityModels = gradebookService.findByClassId(classId).stream()
-                .map(entry -> assembler.toModel(entry))
+                .map(entry -> gradebookModelAssembler.toModel(entry))
                 .collect(Collectors.toList());
 
         log.info("Returned list of all gradebook entries related to class {}", classId);
@@ -151,7 +132,6 @@ public class GradebookController {
             @ApiResponse(responseCode = "409", description =
                     "Could not create gradebook entry because an entry already exists with the same IDs")
     })
-    @PreAuthorize("hasAnyRole('TEACHER', 'ADMIN')")
     public ResponseEntity<EntityModel<GradebookOutput>> gradeAssignment(@RequestBody @Valid GradebookInput gradebookInput) {
         Long studentId = gradebookInput.getStudentId();
         Long classId = gradebookInput.getCourseId();
@@ -165,7 +145,7 @@ public class GradebookController {
         if (gradebookService.isDuplicateEntry(gradebookInput)) throw new DuplicateEntryException(gradebookInput);
 
         GradebookOutput entryCreated = gradebookService.save(gradebookInput);
-        EntityModel<GradebookOutput> entityModel = assembler.toModel(entryCreated);
+        EntityModel<GradebookOutput> entityModel = gradebookModelAssembler.toModel(entryCreated);
         log.info("Created gradebook entry with ID {}", entryCreated.getId());
 
         return ResponseEntity

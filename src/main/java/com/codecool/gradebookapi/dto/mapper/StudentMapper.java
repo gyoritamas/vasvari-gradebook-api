@@ -5,6 +5,7 @@ import com.codecool.gradebookapi.model.Student;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
+import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -36,7 +37,8 @@ public class StudentMapper {
                 .build();
     }
 
-    public List<StudentDto> mapAll(List<Student> students){
+    // TODO: check if changing param from List to Collection causes any problems
+    public List<StudentDto> mapAll(Collection<Student> students){
         return students.stream()
                 .map(this::map)
                 .collect(Collectors.toList());
