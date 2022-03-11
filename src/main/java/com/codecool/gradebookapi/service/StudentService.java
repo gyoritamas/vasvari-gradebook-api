@@ -1,10 +1,13 @@
 package com.codecool.gradebookapi.service;
 
+import com.codecool.gradebookapi.dto.CourseOutput;
 import com.codecool.gradebookapi.dto.StudentDto;
+import com.codecool.gradebookapi.dto.mapper.CourseMapper;
 import com.codecool.gradebookapi.dto.mapper.StudentMapper;
+import com.codecool.gradebookapi.model.Course;
 import com.codecool.gradebookapi.model.Student;
+import com.codecool.gradebookapi.repository.CourseRepository;
 import com.codecool.gradebookapi.repository.StudentRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -13,29 +16,45 @@ import java.util.Optional;
 @Service
 public class StudentService {
 
-    @Autowired
-    private StudentRepository repository;
+    private final StudentRepository studentRepository;
+    private final CourseRepository courseRepository;
+    private final StudentMapper studentMapper;
+    private final CourseMapper courseMapper;
 
-    @Autowired
-    private StudentMapper mapper;
+    public StudentService(StudentRepository studentRepository,
+                          CourseRepository courseRepository,
+                          StudentMapper studentMapper,
+                          CourseMapper courseMapper) {
+        this.studentRepository = studentRepository;
+        this.courseRepository = courseRepository;
+        this.studentMapper = studentMapper;
+        this.courseMapper = courseMapper;
+    }
 
     public List<StudentDto> findAll() {
-        return mapper.mapAll(repository.findAll());
+        return studentMapper.mapAll(studentRepository.findAll());
     }
 
     public StudentDto save(StudentDto studentDto) {
-        Student studentToSave = mapper.map(studentDto);
-        Student saved = repository.save(studentToSave);
+        Student studentToSave = studentMapper.map(studentDto);
+        Student saved = studentRepository.save(studentToSave);
 
-        return mapper.map(saved);
+        return studentMapper.map(saved);
     }
 
     public Optional<StudentDto> findById(Long id) {
-        return repository.findById(id).map(student -> mapper.map(student));
+        return studentRepository.findById(id).map(studentMapper::map);
     }
 
     public void deleteById(Long id) {
-        repository.deleteById(id);
+        studentRepository.deleteById(id);
+    }
+
+    public List<CourseOutput> findCoursesOfStudent(StudentDto studentDto) {
+        Student student = studentMapper.map(studentDto);
+        List<Course> courses = courseRepository.findCoursesByStudentsContaining(student);
+
+        return courseMapper.mapAll(courses);
     }
 
 }

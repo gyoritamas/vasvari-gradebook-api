@@ -130,6 +130,6 @@ public class StudentController {
         log.info("Returned list of all classes related to student {}", id);
 
         return ResponseEntity.
-                ok(courseModelAssembler.toCollectionModel(courseService.findCoursesOfStudent(student)));
+                ok(courseModelAssembler.toCollectionModel(studentService.findCoursesOfStudent(student)));
     }
 }

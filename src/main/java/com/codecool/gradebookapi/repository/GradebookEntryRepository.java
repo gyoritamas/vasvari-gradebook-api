@@ -1,6 +1,7 @@
 package com.codecool.gradebookapi.repository;
 
 import com.codecool.gradebookapi.model.GradebookEntry;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.support.JpaRepositoryImplementation;
 
 import java.util.List;

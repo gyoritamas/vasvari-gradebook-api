@@ -290,7 +290,7 @@ public class StudentControllerTests {
         List<CourseOutput> classesOfStudent1 = List.of(class1, class2);
 
         when(studentService.findById(1L)).thenReturn(Optional.of(student1));
-        when(courseService.findCoursesOfStudent(student1)).thenReturn(classesOfStudent1);
+        when(studentService.findCoursesOfStudent(student1)).thenReturn(classesOfStudent1);
 
         this.mockMvc
                 .perform(get("/api/students/1/classes"))

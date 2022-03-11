@@ -1,41 +1,78 @@
 package com.codecool.gradebookapi.service;
 
+import com.codecool.gradebookapi.dto.CourseOutput;
+import com.codecool.gradebookapi.dto.StudentDto;
 import com.codecool.gradebookapi.dto.TeacherDto;
+import com.codecool.gradebookapi.dto.mapper.CourseMapper;
+import com.codecool.gradebookapi.dto.mapper.StudentMapper;
 import com.codecool.gradebookapi.dto.mapper.TeacherMapper;
+import com.codecool.gradebookapi.model.Course;
+import com.codecool.gradebookapi.model.Student;
 import com.codecool.gradebookapi.model.Teacher;
+import com.codecool.gradebookapi.repository.CourseRepository;
 import com.codecool.gradebookapi.repository.TeacherRepository;
 import org.springframework.stereotype.Service;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 @Service
 public class TeacherService {
 
-    private final TeacherRepository repository;
-    private final TeacherMapper mapper;
+    private final TeacherRepository teacherRepository;
+    private final CourseRepository courseRepository;
+    private final TeacherMapper teacherMapper;
+    private final StudentMapper studentMapper;
+    private final CourseMapper courseMapper;
 
-    public TeacherService(TeacherRepository repository, TeacherMapper mapper) {
-        this.repository = repository;
-        this.mapper = mapper;
+    public TeacherService(TeacherRepository teacherRepository,
+                          CourseRepository courseRepository,
+                          TeacherMapper teacherMapper,
+                          StudentMapper studentMapper,
+                          CourseMapper courseMapper) {
+        this.teacherRepository = teacherRepository;
+        this.courseRepository = courseRepository;
+        this.teacherMapper = teacherMapper;
+        this.studentMapper = studentMapper;
+        this.courseMapper = courseMapper;
     }
 
     public List<TeacherDto> findAll() {
-        return mapper.mapAll(repository.findAll());
+        return teacherMapper.mapAll(teacherRepository.findAll());
     }
 
     public TeacherDto save(TeacherDto teacherDto) {
-        Teacher teacherToSave = mapper.map(teacherDto);
-        Teacher saved = repository.save(teacherToSave);
+        Teacher teacherToSave = teacherMapper.map(teacherDto);
+        Teacher saved = teacherRepository.save(teacherToSave);
 
-        return mapper.map(saved);
+        return teacherMapper.map(saved);
     }
 
     public Optional<TeacherDto> findById(Long id) {
-        return repository.findById(id).map(teacher -> mapper.map(teacher));
+        return teacherRepository.findById(id).map(teacherMapper::map);
     }
 
     public void deleteById(Long id) {
-        repository.deleteById(id);
+        teacherRepository.deleteById(id);
+    }
+
+    public List<CourseOutput> findCoursesOfTeacher(TeacherDto teacherDto) {
+        Teacher teacher = teacherMapper.map(teacherDto);
+        List<Course> courses = courseRepository.findCoursesByTeacher(teacher);
+
+        return courseMapper.mapAll(courses);
+    }
+
+    public List<StudentDto> findStudentsOfTeacher(TeacherDto teacherDto) {
+        Teacher teacher = teacherMapper.map(teacherDto);
+        List<Course> courses = courseRepository.findCoursesByTeacher(teacher);
+        Set<Student> students = new HashSet<>();
+        for (Course course : courses) {
+            students.addAll(course.getStudents());
+        }
+
+        return studentMapper.mapAll(students);
     }
 }

@@ -68,7 +68,7 @@ public class StudentUserController {
     public ResponseEntity<CollectionModel<EntityModel<CourseOutput>>> getCoursesOfCurrentUserAsStudent() {
         Long studentId = userService.getStudentIdOfCurrentUser();
         StudentDto student = studentService.findById(studentId).orElseThrow(() -> new StudentNotFoundException(studentId));
-        List<CourseOutput> coursesOfStudent = courseService.findCoursesOfStudent(student);
+        List<CourseOutput> coursesOfStudent = studentService.findCoursesOfStudent(student);
 
         log.info("Returned list of all courses related to student {}", studentId);
 

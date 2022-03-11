@@ -171,7 +171,7 @@ public class CourseServiceTests {
         course1Saved = courseService.addStudentToCourse(student.getId(), course1Saved.getId());
         course2Saved = courseService.addStudentToCourse(student.getId(), course2Saved.getId());
 
-        List<CourseOutput> listOfCourses = courseService.findCoursesOfStudent(student);
+        List<CourseOutput> listOfCourses = studentService.findCoursesOfStudent(student);
 
         assertThat(listOfCourses).containsExactly(course1Saved, course2Saved);
     }
