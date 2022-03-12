@@ -4,6 +4,7 @@ import com.codecool.gradebookapi.dto.CourseInput;
 import com.codecool.gradebookapi.dto.CourseOutput;
 import com.codecool.gradebookapi.dto.StudentDto;
 import com.codecool.gradebookapi.dto.TeacherDto;
+import com.codecool.gradebookapi.dto.dataTypes.SimpleData;
 import com.codecool.gradebookapi.service.CourseService;
 import com.codecool.gradebookapi.service.StudentService;
 import com.codecool.gradebookapi.service.TeacherService;
@@ -144,9 +145,10 @@ public class CourseServiceTests {
         CourseOutput courseSaved = courseService.save(course1);
 
         courseSaved = courseService.addStudentToCourse(student.getId(), courseSaved.getId());
-        List<String> listOfStudents = courseSaved.getStudents();
+        List<SimpleData> listOfStudents = courseSaved.getStudents();
+        SimpleData simpleStudentData = new SimpleData(student.getId(), student.getName());
 
-        assertThat(listOfStudents).isEqualTo(List.of(student.getName()));
+        assertThat(listOfStudents).containsExactly(simpleStudentData);
     }
 
     @Test
@@ -158,7 +160,7 @@ public class CourseServiceTests {
 
         courseSaved = courseService.setTeacherOfCourse(teacherSaved.getId(), courseSaved.getId());
 
-        assertThat(courseSaved.getTeacherId()).isEqualTo(teacherSaved.getId());
+        assertThat(courseSaved.getTeacher().getId()).isEqualTo(teacherSaved.getId());
     }
 
     @Test

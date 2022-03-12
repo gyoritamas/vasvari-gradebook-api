@@ -1,19 +1,19 @@
 package com.codecool.gradebookapi.dto;
 
+import com.codecool.gradebookapi.dto.dataTypes.SimpleData;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.*;
 import org.springframework.hateoas.server.core.Relation;
 
 import java.util.List;
-import java.util.Optional;
 
 @NoArgsConstructor
 @AllArgsConstructor
 @Getter
 @Setter
 @Builder
-@Relation(collectionRelation = "courses", itemRelation = "course")
 @EqualsAndHashCode
+@Relation(collectionRelation = "courses", itemRelation = "course")
 public class CourseOutput {
 
     private Long id;
@@ -21,11 +21,10 @@ public class CourseOutput {
     @Schema(example = "Algebra")
     private String name;
 
-    @Schema(example = "1")
-    private Long teacherId;
+    @Schema(example = "{\"id\":\"1\", \"name\":\"Darrell Bowen\"}")
+    private SimpleData teacher;
 
-    // TODO: change to IDs
-    @Schema(example = "[\"John Doe\", \"Jane Doe\"]")
-    private List<String> students;
+    @Schema(example = "?")
+    private List<SimpleData> students;
 
 }
