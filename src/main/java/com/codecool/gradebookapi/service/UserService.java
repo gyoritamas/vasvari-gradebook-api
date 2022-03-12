@@ -2,6 +2,7 @@ package com.codecool.gradebookapi.service;
 
 import com.codecool.gradebookapi.dto.*;
 import com.codecool.gradebookapi.dto.mapper.UserMapper;
+import com.codecool.gradebookapi.dto.dataTypes.InitialCredentials;
 import com.codecool.gradebookapi.model.SchoolActorApplicationUserRelation;
 import com.codecool.gradebookapi.model.User;
 import com.codecool.gradebookapi.repository.SchoolActorApplicationUserRelationRepository;
@@ -28,21 +29,15 @@ import static com.codecool.gradebookapi.security.ApplicationUserRole.*;
 @Slf4j
 public class UserService implements UserDetailsService {
     private final UserRepository userRepository;
-    private final StudentRepository studentRepository;
-    private final TeacherRepository teacherRepository;
     private final SchoolActorApplicationUserRelationRepository relationRepository;
     private final PasswordEncoder passwordEncoder;
     private final UserMapper mapper;
 
     public UserService(UserRepository userRepository,
-                       StudentRepository studentRepository,
-                       TeacherRepository teacherRepository,
                        SchoolActorApplicationUserRelationRepository relationRepository,
                        PasswordEncoder passwordEncoder,
                        UserMapper mapper) {
         this.userRepository = userRepository;
-        this.studentRepository = studentRepository;
-        this.teacherRepository = teacherRepository;
         this.relationRepository = relationRepository;
         this.passwordEncoder = passwordEncoder;
         this.mapper = mapper;

@@ -96,13 +96,15 @@ public class TeacherUserController {
         } else {
             // check if this teacher is teaching the course
             CourseOutput course = courseService.findById(courseId).orElseThrow(() -> new CourseNotFoundException(courseId));
-            if (!course.getTeacherId().equals(teacherId))
+            if (!course.getTeacher().getId().equals(teacherId))
                 throw new RuntimeException(String.format("Teacher %d is not teaching course %d", teacherId, courseId));
             students = courseService.getStudentsOfCourse(courseId);
         }
 
         if (gradeLevel != null)
-            students = students.stream().filter(student -> student.getGradeLevel().equals(gradeLevel)).collect(Collectors.toList());
+            students = students.stream()
+                    .filter(student -> student.getGradeLevel().equals(gradeLevel))
+                    .collect(Collectors.toList());
 
         log.info("Returned list of all students related to teacher {}", teacherId);
 
@@ -133,14 +135,14 @@ public class TeacherUserController {
         } else {
             // every gradebook entry of the specific course
             CourseOutput course = courseService.findById(courseId).orElseThrow(() -> new CourseNotFoundException(courseId));
-            if (!course.getTeacherId().equals(teacherId))
+            if (!course.getTeacher().getId().equals(teacherId))
                 throw new RuntimeException(String.format("Teacher %d is not teaching course %d", teacherId, courseId));
             gradebookEntries.addAll(gradebookService.findByClassId(courseId));
         }
 
         if (gradeLevel != null)
             gradebookEntries = gradebookEntries.stream()
-                    .filter(entry -> studentService.findById(entry.getStudentId()).get().getGradeLevel().equals(gradeLevel))
+                    .filter(entry -> studentService.findById(entry.getStudent().getId()).get().getGradeLevel().equals(gradeLevel))
                     .collect(Collectors.toList());
 
         log.info("Returned list of all gradebook entries related to teacher {}", teacherId);

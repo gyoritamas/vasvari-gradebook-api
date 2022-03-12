@@ -1,7 +1,7 @@
 package com.codecool.gradebookapi.dto.assembler;
 
 import com.codecool.gradebookapi.controller.UserController;
-import com.codecool.gradebookapi.dto.InitialCredentials;
+import com.codecool.gradebookapi.dto.dataTypes.InitialCredentials;
 import org.springframework.hateoas.CollectionModel;
 import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.server.RepresentationModelAssembler;

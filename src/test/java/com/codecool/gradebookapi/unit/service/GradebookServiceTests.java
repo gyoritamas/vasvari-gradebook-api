@@ -91,9 +91,9 @@ public class GradebookServiceTests {
     public void saveShouldReturnSavedGradebookEntry() {
         GradebookOutput entrySaved = gradebookService.save(entry1);
 
-        assertThat(entrySaved.getStudentId()).isEqualTo(entry1.getStudentId());
-        assertThat(entrySaved.getCourseId()).isEqualTo(entry1.getCourseId());
-        assertThat(entrySaved.getAssignmentId()).isEqualTo(entry1.getAssignmentId());
+        assertThat(entrySaved.getStudent().getId()).isEqualTo(entry1.getStudentId());
+        assertThat(entrySaved.getCourse().getId()).isEqualTo(entry1.getCourseId());
+        assertThat(entrySaved.getAssignment().getId()).isEqualTo(entry1.getAssignmentId());
         assertThat(entrySaved.getGrade()).isEqualTo(entry1.getGrade());
     }
 

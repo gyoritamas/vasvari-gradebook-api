@@ -167,7 +167,8 @@ public class CourseIntegrationTests {
 
             assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
             assertThat(response.getBody()).isNotNull();
-            assertThat(response.getBody().getTeacherId()).isEqualTo(teacherId);
+            assertThat(response.getBody().getTeacher().getId()).isEqualTo(teacherId);
+            assertThat(response.getBody().getTeacher().getName()).isEqualTo(teacher.getName());
         }
 
         @Test

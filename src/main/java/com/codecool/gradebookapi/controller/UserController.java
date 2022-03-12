@@ -3,6 +3,8 @@ package com.codecool.gradebookapi.controller;
 import com.codecool.gradebookapi.dto.*;
 import com.codecool.gradebookapi.dto.assembler.InitialCredentialsModelAssembler;
 import com.codecool.gradebookapi.dto.assembler.UserModelAssembler;
+import com.codecool.gradebookapi.dto.dataTypes.InitialCredentials;
+import com.codecool.gradebookapi.dto.dataTypes.UsernameInput;
 import com.codecool.gradebookapi.exception.StudentNotFoundException;
 import com.codecool.gradebookapi.exception.TeacherNotFoundException;
 import com.codecool.gradebookapi.exception.UserNotFoundException;

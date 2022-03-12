@@ -2,7 +2,6 @@ package com.codecool.gradebookapi.service;
 
 import com.codecool.gradebookapi.dto.GradebookInput;
 import com.codecool.gradebookapi.dto.GradebookOutput;
-import com.codecool.gradebookapi.dto.TeacherDto;
 import com.codecool.gradebookapi.dto.mapper.GradebookEntryMapper;
 import com.codecool.gradebookapi.model.GradebookEntry;
 import com.codecool.gradebookapi.repository.GradebookEntryRepository;

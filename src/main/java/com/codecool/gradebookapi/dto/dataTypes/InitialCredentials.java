@@ -1,4 +1,4 @@
-package com.codecool.gradebookapi.dto;
+package com.codecool.gradebookapi.dto.dataTypes;
 
 import lombok.*;
 

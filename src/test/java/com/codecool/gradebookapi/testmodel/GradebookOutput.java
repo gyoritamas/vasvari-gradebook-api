@@ -33,19 +33,4 @@ public class GradebookOutput {
         return Objects.hash(studentId, courseId, assignmentId, grade);
     }
 
-    //    @Override
-//    public boolean equals(Object o) {
-//        if (this == o) return true;
-//        if (o == null || getClass() != o.getClass()) return false;
-//        GradebookOutput that = (GradebookOutput) o;
-//        return Objects.equals(student, that.student)
-//                && Objects.equals(clazz, that.clazz)
-//                && Objects.equals(assignment, that.assignment)
-//                && Objects.equals(grade, that.grade);
-//    }
-//
-//    @Override
-//    public int hashCode() {
-//        return Objects.hash(student, clazz, assignment, grade);
-//    }
 }

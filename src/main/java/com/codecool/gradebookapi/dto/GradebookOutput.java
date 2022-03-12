@@ -1,5 +1,6 @@
 package com.codecool.gradebookapi.dto;
 
+import com.codecool.gradebookapi.dto.dataTypes.SimpleData;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.*;
 import org.springframework.hateoas.server.core.Relation;
@@ -16,15 +17,14 @@ public class GradebookOutput {
     @Schema(example = "1")
     private Long id;
 
-    @Schema(example = "1")
-    private Long studentId;
+    @Schema(example = "{\"id\":\"1\", \"name\":\"John Doe\"}")
+    private SimpleData student;
 
-    @Schema(example = "1")
-    private Long courseId;
+    @Schema(example = "{\"id\":\"1\", \"name\":\"Algebra\"}")
+    private SimpleData course;
 
-    @Schema(example = "1")
-    private Long assignmentId;
+    @Schema(example = "{\"id\":\"1\", \"name\":\"Pop Quiz\"}")
+    private SimpleData assignment;
 
-    @Schema(example = "4")
     private Integer grade;
 }

@@ -1,6 +1,5 @@
 package com.codecool.gradebookapi.model;
 
-import com.codecool.gradebookapi.dto.InitialCredentials;
 import com.codecool.gradebookapi.security.ApplicationUserRole;
 import lombok.AllArgsConstructor;
 import lombok.Builder;

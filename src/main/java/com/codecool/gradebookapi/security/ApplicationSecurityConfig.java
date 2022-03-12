@@ -6,7 +6,6 @@ import com.codecool.gradebookapi.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
@@ -32,23 +31,14 @@ public class ApplicationSecurityConfig extends WebSecurityConfigurerAdapter {
     private final PasswordEncoder passwordEncoder;
 
     @Override
-    protected void configure(AuthenticationManagerBuilder auth) throws Exception {
+    protected void configure(AuthenticationManagerBuilder auth) {
         auth.authenticationProvider(daoAuthenticationProvider());
-//        auth.inMemoryAuthentication()
-//                .withUser("admin").password(passwordEncoder.encode("admin")).roles("ADMIN")
-//                .and()
-//                .withUser("teacher").password(passwordEncoder.encode("teacher")).roles("TEACHER")
-//                .and()
-//                .withUser("student").password(passwordEncoder.encode("student")).roles("STUDENT");
     }
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         http.csrf().disable()
                 .authorizeRequests()
-//                .antMatchers(
-//                        "/api/students/**", "/api/classes/**"
-//                ).hasAnyRole(ADMIN.name(), TEACHER.name())
                 .antMatchers(
                         "/api/classes/**",
                         "/api/students/**",
@@ -59,7 +49,6 @@ public class ApplicationSecurityConfig extends WebSecurityConfigurerAdapter {
                 ).hasAnyRole(ADMIN.name(), TEACHER.name())
                 .antMatchers(
                         "/api/teachers/**",
-                        //"/api/classes/**",
                         "/api/users/**"
                 ).hasAnyRole(ADMIN.name())
                 .antMatchers(
@@ -68,23 +57,7 @@ public class ApplicationSecurityConfig extends WebSecurityConfigurerAdapter {
                 .antMatchers(
                         "/teacher/api/**"
                 ).hasRole(TEACHER.name())
-//                .antMatchers(
-//                        HttpMethod.GET,
-//                        "/",
-//                        "/v2/api-docs",
-//                        "/v3/api-docs",
-//                        "/webjars/**",
-//                        "/swagger-resources/**",
-//                        "/configuration/**",
-//                        "/*.html",
-//                        "/favicon.ico",
-//                        "/**/*.html",
-//                        "/**/*.css",
-//                        "/**/*.js"
-//                ).permitAll()
                 .antMatchers("/api/authenticate/**").permitAll()
-                // Permit all other request without authentication
-                //.and().authorizeRequests().anyRequest().permitAll()
                 // Reject every unauthenticated request and send error code 401.
                 .and().exceptionHandling().authenticationEntryPoint(entryPoint)
                 // We don't need sessions to be created.

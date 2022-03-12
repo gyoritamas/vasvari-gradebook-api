@@ -11,6 +11,7 @@ import com.codecool.gradebookapi.model.Student;
 import com.codecool.gradebookapi.model.Teacher;
 import com.codecool.gradebookapi.repository.CourseRepository;
 import com.codecool.gradebookapi.repository.TeacherRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -25,6 +26,7 @@ public class TeacherService {
     private final StudentMapper studentMapper;
     private final CourseMapper courseMapper;
 
+    @Autowired
     public TeacherService(TeacherRepository teacherRepository,
                           CourseRepository courseRepository,
                           TeacherMapper teacherMapper,

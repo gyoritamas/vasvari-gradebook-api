@@ -1,5 +1,6 @@
 package com.codecool.gradebookapi.testmodel;
 
+import com.codecool.gradebookapi.dto.dataTypes.SimpleData;
 import lombok.*;
 
 import java.util.List;
@@ -14,8 +15,8 @@ public class CourseOutput {
 
     private Long id;
     private String name;
-    private Long teacherId;
-    private List<String> students;
+    private SimpleData teacher;
+    private List<SimpleData> students;
 
     @Override
     public boolean equals(Object o) {
@@ -23,12 +24,13 @@ public class CourseOutput {
         if (o == null || getClass() != o.getClass()) return false;
         CourseOutput that = (CourseOutput) o;
         return Objects.equals(name, that.name)
-                && Objects.equals(teacherId, that.teacherId)
+                && Objects.equals(teacher, that.teacher)
                 && Objects.equals(students, that.students);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(name, teacherId, students);
+        return Objects.hash(name, teacher, students);
     }
+
 }
