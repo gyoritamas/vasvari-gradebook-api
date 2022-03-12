@@ -2,8 +2,10 @@ package com.codecool.gradebookapi.unit.controller;
 
 import com.codecool.gradebookapi.controller.TeacherController;
 import com.codecool.gradebookapi.dto.TeacherDto;
-import com.codecool.gradebookapi.dto.assembler.CourseModelAssembler;
 import com.codecool.gradebookapi.dto.assembler.TeacherModelAssembler;
+import com.codecool.gradebookapi.jwt.JwtAuthenticationEntryPoint;
+import com.codecool.gradebookapi.jwt.JwtTokenUtil;
+import com.codecool.gradebookapi.security.ApplicationSecurityConfig;
 import com.codecool.gradebookapi.security.PasswordConfig;
 import com.codecool.gradebookapi.service.TeacherService;
 import com.codecool.gradebookapi.service.UserService;
@@ -22,6 +24,8 @@ import org.junit.jupiter.params.aggregator.ArgumentsAggregationException;
 import org.junit.jupiter.params.aggregator.ArgumentsAggregator;
 import org.junit.jupiter.params.provider.CsvFileSource;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
@@ -40,7 +44,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(TeacherController.class)
-@Import({TeacherModelAssembler.class, CourseModelAssembler.class, PasswordConfig.class})
+@Import({TeacherModelAssembler.class, PasswordConfig.class, JwtAuthenticationEntryPoint.class})
 public class TeacherControllerTests {
 
     @Autowired
@@ -50,7 +54,10 @@ public class TeacherControllerTests {
     private TeacherService service;
 
     @MockBean
-    private UserService applicationUserService;
+    private UserService userService;
+
+    @MockBean
+    private JwtTokenUtil jwtTokenUtil;
 
     private static ObjectMapper mapper;
 
