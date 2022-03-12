@@ -35,11 +35,11 @@ public class CourseIntegrationTests {
     @Autowired
     private TestRestTemplate template;
 
-    @LocalServerPort
-    private int port;
-
     @Autowired
     private AuthorizationManager auth;
+
+    @LocalServerPort
+    private int port;
 
     private Link linkToClasses;
     private Link linkToStudents;
