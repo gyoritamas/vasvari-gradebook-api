@@ -5,9 +5,14 @@ import com.codecool.gradebookapi.dto.AssignmentInput;
 import com.codecool.gradebookapi.dto.AssignmentOutput;
 import com.codecool.gradebookapi.dto.GradebookOutput;
 import com.codecool.gradebookapi.dto.assembler.AssignmentModelAssembler;
+import com.codecool.gradebookapi.dto.dataTypes.SimpleData;
+import com.codecool.gradebookapi.jwt.JwtAuthenticationEntryPoint;
+import com.codecool.gradebookapi.jwt.JwtTokenUtil;
 import com.codecool.gradebookapi.model.AssignmentType;
+import com.codecool.gradebookapi.security.PasswordConfig;
 import com.codecool.gradebookapi.service.AssignmentService;
 import com.codecool.gradebookapi.service.GradebookService;
+import com.codecool.gradebookapi.service.UserService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
@@ -19,6 +24,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.ZonedDateTime;
@@ -32,7 +38,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(AssignmentController.class)
-@Import(AssignmentModelAssembler.class)
+@Import({AssignmentModelAssembler.class, PasswordConfig.class, JwtAuthenticationEntryPoint.class})
 public class AssignmentControllerTests {
 
     @Autowired
@@ -43,6 +49,12 @@ public class AssignmentControllerTests {
 
     @MockBean
     private GradebookService gradebookService;
+
+    @MockBean
+    private UserService userService;
+
+    @MockBean
+    private JwtTokenUtil jwtTokenUtil;
 
     private static ObjectMapper mapper;
 
@@ -87,6 +99,7 @@ public class AssignmentControllerTests {
     }
 
     @Test
+    @WithMockUser(username = "admin", password = "admin", roles = "ADMIN")
     @DisplayName("given empty database, getAll should return empty list")
     public void givenEmptyDatabase_getAllShouldReturnEmptyList() throws Exception {
         when(assignmentService.findAll()).thenReturn(List.of());
@@ -99,6 +112,7 @@ public class AssignmentControllerTests {
     }
 
     @Test
+    @WithMockUser(username = "admin", password = "admin", roles = "ADMIN")
     @DisplayName("when Assignments posted, getAll should return list of Assignments")
     public void whenAssignmentsPosted_getAllShouldReturnListOfAssignments() throws Exception {
         when(assignmentService.findAll()).thenReturn(List.of(assignmentOutput1, assignmentOutput2));
@@ -113,6 +127,7 @@ public class AssignmentControllerTests {
     }
 
     @Test
+    @WithMockUser(username = "admin", password = "admin", roles = "ADMIN")
     @DisplayName("when Assignment with given ID exists, getById should return Assignment")
     public void whenAssignmentWithGivenIdExists_getByIdShouldReturnAssignment() throws Exception {
         when(assignmentService.findById(1L)).thenReturn(Optional.of(assignmentOutput1));
@@ -127,6 +142,7 @@ public class AssignmentControllerTests {
     }
 
     @Test
+    @WithMockUser(username = "admin", password = "admin", roles = "ADMIN")
     @DisplayName("when Assignment with given ID does not exist, getById should return response 'Not Found'")
     public void whenAssignmentWithGivenIdDoesNotExist_getByIdShouldReturnResponseNotFound() throws Exception {
         when(assignmentService.findById(99L)).thenReturn(Optional.empty());
@@ -138,6 +154,7 @@ public class AssignmentControllerTests {
     }
 
     @Test
+    @WithMockUser(username = "admin", password = "admin", roles = "ADMIN")
     @DisplayName("given AssignmentInput parameters are valid, add should return created assignment")
     public void givenClassInputParametersAreValid_addShouldReturnCreatedClass() throws Exception {
         when(assignmentService.save(assignmentInput1)).thenReturn(assignmentOutput1);
@@ -157,6 +174,7 @@ public class AssignmentControllerTests {
     }
 
     @Test
+    @WithMockUser(username = "admin", password = "admin", roles = "ADMIN")
     @DisplayName("given AssignmentInput has invalid parameters, add should return response 'Bad Request")
     public void givenAssignmentInputHasInvalidParameters_addShouldReturnResponseBadRequest() throws Exception {
         givenAssignmentWithEmptyName_addAssignment_shouldReturnWithBadRequest();
@@ -192,6 +210,7 @@ public class AssignmentControllerTests {
     }
 
     @Test
+    @WithMockUser(username = "admin", password = "admin", roles = "ADMIN")
     @DisplayName("when Assignment does not exist with given ID, update should return response 'Not Found'")
     public void whenAssignmentDoesNotExistWithGivenId_updateShouldReturnResponseNotFound() throws Exception {
         when(assignmentService.findById(99L)).thenReturn(Optional.empty());
@@ -209,6 +228,7 @@ public class AssignmentControllerTests {
     }
 
     @Test
+    @WithMockUser(username = "admin", password = "admin", roles = "ADMIN")
     @DisplayName("when Assignment exists with given ID, update should return updated Assignment")
     public void whenAssignmentExistsWithGivenId_updateShouldReturnUpdatedAssignment() throws Exception {
         when(assignmentService.findById(1L)).thenReturn(Optional.of(assignmentOutput1));
@@ -229,6 +249,7 @@ public class AssignmentControllerTests {
     }
 
     @Test
+    @WithMockUser(username = "admin", password = "admin", roles = "ADMIN")
     @DisplayName("given AssignmentInput has invalid parameter, update should return response 'Bad Request'")
     public void givenAssignmentInputHasInvalidParameter_updateShouldReturnResponseBadRequest() throws Exception {
         when(assignmentService.findById(1L)).thenReturn(Optional.of(assignmentOutput1));
@@ -266,6 +287,7 @@ public class AssignmentControllerTests {
     }
 
     @Test
+    @WithMockUser(username = "admin", password = "admin", roles = "ADMIN")
     @DisplayName("when Assignment exists with given ID, delete should return response 'No Content'")
     public void whenAssignmentExistsWithGivenId_deleteShouldReturnResponseNoContent() throws Exception {
         when(assignmentService.findById(2L)).thenReturn(Optional.of(assignmentOutput2));
@@ -277,6 +299,7 @@ public class AssignmentControllerTests {
     }
 
     @Test
+    @WithMockUser(username = "admin", password = "admin", roles = "ADMIN")
     @DisplayName("when Assignment does not exist with given ID, delete should return response 'Not Found'")
     public void whenAssignmentDoesNotExistWithGivenId_deleteShouldReturnResponseNotFound() throws Exception {
         when(assignmentService.findById(99L)).thenReturn(Optional.empty());
@@ -288,9 +311,12 @@ public class AssignmentControllerTests {
     }
 
     @Test
+    @WithMockUser(username = "admin", password = "admin", roles = "ADMIN")
     @DisplayName("when Assignment is used by a GradebookEntry, delete should return response 'Method Not Allowed'")
     public void whenAssignmentIsUsedByAnEntry_deleteShouldReturnResponseMethodNotAllowed() throws Exception {
-        GradebookOutput entry = GradebookOutput.builder().assignmentId(assignmentOutput1.getId()).build();
+        GradebookOutput entry = GradebookOutput.builder()
+                .assignment(new SimpleData(assignmentOutput1.getId(), assignmentOutput1.getName()))
+                .build();
         when(assignmentService.findById(1L)).thenReturn(Optional.of(assignmentOutput1));
         when(gradebookService.findByAssignmentId(1L)).thenReturn(List.of(entry));
 
