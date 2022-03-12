@@ -3,10 +3,11 @@ package com.codecool.gradebookapi.unit.controller;
 import com.codecool.gradebookapi.controller.CourseController;
 import com.codecool.gradebookapi.dto.*;
 import com.codecool.gradebookapi.dto.assembler.CourseModelAssembler;
-import com.codecool.gradebookapi.service.CourseService;
-import com.codecool.gradebookapi.service.GradebookService;
-import com.codecool.gradebookapi.service.StudentService;
-import com.codecool.gradebookapi.service.TeacherService;
+import com.codecool.gradebookapi.dto.dataTypes.SimpleData;
+import com.codecool.gradebookapi.jwt.JwtAuthenticationEntryPoint;
+import com.codecool.gradebookapi.jwt.JwtTokenUtil;
+import com.codecool.gradebookapi.security.PasswordConfig;
+import com.codecool.gradebookapi.service.*;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -16,6 +17,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.List;
@@ -28,7 +30,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(CourseController.class)
-@Import(CourseModelAssembler.class)
+@Import({CourseModelAssembler.class, PasswordConfig.class, JwtAuthenticationEntryPoint.class})
 public class CourseControllerTests {
 
     @Autowired
@@ -45,6 +47,12 @@ public class CourseControllerTests {
 
     @MockBean
     private GradebookService gradebookService;
+
+    @MockBean
+    private UserService userService;
+
+    @MockBean
+    private JwtTokenUtil jwtTokenUtil;
 
     private static ObjectMapper mapper;
 
@@ -68,16 +76,23 @@ public class CourseControllerTests {
         courseOutput1 = CourseOutput.builder()
                 .id(1L)
                 .name("Algebra")
-                .students(List.of("Diophantus", "Brahmagupta"))
+                .students(List.of(
+                        new SimpleData(1L, "Diophantus"),
+                        new SimpleData(2L, "Brahmagupta")
+                ))
                 .build();
         courseOutput2 = CourseOutput.builder()
                 .id(2L)
                 .name("Biology")
-                .students(List.of("Charles Darwin", "Gregor Mendel"))
+                .students(List.of(
+                        new SimpleData(3L, "Charles Darwin"),
+                        new SimpleData(4L, "Gregor Mendel")
+                ))
                 .build();
     }
 
     @Test
+    @WithMockUser(username = "admin", password = "admin", roles = "ADMIN")
     @DisplayName("given empty database, getAll should return empty list")
     public void givenEmptyDatabase_getAllShouldReturnEmptyList() throws Exception {
         when(courseService.findAll()).thenReturn(List.of());
@@ -90,6 +105,7 @@ public class CourseControllerTests {
     }
 
     @Test
+    @WithMockUser(username = "admin", password = "admin", roles = "ADMIN")
     @DisplayName("when Classes posted, getAll should return list of Classes")
     public void whenClassesPosted_getAllShouldReturnListOfClasses() throws Exception {
         when(courseService.findAll()).thenReturn(List.of(courseOutput1, courseOutput2));
@@ -104,6 +120,7 @@ public class CourseControllerTests {
     }
 
     @Test
+    @WithMockUser(username = "admin", password = "admin", roles = "ADMIN")
     @DisplayName("when Class with given ID exists, getById should return Class")
     public void whenClassWithGivenIdExists_getByIdShouldReturnClass() throws Exception {
         when(courseService.findById(1L)).thenReturn(Optional.of(courseOutput1));
@@ -116,6 +133,7 @@ public class CourseControllerTests {
     }
 
     @Test
+    @WithMockUser(username = "admin", password = "admin", roles = "ADMIN")
     @DisplayName("when Class with given ID does not exist, getById should return response 'Not Found'")
     public void whenClassWithGivenIdDoesNotExist_getByIdShouldReturnResponseNotFound() throws Exception {
         when(courseService.findById(99L)).thenReturn(Optional.empty());
@@ -127,6 +145,7 @@ public class CourseControllerTests {
     }
 
     @Test
+    @WithMockUser(username = "admin", password = "admin", roles = "ADMIN")
     @DisplayName("given ClassInput parameters are valid, add should return created Class")
     public void givenClassInputParametersAreValid_addShouldReturnCreatedClass() throws Exception {
         when(courseService.save(courseInput1)).thenReturn(courseOutput1);
@@ -146,6 +165,7 @@ public class CourseControllerTests {
     }
 
     @Test
+    @WithMockUser(username = "admin", password = "admin", roles = "ADMIN")
     @DisplayName("given ClassInput has invalid parameters, add should return response 'Bad Request")
     public void givenClassInputHasInvalidParameters_addShouldReturnResponseBadRequest() throws Exception {
         CourseInput inputWithBlankName = CourseInput.builder().name("  ").build();
@@ -163,6 +183,7 @@ public class CourseControllerTests {
     }
 
     @Test
+    @WithMockUser(username = "admin", password = "admin", roles = "ADMIN")
     @DisplayName("when Class does not exists with given ID, update should return response 'Not Found'")
     public void whenClassDoesNotExistWithGivenId_updateShouldReturnResponseNotFound() throws Exception {
         when(courseService.findById(99L)).thenReturn(Optional.empty());
@@ -180,6 +201,7 @@ public class CourseControllerTests {
     }
 
     @Test
+    @WithMockUser(username = "admin", password = "admin", roles = "ADMIN")
     @DisplayName("when Class exists with given ID and ClassInput parameters are valid, update should return updated Class")
     public void whenClassExistsWithGivenIdAndClassInputParametersAreValid_updateShouldReturnUpdatedClass() throws Exception {
         when(courseService.findById(1L)).thenReturn(Optional.of(courseOutput1));
@@ -202,6 +224,7 @@ public class CourseControllerTests {
     }
 
     @Test
+    @WithMockUser(username = "admin", password = "admin", roles = "ADMIN")
     @DisplayName("given ClassInput has invalid parameters, update should return response 'Bad Request")
     public void givenClassInputHasInvalidParameters_updateShouldReturnResponseBadRequest() throws Exception {
         CourseInput inputWithBlankName = CourseInput.builder().name("  ").build();
@@ -220,6 +243,7 @@ public class CourseControllerTests {
     }
 
     @Test
+    @WithMockUser(username = "admin", password = "admin", roles = "ADMIN")
     @DisplayName("when Class exists with given ID, delete should return response 'No Content'")
     public void whenClassExistsWithGivenId_deleteShouldReturnResponseNoContent() throws Exception {
         when(courseService.findById(2L)).thenReturn(Optional.of(courseOutput2));
@@ -231,6 +255,7 @@ public class CourseControllerTests {
     }
 
     @Test
+    @WithMockUser(username = "admin", password = "admin", roles = "ADMIN")
     @DisplayName("when Class does not exist with given ID, delete should return response 'Not Found'")
     public void whenClassDoesNotExistWithGivenId_deleteShouldReturnResponseNotFound() throws Exception {
         when(courseService.findById(99L)).thenReturn(Optional.empty());
@@ -242,9 +267,13 @@ public class CourseControllerTests {
     }
 
     @Test
+    @WithMockUser(username = "admin", password = "admin", roles = "ADMIN")
     @DisplayName("when Class is used by a GradebookEntry, delete should return response 'Method Not Allowed'")
     public void whenClassIsUsedByAnEntry_deleteShouldReturnResponseMethodNotAllowed() throws Exception {
-        GradebookOutput savedEntry = GradebookOutput.builder().id(1L).courseId(1L).build();
+        GradebookOutput savedEntry = GradebookOutput.builder()
+                .id(1L)
+                .course(new SimpleData(1L, "Algebra"))
+                .build();
         when(courseService.findById(1L)).thenReturn(Optional.of(courseOutput1));
         when(gradebookService.findByClassId(1L)).thenReturn(List.of(savedEntry));
 
@@ -255,10 +284,15 @@ public class CourseControllerTests {
     }
 
     @Test
+    @WithMockUser(username = "admin", password = "admin", roles = "ADMIN")
     @DisplayName("when entities exist with given IDs, addStudentToClass should return Class with added Student")
     public void whenEntitiesExistWithGivenIds_addStudentToClass_shouldReturnClassWithAddedStudent() throws Exception {
         StudentDto student = StudentDto.builder().id(1L).firstname("John").lastname("Doe").build();
-        CourseOutput clazz = CourseOutput.builder().id(1L).name("Algebra").students(List.of("John Doe")).build();
+        CourseOutput clazz = CourseOutput.builder()
+                .id(1L)
+                .name("Algebra")
+                .students(List.of(new SimpleData(1L, "John Doe")))
+                .build();
 
         when(studentService.findById(1L)).thenReturn(Optional.of(student));
         when(courseService.findById(1L)).thenReturn(Optional.of(clazz));
@@ -271,10 +305,12 @@ public class CourseControllerTests {
                 .andExpect(jsonPath("$.id", is(1)))
                 .andExpect(jsonPath("$.name", is("Algebra")))
                 .andExpect(jsonPath("$.students", hasSize(1)))
-                .andExpect(jsonPath("$.students[0]", is("John Doe")));
+                .andExpect(jsonPath("$.students[0].id", is(1)))
+                .andExpect(jsonPath("$.students[0].name", is("John Doe")));
     }
 
     @Test
+    @WithMockUser(username = "admin", password = "admin", roles = "ADMIN")
     @DisplayName("when Student does not exist with given ID, addStudentToClass should return response 'Not Found'")
     public void whenStudentDoesNotExistWithGivenId_addStudentToClass_shouldReturnResponseNotFound() throws Exception {
         when(studentService.findById(99L)).thenReturn(Optional.empty());
@@ -287,6 +323,7 @@ public class CourseControllerTests {
     }
 
     @Test
+    @WithMockUser(username = "admin", password = "admin", roles = "ADMIN")
     @DisplayName("when Class does not exist with given ID, addStudentToClass should return response 'Not Found'")
     public void whenClassDoesNotExistWithGivenId_addStudentToClass_shouldReturnResponseNotFound() throws Exception {
         when(courseService.findById(99L)).thenReturn(Optional.empty());
@@ -298,10 +335,11 @@ public class CourseControllerTests {
     }
 
     @Test
+    @WithMockUser(username = "admin", password = "admin", roles = "ADMIN")
     @DisplayName("when entities exist with given IDs, setTeacherOfCourse should return Course with added Teacher")
     public void whenEntitiesExistWithGivenIds_setTeacherOfCourse_shouldReturnCourseWithAddedTeacher() throws Exception {
         TeacherDto teacher = TeacherDto.builder().id(1L).firstname("John").lastname("Smith").build();
-        CourseOutput course = CourseOutput.builder().id(1L).name("Algebra").teacherId(1L).build();
+        CourseOutput course = CourseOutput.builder().id(1L).name("Algebra").teacher(new SimpleData(1L, "Diophantus")).build();
 
         when(teacherService.findById(1L)).thenReturn(Optional.of(teacher));
         when(courseService.findById(1L)).thenReturn(Optional.of(course));
@@ -313,10 +351,12 @@ public class CourseControllerTests {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id", is(1)))
                 .andExpect(jsonPath("$.name", is("Algebra")))
-                .andExpect(jsonPath("$.teacherId", is(1)));
+                .andExpect(jsonPath("$.teacher.id", is(1)))
+                .andExpect(jsonPath("$.teacher.name", is("Diophantus")));
     }
 
     @Test
+    @WithMockUser(username = "admin", password = "admin", roles = "ADMIN")
     @DisplayName("when Teacher does not exist with given ID, setTeacherOfCourse should return response 'Not Found'")
     public void whenTeacherDoesNotExistWithGivenId_setTeacherOfCourse_shouldReturnResponseNotFound() throws Exception {
         when(teacherService.findById(99L)).thenReturn(Optional.empty());
@@ -329,6 +369,7 @@ public class CourseControllerTests {
     }
 
     @Test
+    @WithMockUser(username = "admin", password = "admin", roles = "ADMIN")
     @DisplayName("when Course does not exist with given ID, setTeacherOfCourse should return response 'Not Found'")
     public void whenCourseDoesNotExistWithGivenId_setTeacherOfCourse_shouldReturnResponseNotFound() throws Exception {
         when(courseService.findById(99L)).thenReturn(Optional.empty());
