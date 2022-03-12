@@ -13,8 +13,8 @@ import javax.validation.constraints.*;
 @Getter
 @Setter
 @Builder
-@Relation(collectionRelation = "teachers", itemRelation = "teacher")
 @EqualsAndHashCode
+@Relation(collectionRelation = "teachers", itemRelation = "teacher")
 public class TeacherDto {
     private Long id;
 
