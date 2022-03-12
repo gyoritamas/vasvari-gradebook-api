@@ -25,11 +25,15 @@ import javax.validation.Valid;
 @Tag(name = "teacher-controller", description = "Operations on teachers")
 @SecurityRequirement(name = "gradebookapi")
 public class TeacherController {
-    @Autowired
-    private TeacherService service;
+
+    private final TeacherService service;
+    private final TeacherModelAssembler assembler;
 
     @Autowired
-    private TeacherModelAssembler assembler;
+    public TeacherController(TeacherService service, TeacherModelAssembler assembler) {
+        this.service = service;
+        this.assembler = assembler;
+    }
 
     @GetMapping
     @Operation(summary = "Lists all teachers")
