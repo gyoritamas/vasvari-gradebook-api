@@ -2,6 +2,8 @@ package com.codecool.gradebookapi.integration;
 
 import com.codecool.gradebookapi.controller.*;
 import com.codecool.gradebookapi.dto.*;
+import com.codecool.gradebookapi.dto.dataTypes.SimpleData;
+import com.codecool.gradebookapi.integration.util.AuthorizationManager;
 import com.codecool.gradebookapi.testmodel.CourseOutput;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,13 +15,15 @@ import org.springframework.hateoas.Link;
 import org.springframework.hateoas.MediaTypes;
 import org.springframework.hateoas.client.Traverson;
 import org.springframework.hateoas.server.core.TypeReferences;
-import org.springframework.http.*;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.test.annotation.DirtiesContext;
 
 import java.net.URI;
 import java.util.ArrayList;
-import java.util.List;
 
+import static com.codecool.gradebookapi.security.ApplicationUserRole.ADMIN;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
@@ -33,6 +37,9 @@ public class CourseIntegrationTests {
 
     @LocalServerPort
     private int port;
+
+    @Autowired
+    private AuthorizationManager auth;
 
     private Link linkToClasses;
     private Link linkToStudents;
@@ -50,6 +57,8 @@ public class CourseIntegrationTests {
         linkToClasses = linkTo(CourseController.class).withSelfRel();
         linkToStudents = linkTo(StudentController.class).withSelfRel();
         linkToTeachers = linkTo(TeacherController.class).withSelfRel();
+
+        auth.setRole(ADMIN);
 
         courseInput1 = CourseInput.builder()
                 .name("Algebra")
@@ -95,8 +104,12 @@ public class CourseIntegrationTests {
         @Test
         @DisplayName("when Class posted with valid parameters, should return created Class")
         public void whenClassPostedWithValidParameters_shouldReturnCreatedClass() {
-            ResponseEntity<CourseOutput> response =
-                    template.postForEntity(linkToClasses.getHref(), courseInput1, CourseOutput.class);
+            ResponseEntity<CourseOutput> response = template.exchange(
+                    linkToClasses.getHref(),
+                    HttpMethod.POST,
+                    auth.createHttpEntityWithAuthorization(courseInput1),
+                    CourseOutput.class
+            );
 
             assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
             assertThat(response.getBody()).isEqualTo(courseOutput1);
@@ -106,8 +119,12 @@ public class CourseIntegrationTests {
         @DisplayName("when Class posted with invalid parameter, should return response 'Bad Request'")
         public void whenClassPostedWithInvalidParameter_shouldReturnResponseBadRequest() {
             CourseInput inputWithBlankName = CourseInput.builder().name("  ").build();
-            ResponseEntity<?> response =
-                    template.postForEntity(linkToClasses.getHref(), inputWithBlankName, String.class);
+            ResponseEntity<?> response = template.exchange(
+                    linkToClasses.getHref(),
+                    HttpMethod.POST,
+                    auth.createHttpEntityWithAuthorization(inputWithBlankName),
+                    String.class
+            );
 
             assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
         }
@@ -115,28 +132,66 @@ public class CourseIntegrationTests {
         @Test
         @DisplayName("add Student to Class should return Class with added Student")
         public void addStudentToClass_shouldReturnClassWithAddedStudent() {
-            long studentId = template.postForObject(linkToStudents.getHref(), student, StudentDto.class).getId();
-            long classId = template.postForObject(linkToClasses.getHref(), courseInput1, CourseOutput.class).getId();
+            // post student
+            ResponseEntity<StudentDto> postStudentResponse = template.exchange(
+                    linkToStudents.getHref(),
+                    HttpMethod.POST,
+                    auth.createHttpEntityWithAuthorization(student),
+                    StudentDto.class
+            );
+            assertThat(postStudentResponse.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+            assertThat(postStudentResponse.getBody()).isNotNull();
+            long studentId = postStudentResponse.getBody().getId();
 
+            // post course1
+            ResponseEntity<CourseOutput> postCourseResponse = template.exchange(
+                    linkToClasses.getHref(),
+                    HttpMethod.POST,
+                    auth.createHttpEntityWithAuthorization(courseInput1),
+                    CourseOutput.class
+            );
+            assertThat(postCourseResponse.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+            assertThat(postCourseResponse.getBody()).isNotNull();
+            long courseId = postCourseResponse.getBody().getId();
+
+            // add student to course1
             Link linkToClassEnrollment =
-                    linkTo(methodOn(CourseController.class).addStudentToClass(classId, studentId)).withSelfRel();
-            ResponseEntity<CourseOutput> response =
-                    template.postForEntity(linkToClassEnrollment.getHref(), null, CourseOutput.class);
+                    linkTo(methodOn(CourseController.class).addStudentToClass(courseId, studentId)).withSelfRel();
+            ResponseEntity<CourseOutput> response = template.exchange(
+                    linkToClassEnrollment.getHref(),
+                    HttpMethod.POST,
+                    auth.createHttpEntityWithAuthorization(null),
+                    CourseOutput.class
+            );
 
             assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
             assertThat(response.getBody()).isNotNull();
-            assertThat(response.getBody().getStudents()).isEqualTo(List.of("John Doe"));
+            assertThat(response.getBody().getStudents()).containsExactly(new SimpleData(studentId, student.getName()));
         }
 
         @Test
         @DisplayName("when Student does not exist with given ID, should return response 'Not Found'")
         public void whenStudentDoesNotExistWithGivenId_shouldReturnResponseNotFound() {
-            long classId = template.postForObject(linkToClasses.getHref(), courseInput1, CourseOutput.class).getId();
+            // post course1
+            ResponseEntity<CourseOutput> postCourseResponse = template.exchange(
+                    linkToClasses.getHref(),
+                    HttpMethod.POST,
+                    auth.createHttpEntityWithAuthorization(courseInput1),
+                    CourseOutput.class
+            );
+            assertThat(postCourseResponse.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+            assertThat(postCourseResponse.getBody()).isNotNull();
+            long courseId = postCourseResponse.getBody().getId();
 
+            // add nonexistent student to course
             Link linkToClassEnrollment =
-                    linkTo(methodOn(CourseController.class).addStudentToClass(classId, 99L)).withSelfRel();
-            ResponseEntity<?> response =
-                    template.postForEntity(linkToClassEnrollment.getHref(), null, String.class);
+                    linkTo(methodOn(CourseController.class).addStudentToClass(courseId, 99L)).withSelfRel();
+            ResponseEntity<?> response = template.exchange(
+                    linkToClassEnrollment.getHref(),
+                    HttpMethod.POST,
+                    auth.createHttpEntityWithAuthorization(null),
+                    String.class
+            );
 
             assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
         }
@@ -144,26 +199,64 @@ public class CourseIntegrationTests {
         @Test
         @DisplayName("when Class does not exist with given ID, should return response 'Not Found'")
         public void whenClassDoesNotExistWithGivenId_shouldReturnResponseNotFound() {
-            long studentId = template.postForObject(linkToStudents.getHref(), student, StudentDto.class).getId();
+            // post student
+            ResponseEntity<StudentDto> postStudentResponse = template.exchange(
+                    linkToStudents.getHref(),
+                    HttpMethod.POST,
+                    auth.createHttpEntityWithAuthorization(student),
+                    StudentDto.class
+            );
+            assertThat(postStudentResponse.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+            assertThat(postStudentResponse.getBody()).isNotNull();
+            long studentId = postStudentResponse.getBody().getId();
 
+            // add student to nonexistent course
             Link linkToClassEnrollment =
                     linkTo(methodOn(CourseController.class).addStudentToClass(99L, studentId)).withSelfRel();
-            ResponseEntity<?> response =
-                    template.postForEntity(linkToClassEnrollment.getHref(), null, String.class);
+            ResponseEntity<?> response = template.exchange(
+                    linkToClassEnrollment.getHref(),
+                    HttpMethod.POST,
+                    auth.createHttpEntityWithAuthorization(null),
+                    String.class
+            );
 
             assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
         }
 
         @Test
-        @DisplayName("setTeacherOfCourse should return Course with set teacherId")
+        @DisplayName("setTeacherOfCourse should return Course with set teacher")
         public void setTeacherOfCourse_shouldReturnCourseWithGivenTeacherSetAsParameter() {
-            long teacherId = template.postForObject(linkToTeachers.getHref(), teacher, TeacherDto.class).getId();
-            long courseId = template.postForObject(linkToClasses.getHref(), courseInput1, CourseOutput.class).getId();
+            // post teacher
+            ResponseEntity<TeacherDto> postTeacherResponse = template.exchange(
+                    linkToTeachers.getHref(),
+                    HttpMethod.POST,
+                    auth.createHttpEntityWithAuthorization(teacher),
+                    TeacherDto.class
+            );
+            assertThat(postTeacherResponse.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+            assertThat(postTeacherResponse.getBody()).isNotNull();
+            long teacherId = postTeacherResponse.getBody().getId();
 
+            // post course1
+            ResponseEntity<CourseOutput> postCourseResponse = template.exchange(
+                    linkToClasses.getHref(),
+                    HttpMethod.POST,
+                    auth.createHttpEntityWithAuthorization(courseInput1),
+                    CourseOutput.class
+            );
+            assertThat(postCourseResponse.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+            assertThat(postCourseResponse.getBody()).isNotNull();
+            long courseId = postCourseResponse.getBody().getId();
+
+            // set teacher as teacher of course
             Link linkToSetTeacher =
                     linkTo(methodOn(CourseController.class).setTeacherOfCourse(courseId, teacherId)).withSelfRel();
-            ResponseEntity<CourseOutput> response =
-                    template.postForEntity(linkToSetTeacher.getHref(), null, CourseOutput.class);
+            ResponseEntity<CourseOutput> response = template.exchange(
+                    linkToSetTeacher.getHref(),
+                    HttpMethod.POST,
+                    auth.createHttpEntityWithAuthorization(null),
+                    CourseOutput.class
+            );
 
             assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
             assertThat(response.getBody()).isNotNull();
@@ -174,12 +267,26 @@ public class CourseIntegrationTests {
         @Test
         @DisplayName("when Teacher does not exist with given ID, should return response 'Not Found'")
         public void whenTeacherDoesNotExistWithGivenId_shouldReturnResponseNotFound() {
-            long courseId = template.postForObject(linkToClasses.getHref(), courseInput1, CourseOutput.class).getId();
+            // post course1
+            ResponseEntity<CourseOutput> postCourseResponse = template.exchange(
+                    linkToClasses.getHref(),
+                    HttpMethod.POST,
+                    auth.createHttpEntityWithAuthorization(courseInput1),
+                    CourseOutput.class
+            );
+            assertThat(postCourseResponse.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+            assertThat(postCourseResponse.getBody()).isNotNull();
+            long courseId = postCourseResponse.getBody().getId();
 
+            // set nonexistent teacher as teacher of course
             Link linkToSetTeacher =
                     linkTo(methodOn(CourseController.class).setTeacherOfCourse(courseId, 99L)).withSelfRel();
-            ResponseEntity<?> response =
-                    template.postForEntity(linkToSetTeacher.getHref(), null, String.class);
+            ResponseEntity<?> response = template.exchange(
+                    linkToSetTeacher.getHref(),
+                    HttpMethod.POST,
+                    auth.createHttpEntityWithAuthorization(null),
+                    String.class
+            );
 
             assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
         }
@@ -187,12 +294,26 @@ public class CourseIntegrationTests {
         @Test
         @DisplayName("when Course does not exist with given ID, should return response 'Not Found'")
         public void whenCourseDoesNotExistWithGivenId_shouldReturnResponseNotFound() {
-            long teacherId = template.postForObject(linkToTeachers.getHref(), teacher, TeacherDto.class).getId();
+            // post teacher
+            ResponseEntity<TeacherDto> postTeacherResponse = template.exchange(
+                    linkToTeachers.getHref(),
+                    HttpMethod.POST,
+                    auth.createHttpEntityWithAuthorization(teacher),
+                    TeacherDto.class
+            );
+            assertThat(postTeacherResponse.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+            assertThat(postTeacherResponse.getBody()).isNotNull();
+            long teacherId = postTeacherResponse.getBody().getId();
 
+            // set teacher as teacher of nonexistent course
             Link linkToSetTeacher =
                     linkTo(methodOn(CourseController.class).setTeacherOfCourse(99L, teacherId)).withSelfRel();
-            ResponseEntity<?> response =
-                    template.postForEntity(linkToSetTeacher.getHref(), null, String.class);
+            ResponseEntity<?> response = template.exchange(
+                    linkToSetTeacher.getHref(),
+                    HttpMethod.POST,
+                    auth.createHttpEntityWithAuthorization(null),
+                    String.class
+            );
 
             assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
         }
@@ -214,6 +335,7 @@ public class CourseIntegrationTests {
                     };
             CollectionModel<CourseOutput> classResource = traverson
                     .follow("$._links.self.href")
+                    .withHeaders(auth.getHeadersWithAuthorization())
                     .toObject(collectionModelType);
 
             assertThat(classResource).isNotNull();
@@ -224,8 +346,27 @@ public class CourseIntegrationTests {
         @Order(2)
         @DisplayName("when Classes posted, getAll should return list of Classes")
         public void whenClassesPosted_getAllShouldReturnListOfClasses() {
-            CourseOutput class1 = template.postForObject(linkToClasses.getHref(), courseInput1, CourseOutput.class);
-            CourseOutput class2 = template.postForObject(linkToClasses.getHref(), courseInput2, CourseOutput.class);
+            // post course1
+            ResponseEntity<CourseOutput> course1PostResponse = template.exchange(
+                    linkToClasses.getHref(),
+                    HttpMethod.POST,
+                    auth.createHttpEntityWithAuthorization(courseInput1),
+                    CourseOutput.class
+            );
+            assertThat(course1PostResponse.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+            assertThat(course1PostResponse.getBody()).isNotNull();
+            CourseOutput course1 = course1PostResponse.getBody();
+
+            // post course2
+            ResponseEntity<CourseOutput> course2PostResponse = template.exchange(
+                    linkToClasses.getHref(),
+                    HttpMethod.POST,
+                    auth.createHttpEntityWithAuthorization(courseInput2),
+                    CourseOutput.class
+            );
+            assertThat(course2PostResponse.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+            assertThat(course2PostResponse.getBody()).isNotNull();
+            CourseOutput course2 = course2PostResponse.getBody();
 
             String urlToClasses = String.format("http://localhost:%d/api/classes", port);
             Traverson traverson = new Traverson(URI.create(urlToClasses), MediaTypes.HAL_JSON);
@@ -234,29 +375,49 @@ public class CourseIntegrationTests {
                     };
             CollectionModel<CourseOutput> classResource = traverson
                     .follow("$._links.self.href")
+                    .withHeaders(auth.getHeadersWithAuthorization())
                     .toObject(collectionModelType);
 
             assertThat(classResource).isNotNull();
-            assertThat(classResource.getContent()).containsExactly(class1, class2);
+            assertThat(classResource.getContent()).containsExactly(course1, course2);
         }
 
         @Test
         @DisplayName("when Class exists with given ID, getById should return Class")
         public void whenClassExistsWithGivenId_getByIdShouldReturnClass() {
-            CourseOutput classPosted = template.postForObject(linkToClasses.getHref(), courseInput1, CourseOutput.class);
+            // post course1
+            ResponseEntity<CourseOutput> course1PostResponse = template.exchange(
+                    linkToClasses.getHref(),
+                    HttpMethod.POST,
+                    auth.createHttpEntityWithAuthorization(courseInput1),
+                    CourseOutput.class
+            );
+            assertThat(course1PostResponse.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+            assertThat(course1PostResponse.getBody()).isNotNull();
+            CourseOutput coursePosted = course1PostResponse.getBody();
 
-            Link linkToClass = linkTo(methodOn(CourseController.class).getById(classPosted.getId())).withSelfRel();
-            ResponseEntity<CourseOutput> response = template.getForEntity(linkToClass.getHref(), CourseOutput.class);
+            Link linkToClass = linkTo(methodOn(CourseController.class).getById(coursePosted.getId())).withSelfRel();
+            ResponseEntity<CourseOutput> response = template.exchange(
+                    linkToClass.getHref(),
+                    HttpMethod.GET,
+                    auth.createHttpEntityWithAuthorization(null),
+                    CourseOutput.class
+            );
 
             assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-            assertThat(response.getBody()).isEqualTo(classPosted);
+            assertThat(response.getBody()).isEqualTo(coursePosted);
         }
 
         @Test
         @DisplayName("when Class does not exist with given ID, getById should return response 'Not Found'")
         public void whenClassDoesNotExistWithGivenId_getByIdShouldReturnResponseNotFound() {
             Link linkToClass = linkTo(methodOn(CourseController.class).getById(99L)).withSelfRel();
-            ResponseEntity<?> response = template.getForEntity(linkToClass.getHref(), String.class);
+            ResponseEntity<?> response = template.exchange(
+                    linkToClass.getHref(),
+                    HttpMethod.GET,
+                    auth.createHttpEntityWithAuthorization(null),
+                    String.class
+            );
 
             assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
         }
@@ -268,17 +429,30 @@ public class CourseIntegrationTests {
         @Test
         @DisplayName("when Class exists with given ID and ClassInput parameters are valid, update should return updated Class")
         public void whenClassExistsWithGivenIdAndClassInputParametersAreValid_updateShouldReturnUpdatedClass() {
-            long classId = template.postForObject(linkToClasses.getHref(), courseInput1, CourseOutput.class).getId();
-            CourseInput update = CourseInput.builder().name("Algebra II").build();
-            HttpEntity<CourseInput> classHttpEntity = createHttpEntityWithMediaTypeJson(update);
+            // post course1
+            ResponseEntity<CourseOutput> course1PostResponse = template.exchange(
+                    linkToClasses.getHref(),
+                    HttpMethod.POST,
+                    auth.createHttpEntityWithAuthorization(courseInput1),
+                    CourseOutput.class
+            );
+            assertThat(course1PostResponse.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+            assertThat(course1PostResponse.getBody()).isNotNull();
+            long courseId = course1PostResponse.getBody().getId();
 
-            Link linkToClass = linkTo(methodOn(CourseController.class).getById(classId)).withSelfRel();
-            ResponseEntity<CourseOutput> response =
-                    template.exchange(linkToClass.getHref(), HttpMethod.PUT, classHttpEntity, CourseOutput.class);
+            // update course
+            CourseInput update = CourseInput.builder().name("Algebra II").build();
+            Link linkToClass = linkTo(methodOn(CourseController.class).getById(courseId)).withSelfRel();
+            ResponseEntity<CourseOutput> response = template.exchange(
+                    linkToClass.getHref(),
+                    HttpMethod.PUT,
+                    auth.createHttpEntityWithAuthorization(update),
+                    CourseOutput.class
+            );
 
             assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
             assertThat(response.getBody()).isNotNull();
-            assertThat(response.getBody().getId()).isEqualTo(classId);
+            assertThat(response.getBody().getId()).isEqualTo(courseId);
             assertThat(response.getBody().getName()).isEqualTo("Algebra II");
         }
 
@@ -286,9 +460,12 @@ public class CourseIntegrationTests {
         @DisplayName("when Class does not exist with given ID, update should return response 'Not Found'")
         public void whenClassDoesNotExistWithGivenId_updateShouldReturnResponseNotFound() {
             Link linkToClass = linkTo(methodOn(CourseController.class).getById(99L)).withSelfRel();
-            HttpEntity<CourseInput> classHttpEntity = createHttpEntityWithMediaTypeJson(courseInput1);
-            ResponseEntity<?> response =
-                    template.exchange(linkToClass.getHref(), HttpMethod.PUT, classHttpEntity, String.class);
+            ResponseEntity<?> response = template.exchange(
+                    linkToClass.getHref(),
+                    HttpMethod.PUT,
+                    auth.createHttpEntityWithAuthorization(courseInput1),
+                    String.class
+            );
 
             assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
         }
@@ -296,13 +473,26 @@ public class CourseIntegrationTests {
         @Test
         @DisplayName("when ClassInput has invalid parameters, update should return response 'Bad Request'")
         public void whenClassInputHasInvalidParameters_updateShouldReturnResponseBadRequest() {
-            long classId = template.postForObject(linkToClasses.getHref(), courseInput1, CourseOutput.class).getId();
-            CourseInput updateWithBlankName = CourseInput.builder().name(" ").build();
-            HttpEntity<CourseInput> classHttpEntity = createHttpEntityWithMediaTypeJson(updateWithBlankName);
+            // post course1
+            ResponseEntity<CourseOutput> course1PostResponse = template.exchange(
+                    linkToClasses.getHref(),
+                    HttpMethod.POST,
+                    auth.createHttpEntityWithAuthorization(courseInput1),
+                    CourseOutput.class
+            );
+            assertThat(course1PostResponse.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+            assertThat(course1PostResponse.getBody()).isNotNull();
+            long courseId = course1PostResponse.getBody().getId();
 
-            Link linkToClass = linkTo(methodOn(CourseController.class).getById(classId)).withSelfRel();
-            ResponseEntity<?> response =
-                    template.exchange(linkToClass.getHref(), HttpMethod.PUT, classHttpEntity, String.class);
+            // update course
+            CourseInput updateWithBlankName = CourseInput.builder().name(" ").build();
+            Link linkToClass = linkTo(methodOn(CourseController.class).getById(courseId)).withSelfRel();
+            ResponseEntity<?> response = template.exchange(
+                    linkToClass.getHref(),
+                    HttpMethod.PUT,
+                    auth.createHttpEntityWithAuthorization(updateWithBlankName),
+                    String.class
+            );
 
             assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
         }
@@ -314,11 +504,33 @@ public class CourseIntegrationTests {
         @Test
         @DisplayName("when Class exists with given ID, delete should remove Class")
         public void whenClassExistsWithGivenId_deleteShouldRemoveClass() {
-            long classId = template.postForObject(linkToClasses.getHref(), courseInput1, CourseOutput.class).getId();
-            Link linkToClass = linkTo(methodOn(CourseController.class).getById(classId)).withSelfRel();
+            // post course1
+            ResponseEntity<CourseOutput> course1PostResponse = template.exchange(
+                    linkToClasses.getHref(),
+                    HttpMethod.POST,
+                    auth.createHttpEntityWithAuthorization(courseInput1),
+                    CourseOutput.class
+            );
+            assertThat(course1PostResponse.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+            assertThat(course1PostResponse.getBody()).isNotNull();
+            long courseId = course1PostResponse.getBody().getId();
 
-            template.exchange(linkToClass.getHref(), HttpMethod.DELETE, HttpEntity.EMPTY, CourseOutput.class);
-            ResponseEntity<?> response = template.getForEntity(linkToClass.getHref(), String.class);
+            // delete course
+            Link linkToClass = linkTo(methodOn(CourseController.class).getById(courseId)).withSelfRel();
+            template.exchange(
+                    linkToClass.getHref(),
+                    HttpMethod.DELETE,
+                    auth.createHttpEntityWithAuthorization(null),
+                    CourseOutput.class
+            );
+
+            // get course
+            ResponseEntity<?> response = template.exchange(
+                    linkToClass.getHref(),
+                    HttpMethod.GET,
+                    auth.createHttpEntityWithAuthorization(null),
+                    String.class
+            );
 
             assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
         }
@@ -327,8 +539,12 @@ public class CourseIntegrationTests {
         @DisplayName("when Class does not exist with given ID, delete should return response 'Not Found'")
         public void whenClassDoesNotExistWithGivenId_deleteShouldReturnResponseNotFound() {
             Link linkToClass = linkTo(methodOn(CourseController.class).getById(99L)).withSelfRel();
-            ResponseEntity<?> response =
-                    template.exchange(linkToClass.getHref(), HttpMethod.DELETE, HttpEntity.EMPTY, String.class);
+            ResponseEntity<?> response = template.exchange(
+                    linkToClass.getHref(),
+                    HttpMethod.DELETE,
+                    auth.createHttpEntityWithAuthorization(null),
+                    String.class
+            );
 
             assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
         }
@@ -336,27 +552,68 @@ public class CourseIntegrationTests {
         @Test
         @DisplayName("when Class is used by a GradebookEntry, delete should return response 'Method Not Allowed'")
         public void whenClassIsUsedByAnEntry_deleteShouldReturnResponseMethodNotAllowed() {
-            CourseOutput course = template.postForObject(linkToClasses.getHref(), courseInput1, CourseOutput.class);
+            // post course1
+            ResponseEntity<CourseOutput> course1PostResponse = template.exchange(
+                    linkToClasses.getHref(),
+                    HttpMethod.POST,
+                    auth.createHttpEntityWithAuthorization(courseInput1),
+                    CourseOutput.class
+            );
+            assertThat(course1PostResponse.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+            assertThat(course1PostResponse.getBody()).isNotNull();
+            CourseOutput course = course1PostResponse.getBody();
 
             postEntryRelatedToClass(course);
+
+            // delete course
             Link linkToClass = linkTo(methodOn(CourseController.class).getById(course.getId())).withSelfRel();
-            ResponseEntity<?> response =
-                    template.exchange(linkToClass.getHref(), HttpMethod.DELETE, HttpEntity.EMPTY, String.class);
+            ResponseEntity<?> response = template.exchange(
+                    linkToClass.getHref(),
+                    HttpMethod.DELETE,
+                    auth.createHttpEntityWithAuthorization(null),
+                    String.class
+            );
 
             assertThat(response.getStatusCode()).isEqualTo(HttpStatus.METHOD_NOT_ALLOWED);
         }
     }
 
     private void postEntryRelatedToClass(CourseOutput clazz) {
+        // post assignment
         AssignmentInput assignmentInput = AssignmentInput.builder().name("Homework 1").type("HOMEWORK").build();
         Link linkToAssignments = linkTo(AssignmentController.class).withSelfRel();
-        AssignmentOutput assignment = template.postForObject(linkToAssignments.getHref(), assignmentInput, AssignmentOutput.class);
-        student = template.postForObject(linkToStudents.getHref(), student, StudentDto.class);
+        ResponseEntity<AssignmentOutput> assignmentPostResponse = template.exchange(
+                linkToAssignments.getHref(),
+                HttpMethod.POST,
+                auth.createHttpEntityWithAuthorization(assignmentInput),
+                AssignmentOutput.class
+        );
+        assertThat(assignmentPostResponse.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+        assertThat(assignmentPostResponse.getBody()).isNotNull();
+        AssignmentOutput assignment = assignmentPostResponse.getBody();
 
+        // post student
+        ResponseEntity<StudentDto> studentPostResponse = template.exchange(
+                linkToStudents.getHref(),
+                HttpMethod.POST,
+                auth.createHttpEntityWithAuthorization(student),
+                StudentDto.class
+        );
+        assertThat(studentPostResponse.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+        assertThat(studentPostResponse.getBody()).isNotNull();
+        StudentDto student = studentPostResponse.getBody();
+
+        // add student to course
         Link linkToClassEnrollment =
                 linkTo(methodOn(CourseController.class).addStudentToClass(clazz.getId(), student.getId())).withSelfRel();
-        template.postForObject(linkToClassEnrollment.getHref(), null, CourseOutput.class);
+        template.exchange(
+                linkToClassEnrollment.getHref(),
+                HttpMethod.POST,
+                auth.createHttpEntityWithAuthorization(null),
+                CourseOutput.class
+        );
 
+        // post gradebook entry
         GradebookInput gradebookInput = GradebookInput.builder()
                 .studentId(student.getId())
                 .courseId(clazz.getId())
@@ -365,17 +622,15 @@ public class CourseIntegrationTests {
                 .build();
         Link linkToGradeAssignment =
                 linkTo(methodOn(GradebookController.class).gradeAssignment(gradebookInput)).withSelfRel();
-        ResponseEntity<GradebookOutput> response =
-                template.postForEntity(linkToGradeAssignment.getHref(), gradebookInput, GradebookOutput.class);
+        ResponseEntity<GradebookOutput> gradebookEntryPostResponse = template.exchange(
+                linkToGradeAssignment.getHref(),
+                HttpMethod.POST,
+                auth.createHttpEntityWithAuthorization(gradebookInput),
+                GradebookOutput.class
+        );
 
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
-        assertThat(response.getBody()).isNotNull();
+        assertThat(gradebookEntryPostResponse.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+        assertThat(gradebookEntryPostResponse.getBody()).isNotNull();
     }
 
-    private HttpEntity<CourseInput> createHttpEntityWithMediaTypeJson(CourseInput clazz) {
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
-
-        return new HttpEntity<>(clazz, headers);
-    }
 }

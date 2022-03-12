@@ -63,8 +63,10 @@ public class StudentIntegrationTests {
     @BeforeEach
     public void setUp() {
         this.baseUrl = "http://localhost:" + port + "/api/students";
-        auth.setRole(ADMIN);
         baseLink = linkTo(StudentController.class).withRel("students");
+
+        auth.setRole(ADMIN);
+
         student1 = StudentDto.builder()
                 .firstname("John")
                 .lastname("Doe")
