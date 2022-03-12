@@ -7,6 +7,8 @@ import com.codecool.gradebookapi.controller.StudentController;
 import com.codecool.gradebookapi.dto.AssignmentInput;
 import com.codecool.gradebookapi.dto.CourseInput;
 import com.codecool.gradebookapi.dto.GradebookInput;
+import com.codecool.gradebookapi.dto.dataTypes.SimpleData;
+import com.codecool.gradebookapi.integration.util.AuthorizationManager;
 import com.codecool.gradebookapi.testmodel.AssignmentOutput;
 import com.codecool.gradebookapi.testmodel.CourseOutput;
 import com.codecool.gradebookapi.testmodel.GradebookOutput;
@@ -28,12 +30,14 @@ import org.springframework.hateoas.Link;
 import org.springframework.hateoas.MediaTypes;
 import org.springframework.hateoas.client.Traverson;
 import org.springframework.hateoas.server.core.TypeReferences;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.annotation.DirtiesContext;
 
 import java.net.URI;
 
+import static com.codecool.gradebookapi.security.ApplicationUserRole.ADMIN;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
@@ -46,27 +50,24 @@ public class GradebookIntegrationTests {
     @Autowired
     private TestRestTemplate template;
 
+    @Autowired
+    private AuthorizationManager auth;
+
     @LocalServerPort
     private int port;
 
     private String baseUrl;
-    private String studentBaseUrl;
-    private String classBaseUrl;
-    private String assignmentBaseUrl;
 
     private StudentDto student1;
     private StudentDto student2;
-    private CourseInput clazz;
+    private CourseInput course;
     private AssignmentInput assignment;
-    private GradebookOutput gradebookOutput1;
-    private GradebookOutput gradebookOutput2;
 
     @BeforeEach
     public void setUp() {
         baseUrl = "http://localhost:" + port + "/api";
-        studentBaseUrl = baseUrl + "/students";
-        classBaseUrl = baseUrl + "/classes";
-        assignmentBaseUrl = baseUrl + "/assignments";
+
+        auth.setRole(ADMIN);
 
         student1 = StudentDto.builder()
                 .firstname("John")
@@ -86,24 +87,12 @@ public class GradebookIntegrationTests {
                 .phone("202-555-0198")
                 .birthdate("1990-04-13")
                 .build();
-        clazz = CourseInput.builder()
+        course = CourseInput.builder()
                 .name("Algebra")
                 .build();
         assignment = AssignmentInput.builder()
                 .name("Homework 1")
                 .type("HOMEWORK")
-                .build();
-        gradebookOutput1 = GradebookOutput.builder()
-                .studentId(1L)
-                .courseId(1L)
-                .assignmentId(1L)
-                .grade(4)
-                .build();
-        gradebookOutput2 = GradebookOutput.builder()
-                .studentId(2L)
-                .courseId(1L)
-                .assignmentId(1L)
-                .grade(5)
                 .build();
     }
 
@@ -123,6 +112,7 @@ public class GradebookIntegrationTests {
                     };
             CollectionModel<GradebookOutput> classResource = traverson
                     .follow("$._links.self.href")
+                    .withHeaders(auth.getHeadersWithAuthorization())
                     .toObject(collectionModelType);
 
             assertThat(classResource).isNotNull();
@@ -133,35 +123,28 @@ public class GradebookIntegrationTests {
         @Order(2)
         @DisplayName("when entries posted, getAll should return list of entries")
         public void whenEntriesPosted_getAllShouldReturnListOfEntries() {
-            Link linkToStudents = linkTo(StudentController.class).withSelfRel();
-            long student1Id = template.postForObject(linkToStudents.getHref(), student1, StudentDto.class).getId();
-            long student2Id = template.postForObject(linkToStudents.getHref(), student2, StudentDto.class).getId();
-            Link linkToClasses = linkTo(CourseController.class).withSelfRel();
-            long classId = template.postForObject(linkToClasses.getHref(), clazz, CourseOutput.class).getId();
-            Link linkToAssignments = linkTo(AssignmentController.class).withSelfRel();
-            long assignmentId =
-                    template.postForObject(linkToAssignments.getHref(), assignment, AssignmentOutput.class).getId();
-            classId = addStudentToClass(student1Id, classId).getId();
-            classId = addStudentToClass(student2Id, classId).getId();
+            long student1Id = postStudent(student1).getId();
+            long student2Id = postStudent(student2).getId();
+            long courseId = postCourse(course).getId();
+            long assignmentId = postAssignment(assignment).getId();
+
+            courseId = addStudentToClass(student1Id, courseId).getId();
+            courseId = addStudentToClass(student2Id, courseId).getId();
 
             GradebookInput gradebookInput1 = GradebookInput.builder()
                     .studentId(student1Id)
-                    .courseId(classId)
+                    .courseId(courseId)
                     .assignmentId(assignmentId)
                     .grade(4)
                     .build();
             GradebookInput gradebookInput2 = GradebookInput.builder()
                     .studentId(student2Id)
-                    .courseId(classId)
+                    .courseId(courseId)
                     .assignmentId(assignmentId)
                     .grade(5)
                     .build();
-            Link linkToGradeAssignment =
-                    linkTo(methodOn(GradebookController.class).gradeAssignment(gradebookInput1)).withSelfRel();
-            GradebookOutput entry1Posted =
-                    template.postForObject(linkToGradeAssignment.getHref(), gradebookInput1, GradebookOutput.class);
-            GradebookOutput entry2Posted =
-                    template.postForObject(linkToGradeAssignment.getHref(), gradebookInput2, GradebookOutput.class);
+            GradebookOutput entry1Posted = postGradebookEntry(gradebookInput1);
+            GradebookOutput entry2Posted = postGradebookEntry(gradebookInput2);
 
             String urlToGradebook = String.format("http://localhost:%d/api/gradebook", port);
             Traverson traverson = new Traverson(URI.create(urlToGradebook), MediaTypes.HAL_JSON);
@@ -170,6 +153,7 @@ public class GradebookIntegrationTests {
                     };
             CollectionModel<GradebookOutput> gradebookResource = traverson
                     .follow("$._links.self.href")
+                    .withHeaders(auth.getHeadersWithAuthorization())
                     .toObject(collectionModelType);
 
             assertThat(gradebookResource).isNotNull();
@@ -180,13 +164,10 @@ public class GradebookIntegrationTests {
         @Test
         @DisplayName("when entry exists with given ID, getById should return entry")
         public void whenEntryExistsWithGivenId_getByIdShouldReturnEntry() {
-            Link linkToStudents = linkTo(StudentController.class).withSelfRel();
-            long studentId = template.postForObject(linkToStudents.getHref(), student1, StudentDto.class).getId();
-            Link linkToClasses = linkTo(CourseController.class).withSelfRel();
-            long classId = template.postForObject(linkToClasses.getHref(), clazz, CourseOutput.class).getId();
-            Link linkToAssignments = linkTo(AssignmentController.class).withSelfRel();
-            long assignmentId =
-                    template.postForObject(linkToAssignments.getHref(), assignment, AssignmentOutput.class).getId();
+            long studentId = postStudent(student1).getId();
+            long classId = postCourse(course).getId();
+            long assignmentId = postAssignment(assignment).getId();
+
             classId = addStudentToClass(studentId, classId).getId();
 
             GradebookInput gradebookInput = GradebookInput.builder()
@@ -195,14 +176,15 @@ public class GradebookIntegrationTests {
                     .assignmentId(assignmentId)
                     .grade(4)
                     .build();
-            Link linkToGradeAssignment =
-                    linkTo(methodOn(GradebookController.class).gradeAssignment(gradebookInput)).withSelfRel();
-            GradebookOutput entryPosted =
-                    template.postForObject(linkToGradeAssignment.getHref(), gradebookInput, GradebookOutput.class);
+            GradebookOutput entryPosted = postGradebookEntry(gradebookInput);
 
             Link linkToGradebook = linkTo(methodOn(GradebookController.class).getById(entryPosted.getId())).withSelfRel();
-            ResponseEntity<GradebookOutput> response =
-                    template.getForEntity(linkToGradebook.getHref(), GradebookOutput.class);
+            ResponseEntity<GradebookOutput> response = template.exchange(
+                    linkToGradebook.getHref(),
+                    HttpMethod.GET,
+                    auth.createHttpEntityWithAuthorization(null),
+                    GradebookOutput.class
+            );
 
             assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
             assertThat(response.getBody()).isEqualTo(entryPosted);
@@ -212,7 +194,12 @@ public class GradebookIntegrationTests {
         @DisplayName("when entry does not exist with given ID, getById should return response 'Not Found'")
         public void whenEntryDoesNotExistWithGivenId_getByIdShouldReturnResponseNotFound() {
             Link linkToGradebook = linkTo(methodOn(GradebookController.class).getById(99L)).withSelfRel();
-            ResponseEntity<?> response = template.getForEntity(linkToGradebook.getHref(), String.class);
+            ResponseEntity<?> response = template.exchange(
+                    linkToGradebook.getHref(),
+                    HttpMethod.GET,
+                    auth.createHttpEntityWithAuthorization(null),
+                    String.class
+            );
 
             assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
         }
@@ -220,13 +207,14 @@ public class GradebookIntegrationTests {
         @Test
         @DisplayName("when Student exists with given ID, getGradesOfStudent should return list of GradebookEntries")
         public void whenStudentExistsWithGivenId_getGradesOfStudentShouldReturnListOfEntries() {
-            long student1Id = template.postForObject(studentBaseUrl, student1, StudentDto.class).getId();
-            long student2Id = template.postForObject(studentBaseUrl, student2, StudentDto.class).getId();
-            long classId = template.postForObject(classBaseUrl, clazz, CourseOutput.class).getId();
-            long assignmentId =
-                    template.postForObject(assignmentBaseUrl, assignment, AssignmentOutput.class).getId();
+            long student1Id = postStudent(student1).getId();
+            long student2Id = postStudent(student2).getId();
+            long classId = postCourse(course).getId();
+            long assignmentId = postAssignment(assignment).getId();
+
             classId = addStudentToClass(student1Id, classId).getId();
             classId = addStudentToClass(student2Id, classId).getId();
+
             GradebookInput gradebookInput1 = GradebookInput.builder()
                     .studentId(student1Id)
                     .courseId(classId)
@@ -239,8 +227,8 @@ public class GradebookIntegrationTests {
                     .assignmentId(assignmentId)
                     .grade(5)
                     .build();
-            GradebookOutput entry1Posted = template.postForObject(baseUrl + "/gradebook/", gradebookInput1, GradebookOutput.class);
-            GradebookOutput entry2Posted = template.postForObject(baseUrl + "/gradebook/", gradebookInput2, GradebookOutput.class);
+            GradebookOutput entry1Posted = postGradebookEntry(gradebookInput1);
+            GradebookOutput entry2Posted = postGradebookEntry(gradebookInput2);
 
             String urlToEntriesOfStudent = String.format("http://localhost:%d/api/student_gradebook/%d", port, student1Id);
             Traverson traverson = new Traverson(URI.create(urlToEntriesOfStudent), MediaTypes.HAL_JSON);
@@ -249,6 +237,7 @@ public class GradebookIntegrationTests {
                     };
             CollectionModel<GradebookOutput> gradebookResource = traverson
                     .follow("$._links.student_gradebook.href")
+                    .withHeaders(auth.getHeadersWithAuthorization())
                     .toObject(collectionModelType);
 
             assertThat(gradebookResource).isNotNull();
@@ -259,7 +248,12 @@ public class GradebookIntegrationTests {
         @DisplayName("when Student does not exist with given ID, getGradesOfStudent should return response 'Not Found'")
         public void whenStudentDoesNotExistWithGivenId_getGradesOfStudentShouldReturnResponseNotFound() {
             String requestUrl = baseUrl + "/student_gradebook/99";
-            ResponseEntity<?> response = template.getForEntity(requestUrl, String.class);
+            ResponseEntity<?> response = template.exchange(
+                    requestUrl,
+                    HttpMethod.GET,
+                    auth.createHttpEntityWithAuthorization(null),
+                    String.class
+            );
 
             assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
         }
@@ -267,11 +261,11 @@ public class GradebookIntegrationTests {
         @Test
         @DisplayName("when Class exists with given ID, getGradesOfClass should return list of GradebookEntries")
         public void whenClassExistsWithGivenId_getGradesOfClassShouldReturnListOfEntries() {
-            long student1Id = template.postForObject(studentBaseUrl, student1, StudentDto.class).getId();
-            long student2Id = template.postForObject(studentBaseUrl, student2, StudentDto.class).getId();
-            long classId = template.postForObject(classBaseUrl, clazz, CourseOutput.class).getId();
-            long assignmentId =
-                    template.postForObject(assignmentBaseUrl, assignment, AssignmentOutput.class).getId();
+            long student1Id = postStudent(student1).getId();
+            long student2Id = postStudent(student2).getId();
+            long classId = postCourse(course).getId();
+            long assignmentId = postAssignment(assignment).getId();
+
             classId = addStudentToClass(student1Id, classId).getId();
             classId = addStudentToClass(student2Id, classId).getId();
 
@@ -287,12 +281,8 @@ public class GradebookIntegrationTests {
                     .assignmentId(assignmentId)
                     .grade(5)
                     .build();
-            Link linkToGradeAssignment =
-                    linkTo(methodOn(GradebookController.class).gradeAssignment(gradebookInput1)).withSelfRel();
-            GradebookOutput entry1 =
-                    template.postForObject(linkToGradeAssignment.getHref(), gradebookInput1, GradebookOutput.class);
-            GradebookOutput entry2 =
-                    template.postForObject(linkToGradeAssignment.getHref(), gradebookInput2, GradebookOutput.class);
+            GradebookOutput entry1 = postGradebookEntry(gradebookInput1);
+            GradebookOutput entry2 = postGradebookEntry(gradebookInput2);
 
             String urlToEntriesOfStudent = String.format("http://localhost:%d/api/class_gradebook/%d", port, classId);
             Traverson traverson = new Traverson(URI.create(urlToEntriesOfStudent), MediaTypes.HAL_JSON);
@@ -301,6 +291,7 @@ public class GradebookIntegrationTests {
                     };
             CollectionModel<GradebookOutput> gradebookResource = traverson
                     .follow("$._links.class_gradebook.href")
+                    .withHeaders(auth.getHeadersWithAuthorization())
                     .toObject(collectionModelType);
 
             assertThat(gradebookResource).isNotNull();
@@ -311,7 +302,12 @@ public class GradebookIntegrationTests {
         @DisplayName("when class does not exist with given ID, getGradesOfStudent should return response 'Not Found'")
         public void whenClassDoesNotExistWithGivenId_getGradesOfStudentShouldReturnResponseNotFound() {
             Link linkToEntriesOfClass = linkTo(methodOn(GradebookController.class).getGradesOfClass(99L)).withSelfRel();
-            ResponseEntity<?> response = template.getForEntity(linkToEntriesOfClass.getHref(), String.class);
+            ResponseEntity<?> response = template.exchange(
+                    linkToEntriesOfClass.getHref(),
+                    HttpMethod.GET,
+                    auth.createHttpEntityWithAuthorization(null),
+                    String.class
+            );
 
             assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
         }
@@ -323,31 +319,42 @@ public class GradebookIntegrationTests {
         @Test
         @DisplayName("when entities found with given IDs, gradeAssignment should return created GradebookEntry")
         public void whenEntitiesFoundWithGivenIds_gradeAssignmentShouldReturnCreatedGradebookEntry() {
-            long studentId = template.postForObject(studentBaseUrl, student1, StudentDto.class).getId();
-            long classId = template.postForObject(classBaseUrl, clazz, CourseOutput.class).getId();
-            long assignmentId =
-                    template.postForObject(assignmentBaseUrl, assignment, AssignmentOutput.class).getId();
-            addStudentToClass(studentId, classId);
+            long studentId = postStudent(student1).getId();
+            long courseId = postCourse(course).getId();
+            long assignmentId = postAssignment(assignment).getId();
+
+            addStudentToClass(studentId, courseId);
 
             GradebookInput gradebookInput = GradebookInput.builder()
                     .studentId(studentId)
-                    .courseId(classId)
+                    .courseId(courseId)
                     .assignmentId(assignmentId)
                     .grade(4)
                     .build();
-            ResponseEntity<GradebookOutput> response =
-                    template.postForEntity(baseUrl + "/gradebook", gradebookInput, GradebookOutput.class);
+            ResponseEntity<GradebookOutput> response = template.exchange(
+                    baseUrl + "/gradebook",
+                    HttpMethod.POST,
+                    auth.createHttpEntityWithAuthorization(gradebookInput),
+                    GradebookOutput.class
+            );
+
+            GradebookOutput expected = GradebookOutput.builder()
+                    .student(new SimpleData(studentId, student1.getName()))
+                    .course(new SimpleData(courseId, course.getName()))
+                    .assignment(new SimpleData(assignmentId, assignment.getName()))
+                    .grade(4)
+                    .build();
 
             assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
-            assertThat(response.getBody()).isEqualTo(gradebookOutput1);
+            assertThat(response.getBody()).isEqualTo(expected);
         }
 
         @Test
         @DisplayName("when an entry exists with the given IDs, gradeAssignment should return response 'Conflict'")
         public void whenAnEntryExistsWithTheGivenIds_gradeAssignmentShouldReturnResponseConflict() {
-            long studentId = template.postForObject(studentBaseUrl, student2, StudentDto.class).getId();
-            long classId = template.postForObject(classBaseUrl, clazz, CourseOutput.class).getId();
-            long assignmentId = template.postForObject(assignmentBaseUrl, assignment, AssignmentOutput.class).getId();
+            long studentId = postStudent(student2).getId();
+            long classId = postCourse(course).getId();
+            long assignmentId = postAssignment(assignment).getId();
             addStudentToClass(studentId, classId);
             GradebookInput gradebookInput = GradebookInput.builder()
                     .studentId(studentId)
@@ -355,9 +362,14 @@ public class GradebookIntegrationTests {
                     .assignmentId(assignmentId)
                     .grade(5)
                     .build();
-            template.postForObject(baseUrl + "/gradebook", gradebookInput, GradebookOutput.class);
+            postGradebookEntry(gradebookInput);
 
-            ResponseEntity<?> response = template.postForEntity(baseUrl + "/gradebook", gradebookInput, String.class);
+            ResponseEntity<?> response = template.exchange(
+                    baseUrl + "/gradebook",
+                    HttpMethod.POST,
+                    auth.createHttpEntityWithAuthorization(gradebookInput),
+                    String.class
+            );
 
             assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CONFLICT);
         }
@@ -368,7 +380,12 @@ public class GradebookIntegrationTests {
         public void whenGradebookInputHasInvalidParameters_gradeAssignment_shouldReturnResponseBadRequest(
                 @AggregateWith(GradebookIntegrationTests.GradebookInputAggregator.class) GradebookInput input) {
 
-            ResponseEntity<?> response = template.postForEntity(baseUrl + "/gradebook", input, String.class);
+            ResponseEntity<?> response = template.exchange(
+                    baseUrl + "/gradebook",
+                    HttpMethod.POST,
+                    auth.createHttpEntityWithAuthorization(input),
+                    String.class
+            );
 
             assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
         }
@@ -376,9 +393,8 @@ public class GradebookIntegrationTests {
         @Test
         @DisplayName("when Student does not exist with given ID, gradeAssignment should return response 'Not Found'")
         public void whenStudentDoesNotExistWithGivenId_gradeAssignmentShouldReturnResponseNotFound() {
-            long classId = template.postForObject(classBaseUrl, clazz, CourseOutput.class).getId();
-            long assignmentId =
-                    template.postForObject(assignmentBaseUrl, assignment, AssignmentOutput.class).getId();
+            long classId = postCourse(course).getId();
+            long assignmentId = postAssignment(assignment).getId();
 
             GradebookInput gradebookInput = GradebookInput.builder()
                     .studentId(99L)
@@ -386,7 +402,12 @@ public class GradebookIntegrationTests {
                     .assignmentId(assignmentId)
                     .grade(5)
                     .build();
-            ResponseEntity<?> response = template.postForEntity(baseUrl + "/gradebook", gradebookInput, String.class);
+            ResponseEntity<?> response = template.exchange(
+                    baseUrl + "/gradebook",
+                    HttpMethod.POST,
+                    auth.createHttpEntityWithAuthorization(gradebookInput),
+                    String.class
+            );
 
             assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
         }
@@ -394,9 +415,8 @@ public class GradebookIntegrationTests {
         @Test
         @DisplayName("when Class does not exist with given ID, gradeAssignment should return response 'Not Found'")
         public void whenClassDoesNotExistWithGivenId_gradeAssignmentShouldReturnResponseNotFound() {
-            student1 = template.postForObject(studentBaseUrl, student1, StudentDto.class);
-            AssignmentOutput assignmentPosted =
-                    template.postForObject(assignmentBaseUrl, assignment, AssignmentOutput.class);
+            student1 = postStudent(student1);
+            AssignmentOutput assignmentPosted = postAssignment(assignment);
 
             GradebookInput gradebookInput = GradebookInput.builder()
                     .studentId(student1.getId())
@@ -404,7 +424,12 @@ public class GradebookIntegrationTests {
                     .assignmentId(assignmentPosted.getId())
                     .grade(2)
                     .build();
-            ResponseEntity<?> response = template.postForEntity(baseUrl + "/gradebook", gradebookInput, String.class);
+            ResponseEntity<?> response = template.exchange(
+                    baseUrl + "/gradebook",
+                    HttpMethod.POST,
+                    auth.createHttpEntityWithAuthorization(gradebookInput),
+                    String.class
+            );
 
             assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
         }
@@ -412,28 +437,99 @@ public class GradebookIntegrationTests {
         @Test
         @DisplayName("when Assignment does not exist with given ID, gradeAssignment should return response 'Not Found'")
         public void whenAssignmentDoesNotExistWithGivenId_gradeAssignmentShouldReturnResponseNotFound() {
-            student1 = template.postForObject(studentBaseUrl, student1, StudentDto.class);
-            CourseOutput classPosted = template.postForObject(classBaseUrl, clazz, CourseOutput.class);
+            long studentId = postStudent(student1).getId();
+            long courseId = postCourse(course).getId();
 
             GradebookInput gradebookInput = GradebookInput.builder()
-                    .studentId(student1.getId())
-                    .courseId(classPosted.getId())
+                    .studentId(studentId)
+                    .courseId(courseId)
                     .assignmentId(99L)
                     .grade(1)
                     .build();
-            ResponseEntity<?> response = template.postForEntity(baseUrl + "/gradebook", gradebookInput, String.class);
+            ResponseEntity<?> response = template.exchange(
+                    baseUrl + "/gradebook",
+                    HttpMethod.POST,
+                    auth.createHttpEntityWithAuthorization(gradebookInput),
+                    String.class
+            );
 
             assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
         }
     }
 
+    private StudentDto postStudent(StudentDto student) {
+        Link linkToStudents = linkTo(StudentController.class).withSelfRel();
+        ResponseEntity<StudentDto> student1PostResponse = template.exchange(
+                linkToStudents.getHref(),
+                HttpMethod.POST,
+                auth.createHttpEntityWithAuthorization(student),
+                StudentDto.class
+        );
+
+        assertThat(student1PostResponse.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+        assertThat(student1PostResponse.getBody()).isNotNull();
+
+        return student1PostResponse.getBody();
+    }
+
+    private CourseOutput postCourse(CourseInput course) {
+        Link linkToClasses = linkTo(CourseController.class).withSelfRel();
+        ResponseEntity<CourseOutput> coursePostResponse = template.exchange(
+                linkToClasses.getHref(),
+                HttpMethod.POST,
+                auth.createHttpEntityWithAuthorization(course),
+                CourseOutput.class
+        );
+
+        assertThat(coursePostResponse.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+        assertThat(coursePostResponse.getBody()).isNotNull();
+
+        return coursePostResponse.getBody();
+    }
+
+    private AssignmentOutput postAssignment(AssignmentInput assignment) {
+        Link linkToAssignments = linkTo(AssignmentController.class).withSelfRel();
+        ResponseEntity<AssignmentOutput> assignmentPostResponse = template.exchange(
+                linkToAssignments.getHref(),
+                HttpMethod.POST,
+                auth.createHttpEntityWithAuthorization(assignment),
+                AssignmentOutput.class
+        );
+
+        assertThat(assignmentPostResponse.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+        assertThat(assignmentPostResponse.getBody()).isNotNull();
+
+        return assignmentPostResponse.getBody();
+    }
+
+    private GradebookOutput postGradebookEntry(GradebookInput entry) {
+        Link linkToGradeAssignment =
+                linkTo(methodOn(GradebookController.class).gradeAssignment(entry)).withSelfRel();
+        ResponseEntity<GradebookOutput> entry1PostedResponse = template.exchange(
+                linkToGradeAssignment.getHref(),
+                HttpMethod.POST,
+                auth.createHttpEntityWithAuthorization(entry),
+                GradebookOutput.class
+        );
+
+        assertThat(entry1PostedResponse.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+        assertThat(entry1PostedResponse.getBody()).isNotNull();
+
+        return entry1PostedResponse.getBody();
+    }
+
     private CourseOutput addStudentToClass(Long studentId, Long classId) {
         Link linkToClassEnrollment =
                 linkTo(methodOn(CourseController.class).addStudentToClass(classId, studentId)).withSelfRel();
-        ResponseEntity<CourseOutput> response =
-                template.postForEntity(linkToClassEnrollment.getHref(), null, CourseOutput.class);
+        ResponseEntity<CourseOutput> response = template.exchange(
+                linkToClassEnrollment.getHref(),
+                HttpMethod.POST,
+                auth.createHttpEntityWithAuthorization(null),
+                CourseOutput.class
+        );
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(response.getBody()).isNotNull();
 
         return response.getBody();
     }
