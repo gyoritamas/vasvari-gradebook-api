@@ -6,6 +6,7 @@ import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -37,10 +38,10 @@ public class StudentMapper {
                 .build();
     }
 
-    // TODO: check if changing param from List to Collection causes any problems
     public List<StudentDto> mapAll(Collection<Student> students){
         return students.stream()
                 .map(this::map)
+                .sorted(Comparator.comparing(StudentDto::getId))
                 .collect(Collectors.toList());
     }
 }
