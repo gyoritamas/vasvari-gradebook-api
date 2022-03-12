@@ -59,11 +59,11 @@ public class AuthorizationManager {
         }
     }
 
-    public HttpEntity<TeacherDto> createHttpEntityWithAuthorization(TeacherDto teacher) {
+    public <T> HttpEntity<T> createHttpEntityWithAuthorization(T object) {
         HttpHeaders headers = headersWithAuthorization;
         headers.setContentType(MediaType.APPLICATION_JSON);
 
-        return new HttpEntity<>(teacher, headers);
+        return new HttpEntity<>(object, headers);
     }
 
     private HttpHeaders createAuthorizationHeader(UserDetails userDetails) {
