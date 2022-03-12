@@ -13,10 +13,8 @@ import com.codecool.gradebookapi.repository.CourseRepository;
 import com.codecool.gradebookapi.repository.TeacherRepository;
 import org.springframework.stereotype.Service;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class TeacherService {
@@ -68,11 +66,14 @@ public class TeacherService {
     public List<StudentDto> findStudentsOfTeacher(TeacherDto teacherDto) {
         Teacher teacher = teacherMapper.map(teacherDto);
         List<Course> courses = courseRepository.findCoursesByTeacher(teacher);
-        Set<Student> students = new HashSet<>();
+        Set<Student> studentsSet = new HashSet<>();
         for (Course course : courses) {
-            students.addAll(course.getStudents());
+            studentsSet.addAll(course.getStudents());
         }
+        List<Student> studentsList = studentsSet.stream()
+                .sorted(Comparator.comparing(Student::getId))
+                .collect(Collectors.toList());
 
-        return studentMapper.mapAll(students);
+        return studentMapper.mapAll(studentsList);
     }
 }
