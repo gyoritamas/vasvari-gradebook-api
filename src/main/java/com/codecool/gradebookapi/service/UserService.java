@@ -4,10 +4,8 @@ import com.codecool.gradebookapi.dto.*;
 import com.codecool.gradebookapi.dto.mapper.UserMapper;
 import com.codecool.gradebookapi.dto.dataTypes.InitialCredentials;
 import com.codecool.gradebookapi.model.SchoolActorApplicationUserRelation;
-import com.codecool.gradebookapi.model.User;
+import com.codecool.gradebookapi.model.ApplicationUser;
 import com.codecool.gradebookapi.repository.SchoolActorApplicationUserRelationRepository;
-import com.codecool.gradebookapi.repository.StudentRepository;
-import com.codecool.gradebookapi.repository.TeacherRepository;
 import com.codecool.gradebookapi.repository.UserRepository;
 import com.codecool.gradebookapi.security.ApplicationUserRole;
 import lombok.extern.slf4j.Slf4j;
@@ -42,9 +40,9 @@ public class UserService implements UserDetailsService {
         this.passwordEncoder = passwordEncoder;
         this.mapper = mapper;
         // TODO: remove
-        userRepository.save(new User(1L, "admin", this.passwordEncoder.encode("admin"), ApplicationUserRole.ADMIN));
-        userRepository.save(new User(2L, "teacher", this.passwordEncoder.encode("teacher"), ApplicationUserRole.TEACHER));
-        userRepository.save(new User(3L, "student", this.passwordEncoder.encode("student"), STUDENT));
+//        userRepository.save(new User(1L, "admin", this.passwordEncoder.encode("admin"), ApplicationUserRole.ADMIN));
+//        userRepository.save(new User(2L, "teacher", this.passwordEncoder.encode("teacher"), ApplicationUserRole.TEACHER));
+//        userRepository.save(new User(3L, "student", this.passwordEncoder.encode("student"), STUDENT));
     }
 
     public List<UserDto> findAll() {
@@ -52,8 +50,8 @@ public class UserService implements UserDetailsService {
     }
 
     public UserDto save(UserDto userDto) {
-        User userToSave = mapper.map(userDto);
-        User saved = userRepository.save(userToSave);
+        ApplicationUser userToSave = mapper.map(userDto);
+        ApplicationUser saved = userRepository.save(userToSave);
 
         return mapper.map(saved);
     }
@@ -165,7 +163,7 @@ public class UserService implements UserDetailsService {
     @Override
     @Transactional
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        User user = userRepository.findByUsername(username)
+        ApplicationUser user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new UsernameNotFoundException(String.format("User not found with username \"%s\"", username)));
 
         return new org.springframework.security.core.userdetails.User(user.getUsername(), user.getPassword(), user.getRole().getGrantedAuthorities());

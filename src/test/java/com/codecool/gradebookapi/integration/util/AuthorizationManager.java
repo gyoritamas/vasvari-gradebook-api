@@ -1,8 +1,9 @@
 package com.codecool.gradebookapi.integration.util;
 
 import com.codecool.gradebookapi.jwt.JwtTokenUtil;
+import com.codecool.gradebookapi.model.ApplicationUser;
+import com.codecool.gradebookapi.repository.UserRepository;
 import com.codecool.gradebookapi.security.ApplicationUserRole;
-import com.codecool.gradebookapi.testmodel.TeacherDto;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -17,46 +18,67 @@ import static com.codecool.gradebookapi.security.ApplicationUserRole.*;
 @Component
 public class AuthorizationManager {
 
-    @Autowired
-    private JwtTokenUtil jwtTokenUtil;
+    private final JwtTokenUtil jwtTokenUtil;
+    private final UserRepository userRepository;
 
-    @Autowired
-    private PasswordEncoder passwordEncoder;
+    private final ApplicationUser ADMIN_USER;
+    private final ApplicationUser TEACHER_USER;
+    private final ApplicationUser STUDENT_USER;
 
     private HttpHeaders headersWithAuthorization;
 
-    public void setRole(ApplicationUserRole role) {
-        final UserDetails adminUser = User.builder()
+    @Autowired
+    public AuthorizationManager(JwtTokenUtil jwtTokenUtil, PasswordEncoder passwordEncoder, UserRepository userRepository) {
+        this.jwtTokenUtil = jwtTokenUtil;
+        this.userRepository = userRepository;
+
+        ADMIN_USER = ApplicationUser.builder()
                 .username("admin")
                 .password(passwordEncoder.encode("admin"))
-                .authorities(ADMIN.getGrantedAuthorities())
+                .role(ADMIN)
                 .build();
-
-        final UserDetails teacherUser = User.builder()
+        TEACHER_USER = ApplicationUser.builder()
                 .username("teacher")
                 .password(passwordEncoder.encode("teacher"))
-                .authorities(TEACHER.getGrantedAuthorities())
+                .role(TEACHER)
                 .build();
-
-        final UserDetails studentUser = User.builder()
+        STUDENT_USER = ApplicationUser.builder()
                 .username("student")
                 .password(passwordEncoder.encode("student"))
-                .authorities(STUDENT.getGrantedAuthorities())
+                .role(STUDENT)
                 .build();
 
+        addDefaultUsers();
+    }
+
+    public void setRole(ApplicationUserRole role) {
+        UserDetails user;
         switch (role) {
             case ADMIN:
-                headersWithAuthorization = createAuthorizationHeader(adminUser);
+                user = User.builder()
+                        .username(ADMIN_USER.getUsername())
+                        .password(ADMIN_USER.getPassword())
+                        .authorities(ADMIN_USER.getRole().getGrantedAuthorities())
+                        .build();
                 break;
             case TEACHER:
-                headersWithAuthorization = createAuthorizationHeader(teacherUser);
+                user = User.builder()
+                        .username(TEACHER_USER.getUsername())
+                        .password(TEACHER_USER.getPassword())
+                        .authorities(TEACHER_USER.getRole().getGrantedAuthorities())
+                        .build();
                 break;
             case STUDENT:
-                headersWithAuthorization = createAuthorizationHeader(studentUser);
+                user = User.builder()
+                        .username(STUDENT_USER.getUsername())
+                        .password(STUDENT_USER.getPassword())
+                        .authorities(STUDENT_USER.getRole().getGrantedAuthorities())
+                        .build();
                 break;
             default:
                 throw new RuntimeException("Unexpected ApplicationUserRole type");
         }
+        headersWithAuthorization = createAuthorizationHeader(user);
     }
 
     public <T> HttpEntity<T> createHttpEntityWithAuthorization(T object) {
@@ -77,5 +99,12 @@ public class AuthorizationManager {
 
     public HttpHeaders getHeadersWithAuthorization() {
         return headersWithAuthorization;
+    }
+
+    private void addDefaultUsers() {
+        userRepository.deleteAll();
+        userRepository.save(ADMIN_USER);
+        userRepository.save(TEACHER_USER);
+        userRepository.save(STUDENT_USER);
     }
 }
