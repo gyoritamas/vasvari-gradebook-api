@@ -25,7 +25,6 @@ import org.springframework.hateoas.server.core.TypeReferences;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
 import org.springframework.test.annotation.DirtiesContext;
 
 import java.net.URI;
@@ -41,9 +40,6 @@ import static org.springframework.test.annotation.DirtiesContext.ClassMode.BEFOR
 public class AssignmentIntegrationTests {
     @Autowired
     private TestRestTemplate template;
-
-    @Autowired
-    private Jackson2ObjectMapperBuilder objectMapperBuilder;
 
     @Autowired
     private AuthorizationManager auth;
@@ -102,7 +98,6 @@ public class AssignmentIntegrationTests {
         @Test
         @DisplayName("when Assignment posted with valid parameters, should return created Assignment")
         public void whenAssignmentPostedWithValidParameters_shouldReturnCreatedAssignment() {
-            // post assignment1
             ResponseEntity<AssignmentOutput> response = template.exchange(
                     linkToAssignments.getHref(),
                     HttpMethod.POST,
@@ -123,8 +118,6 @@ public class AssignmentIntegrationTests {
 
         private void givenAssignmentWithEmptyName_postAssignment_shouldReturnWithBadRequest() {
             AssignmentInput inputWithBlankName = AssignmentInput.builder().name(" ").type("TEST").build();
-
-            // post assignment with blank name
             ResponseEntity<?> response = template.exchange(
                     linkToAssignments.getHref(),
                     HttpMethod.POST,
@@ -137,8 +130,6 @@ public class AssignmentIntegrationTests {
 
         private void givenAssignmentWithWrongType_postAssignment_shouldReturnWithBadRequest() {
             AssignmentInput inputWithWrongType = AssignmentInput.builder().name("Test").type("BAD_TYPE").build();
-
-            // post assignment with wrong type
             ResponseEntity<?> response = template.exchange(
                     linkToAssignments.getHref(),
                     HttpMethod.POST,
@@ -177,27 +168,8 @@ public class AssignmentIntegrationTests {
         @Order(2)
         @DisplayName("when Assignments posted, getAll should return list of Assignments")
         public void whenAssignmentsPosted_getAllShouldReturnListOfAssignments() {
-            // post assignment1
-            ResponseEntity<AssignmentOutput> assignment1PostResponse = template.exchange(
-                    linkToAssignments.getHref(),
-                    HttpMethod.POST,
-                    auth.createHttpEntityWithAuthorization(assignmentInput1),
-                    AssignmentOutput.class
-            );
-            assertThat(assignment1PostResponse.getStatusCode()).isEqualTo(HttpStatus.CREATED);
-            assertThat(assignment1PostResponse.getBody()).isNotNull();
-            AssignmentOutput assignment1 = assignment1PostResponse.getBody();
-
-            // post assignment2
-            ResponseEntity<AssignmentOutput> assignment2PostResponse = template.exchange(
-                    linkToAssignments.getHref(),
-                    HttpMethod.POST,
-                    auth.createHttpEntityWithAuthorization(assignmentInput2),
-                    AssignmentOutput.class
-            );
-            assertThat(assignment2PostResponse.getStatusCode()).isEqualTo(HttpStatus.CREATED);
-            assertThat(assignment2PostResponse.getBody()).isNotNull();
-            AssignmentOutput assignment2 = assignment2PostResponse.getBody();
+            AssignmentOutput assignment1 = postAssignment(assignmentInput1);
+            AssignmentOutput assignment2 = postAssignment(assignmentInput2);
 
             String urlToAssignments = String.format("http://localhost:%d/api/assignments", port);
             Traverson traverson = new Traverson(URI.create(urlToAssignments), MediaTypes.HAL_JSON);
@@ -217,16 +189,7 @@ public class AssignmentIntegrationTests {
         @Test
         @DisplayName("when Assignment exists with given ID, getById should return Assignment")
         public void whenAssignmentExistsWithGivenId_getByIdShouldReturnAssignment() {
-            // post assignment1
-            ResponseEntity<AssignmentOutput> assignment1PostResponse = template.exchange(
-                    linkToAssignments.getHref(),
-                    HttpMethod.POST,
-                    auth.createHttpEntityWithAuthorization(assignmentInput1),
-                    AssignmentOutput.class
-            );
-            assertThat(assignment1PostResponse.getStatusCode()).isEqualTo(HttpStatus.CREATED);
-            assertThat(assignment1PostResponse.getBody()).isNotNull();
-            long id = assignment1PostResponse.getBody().getId();
+            long id = postAssignment(assignmentInput1).getId();
 
             Link linkToAssignment = linkTo(methodOn(AssignmentController.class).getById(id)).withSelfRel();
             ResponseEntity<AssignmentOutput> assignmentGetResponse = template.exchange(
@@ -261,16 +224,7 @@ public class AssignmentIntegrationTests {
         @Test
         @DisplayName("when Assignment exists with given ID, update should return updated Assignment")
         public void whenAssignmentExistsWithGivenId_updateShouldReturnUpdatedAssignment() {
-            // post assignment1
-            ResponseEntity<AssignmentOutput> assignment1PostResponse = template.exchange(
-                    linkToAssignments.getHref(),
-                    HttpMethod.POST,
-                    auth.createHttpEntityWithAuthorization(assignmentInput1),
-                    AssignmentOutput.class
-            );
-            assertThat(assignment1PostResponse.getStatusCode()).isEqualTo(HttpStatus.CREATED);
-            assertThat(assignment1PostResponse.getBody()).isNotNull();
-            long id = assignment1PostResponse.getBody().getId();
+            long id = postAssignment(assignmentInput1).getId();
 
             // update assignment
             Link linkToAssignment = linkTo(methodOn(AssignmentController.class).getById(id)).withSelfRel();
@@ -305,16 +259,7 @@ public class AssignmentIntegrationTests {
         @Test
         @DisplayName("when Assignment updated with invalid parameter, update should return response 'Bad Request'")
         public void whenAssignmentUpdatedWithInvalidParameter_shouldReturnResponseBadRequest() {
-            // post assignment1
-            ResponseEntity<AssignmentOutput> assignmentPostResponse = template.exchange(
-                    linkToAssignments.getHref(),
-                    HttpMethod.POST,
-                    auth.createHttpEntityWithAuthorization(assignmentInput1),
-                    AssignmentOutput.class
-            );
-            assertThat(assignmentPostResponse.getStatusCode()).isEqualTo(HttpStatus.CREATED);
-            assertThat(assignmentPostResponse.getBody()).isNotNull();
-            long assignmentId = assignmentPostResponse.getBody().getId();
+            long assignmentId = postAssignment(assignmentInput1).getId();
 
             givenAssignmentWithEmptyName_updateAssignment_shouldReturnWithBadRequest(assignmentId);
             givenAssignmentWithWrongType_updateAssignment_shouldReturnWithBadRequest(assignmentId);
@@ -355,16 +300,7 @@ public class AssignmentIntegrationTests {
         @Test
         @DisplayName("when Assignment exists with given ID, delete should remove Assignment")
         public void whenAssignmentExistsWithGivenId_deleteShouldRemoveAssignment() {
-            // post assignment1
-            ResponseEntity<AssignmentOutput> assignmentPostResponse = template.exchange(
-                    linkToAssignments.getHref(),
-                    HttpMethod.POST,
-                    auth.createHttpEntityWithAuthorization(assignmentInput1),
-                    AssignmentOutput.class
-            );
-            assertThat(assignmentPostResponse.getStatusCode()).isEqualTo(HttpStatus.CREATED);
-            assertThat(assignmentPostResponse.getBody()).isNotNull();
-            long id = assignmentPostResponse.getBody().getId();
+            long id = postAssignment(assignmentInput1).getId();
 
             // delete assignment
             Link linkToAssignment = linkTo(methodOn(AssignmentController.class).getById(id)).withSelfRel();
@@ -402,17 +338,9 @@ public class AssignmentIntegrationTests {
         @Test
         @DisplayName("when Assignment is used by a GradebookEntry, delete should return response 'Method Not Allowed'")
         public void whenAssignmentIsUsedByAnEntry_deleteShouldReturnResponseMethodNotAllowed() {
-            ResponseEntity<AssignmentOutput> assignmentPostResponse = template.exchange(
-                    linkToAssignments.getHref(),
-                    HttpMethod.POST,
-                    auth.createHttpEntityWithAuthorization(assignmentInput1),
-                    AssignmentOutput.class
-            );
-            assertThat(assignmentPostResponse.getStatusCode()).isEqualTo(HttpStatus.CREATED);
-            assertThat(assignmentPostResponse.getBody()).isNotNull();
-            AssignmentOutput assignment = assignmentPostResponse.getBody();
-
+            AssignmentOutput assignment = postAssignment(assignmentInput1);
             postEntryRelatedToAssignment(assignment);
+
             Link linkToAssignment =
                     linkTo(methodOn(AssignmentController.class).getById(assignment.getId())).withSelfRel();
             ResponseEntity<?> response = template.exchange(
@@ -424,6 +352,20 @@ public class AssignmentIntegrationTests {
 
             assertThat(response.getStatusCode()).isEqualTo(HttpStatus.METHOD_NOT_ALLOWED);
         }
+    }
+
+    private AssignmentOutput postAssignment(AssignmentInput assignment) {
+        ResponseEntity<AssignmentOutput> assignment1PostResponse = template.exchange(
+                linkToAssignments.getHref(),
+                HttpMethod.POST,
+                auth.createHttpEntityWithAuthorization(assignment),
+                AssignmentOutput.class
+        );
+
+        assertThat(assignment1PostResponse.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+        assertThat(assignment1PostResponse.getBody()).isNotNull();
+
+        return assignment1PostResponse.getBody();
     }
 
     private void postEntryRelatedToAssignment(AssignmentOutput assignment) {
