@@ -4,14 +4,10 @@ import com.codecool.gradebookapi.controller.AssignmentController;
 import com.codecool.gradebookapi.controller.CourseController;
 import com.codecool.gradebookapi.controller.GradebookController;
 import com.codecool.gradebookapi.controller.StudentController;
-import com.codecool.gradebookapi.dto.AssignmentInput;
-import com.codecool.gradebookapi.dto.GradebookInput;
-import com.codecool.gradebookapi.dto.GradebookOutput;
-import com.codecool.gradebookapi.dto.StudentDto;
+import com.codecool.gradebookapi.dto.*;
 import com.codecool.gradebookapi.integration.util.AuthorizationManager;
 import com.codecool.gradebookapi.model.AssignmentType;
 import com.codecool.gradebookapi.testmodel.AssignmentOutput;
-import com.codecool.gradebookapi.testmodel.CourseOutput;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -51,8 +47,6 @@ public class AssignmentIntegrationTests {
 
     private AssignmentInput assignmentInput1;
     private AssignmentInput assignmentInput2;
-    private AssignmentOutput assignmentOutput1;
-    private AssignmentOutput assignmentOutput2;
     private StudentDto student;
 
     @BeforeEach
@@ -69,16 +63,6 @@ public class AssignmentIntegrationTests {
         assignmentInput2 = AssignmentInput.builder()
                 .name("Homework 2")
                 .type("HOMEWORK")
-                .description("Read Chapters 6 and 9.")
-                .build();
-        assignmentOutput1 = AssignmentOutput.builder()
-                .name("Homework 1")
-                .type(AssignmentType.HOMEWORK)
-                .description("Read chapters 1 to 5")
-                .build();
-        assignmentOutput2 = AssignmentOutput.builder()
-                .name("Homework 2")
-                .type(AssignmentType.HOMEWORK)
                 .description("Read Chapters 6 and 9.")
                 .build();
         student = StudentDto.builder()
@@ -106,7 +90,14 @@ public class AssignmentIntegrationTests {
             );
 
             assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
-            assertThat(response.getBody()).isEqualTo(assignmentOutput1);
+            assertThat(response.getBody()).isNotNull();
+            AssignmentOutput expected = AssignmentOutput.builder()
+                    .name(assignmentInput1.getName())
+                    .type(AssignmentType.valueOf(assignmentInput1.getType()))
+                    .description(assignmentInput1.getDescription())
+                    .build();
+
+            assertThat(response.getBody()).isEqualTo(expected);
         }
 
         @Test
@@ -200,7 +191,13 @@ public class AssignmentIntegrationTests {
             );
 
             assertThat(assignmentGetResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
-            assertThat(assignmentGetResponse.getBody()).isEqualTo(assignmentOutput1);
+            assertThat(assignmentGetResponse.getBody()).isNotNull();
+            AssignmentOutput expected = AssignmentOutput.builder()
+                    .name(assignmentInput1.getName())
+                    .type(AssignmentType.valueOf(assignmentInput1.getType()))
+                    .description(assignmentInput1.getDescription())
+                    .build();
+            assertThat(assignmentGetResponse.getBody()).isEqualTo(expected);
         }
 
         @Test

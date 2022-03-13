@@ -34,7 +34,9 @@ public class AssignmentOutput {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         AssignmentOutput that = (AssignmentOutput) o;
-        return Objects.equals(name, that.name) && type == that.type && Objects.equals(description, that.description);
+        return Objects.equals(name, that.name) &&
+                type == that.type &&
+                Objects.equals(description, that.description);
     }
 
     @Override

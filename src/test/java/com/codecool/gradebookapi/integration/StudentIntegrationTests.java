@@ -4,14 +4,9 @@ import com.codecool.gradebookapi.controller.AssignmentController;
 import com.codecool.gradebookapi.controller.CourseController;
 import com.codecool.gradebookapi.controller.GradebookController;
 import com.codecool.gradebookapi.controller.StudentController;
-import com.codecool.gradebookapi.dto.AssignmentInput;
-import com.codecool.gradebookapi.dto.CourseInput;
-import com.codecool.gradebookapi.dto.GradebookInput;
-import com.codecool.gradebookapi.dto.GradebookOutput;
+import com.codecool.gradebookapi.dto.*;
 import com.codecool.gradebookapi.integration.util.AuthorizationManager;
 import com.codecool.gradebookapi.testmodel.AssignmentOutput;
-import com.codecool.gradebookapi.testmodel.CourseOutput;
-import com.codecool.gradebookapi.testmodel.StudentDto;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ParameterContext;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -101,7 +96,12 @@ public class StudentIntegrationTests {
             );
 
             assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
-            assertThat(response.getBody()).isEqualTo(student1);
+            assertThat(response.getBody()).isNotNull();
+
+            StudentDto expected = student1;
+            expected.setId(response.getBody().getId());
+
+            assertThat(response.getBody()).isEqualTo(expected);
         }
 
         @ParameterizedTest
@@ -146,23 +146,8 @@ public class StudentIntegrationTests {
         @Order(2)
         @DisplayName("when Students posted, getAll should return list of Students")
         public void whenStudentsPosted_getAllShouldReturnListOfStudents() {
-            ResponseEntity<StudentDto> student1PostResponse = template.exchange(
-                    baseLink.getHref(),
-                    HttpMethod.POST,
-                    auth.createHttpEntityWithAuthorization(student1),
-                    StudentDto.class
-            );
-            ResponseEntity<StudentDto> student2PostResponse = template.exchange(
-                    baseLink.getHref(),
-                    HttpMethod.POST,
-                    auth.createHttpEntityWithAuthorization(student2),
-                    StudentDto.class
-            );
-
-            assertThat(student1PostResponse.getStatusCode()).isEqualTo(HttpStatus.CREATED);
-            assertThat(student1PostResponse.getBody()).isNotNull();
-            assertThat(student2PostResponse.getStatusCode()).isEqualTo(HttpStatus.CREATED);
-            assertThat(student2PostResponse.getBody()).isNotNull();
+            student1 = postStudent(student1);
+            student2 = postStudent(student2);
 
             Traverson traverson = new Traverson(URI.create(baseUrl), MediaTypes.HAL_JSON);
             TypeReferences.CollectionModelType<StudentDto> collectionModelType =
@@ -182,18 +167,9 @@ public class StudentIntegrationTests {
         @Test
         @DisplayName("when Student exists with given ID, getById should return Student")
         public void whenStudentExistsWithGivenId_getByIdShouldReturnStudent() {
-            ResponseEntity<StudentDto> postResponse = template.exchange(
-                    baseLink.getHref(),
-                    HttpMethod.POST,
-                    auth.createHttpEntityWithAuthorization(student1),
-                    StudentDto.class
-            );
+            student1 = postStudent(student1);
 
-            assertThat(postResponse.getStatusCode()).isEqualTo(HttpStatus.CREATED);
-            assertThat(postResponse.getBody()).isNotNull();
-            long studentId = postResponse.getBody().getId();
-
-            Link link = linkTo(methodOn(StudentController.class).getById(studentId)).withSelfRel();
+            Link link = linkTo(methodOn(StudentController.class).getById(student1.getId())).withSelfRel();
             ResponseEntity<StudentDto> getResponse = template.exchange(
                     link.getHref(),
                     HttpMethod.GET,
@@ -223,52 +199,13 @@ public class StudentIntegrationTests {
         @Test
         @DisplayName("when Student exists with given ID, getClassesOfStudent should return list of Classes")
         public void whenStudentExistsWithGivenId_getClassesOfStudentShouldReturnListOfClasses() {
-            ResponseEntity<StudentDto> student1PostResponse = template.exchange(
-                    baseUrl,
-                    HttpMethod.POST,
-                    auth.createHttpEntityWithAuthorization(student1),
-                    StudentDto.class
-            );
-            ResponseEntity<StudentDto> student2PostResponse2 = template.exchange(
-                    baseUrl,
-                    HttpMethod.POST,
-                    auth.createHttpEntityWithAuthorization(student2),
-                    StudentDto.class
-            );
-
-            assertThat(student1PostResponse.getStatusCode()).isEqualTo(HttpStatus.CREATED);
-            assertThat(student1PostResponse.getBody()).isNotNull();
-            assertThat(student2PostResponse2.getStatusCode()).isEqualTo(HttpStatus.CREATED);
-            assertThat(student2PostResponse2.getBody()).isNotNull();
-
-            student1 = student1PostResponse.getBody();
-            student2 = student2PostResponse2.getBody();
+            student1 = postStudent(student1);
+            student2 = postStudent(student2);
 
             CourseInput courseInput1 = CourseInput.builder().name("Algebra").build();
             CourseInput courseInput2 = CourseInput.builder().name("Biology").build();
-
-            Link linkToClasses = linkTo(CourseController.class).withSelfRel();
-
-            ResponseEntity<CourseOutput> course1PostResponse = template.exchange(
-                    linkToClasses.getHref(),
-                    HttpMethod.POST,
-                    auth.createHttpEntityWithAuthorization(courseInput1),
-                    CourseOutput.class
-            );
-            ResponseEntity<CourseOutput> course2PostResponse = template.exchange(
-                    linkToClasses.getHref(),
-                    HttpMethod.POST,
-                    auth.createHttpEntityWithAuthorization(courseInput2),
-                    CourseOutput.class
-            );
-
-            assertThat(course1PostResponse.getStatusCode()).isEqualTo(HttpStatus.CREATED);
-            assertThat(course1PostResponse.getBody()).isNotNull();
-            assertThat(course2PostResponse.getStatusCode()).isEqualTo(HttpStatus.CREATED);
-            assertThat(course2PostResponse.getBody()).isNotNull();
-
-            CourseOutput courseOutput1 = course1PostResponse.getBody();
-            CourseOutput courseOutput2 = course2PostResponse.getBody();
+            CourseOutput courseOutput1 = postCourse(courseInput1);
+            CourseOutput courseOutput2 = postCourse(courseInput2);
 
             Link linkToClassEnrollment1 = linkTo(methodOn(CourseController.class)
                     .addStudentToClass(courseOutput1.getId(), student1.getId()))
@@ -336,32 +273,23 @@ public class StudentIntegrationTests {
         @Test
         @DisplayName("when Student exists with given ID, update should return updated Student")
         public void whenStudentExistsWithGivenId_updateShouldReturnUpdatedStudent() {
-            ResponseEntity<StudentDto> postResponse = template.exchange(
-                    baseUrl,
-                    HttpMethod.POST,
-                    auth.createHttpEntityWithAuthorization(student1),
-                    StudentDto.class
-            );
+            student1 = postStudent(student1);
 
-            assertThat(postResponse.getStatusCode()).isEqualTo(HttpStatus.CREATED);
-            assertThat(postResponse.getBody()).isNotNull();
-
-            StudentDto studentPosted = postResponse.getBody();
-            studentPosted.setFirstname("James");
-
+            // update student
+            student1.setFirstname("James");
             Link linkToUpdateStudent = linkTo(methodOn(StudentController.class)
-                    .getById(studentPosted.getId()))
+                    .getById(student1.getId()))
                     .withSelfRel();
             ResponseEntity<StudentDto> response = template.exchange(
                     linkToUpdateStudent.getHref(),
                     HttpMethod.PUT,
-                    auth.createHttpEntityWithAuthorization(studentPosted),
+                    auth.createHttpEntityWithAuthorization(student1),
                     StudentDto.class
             );
 
             assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
             assertThat(response.getBody()).isNotNull();
-            assertThat(response.getBody().getId()).isEqualTo(studentPosted.getId());
+            assertThat(response.getBody().getId()).isEqualTo(student1.getId());
             assertThat(response.getBody().getFirstname()).isEqualTo("James");
         }
 
@@ -386,17 +314,9 @@ public class StudentIntegrationTests {
         @DisplayName("when Student updated with invalid parameters, should return response 'Bad Request'")
         public void whenStudentUpdatedWithInvalidParameters_shouldReturnResponseBadRequest(
                 @AggregateWith(StudentAggregator.class) StudentDto student) {
-            ResponseEntity<StudentDto> postResponse = template.exchange(
-                    baseUrl,
-                    HttpMethod.POST,
-                    auth.createHttpEntityWithAuthorization(student2),
-                    StudentDto.class);
+            long studentId = postStudent(student2).getId();
 
-            assertThat(postResponse.getStatusCode()).isEqualTo(HttpStatus.CREATED);
-            assertThat(postResponse.getBody()).isNotNull();
-
-            long studentId = postResponse.getBody().getId();
-
+            // update student
             Link linkToStudent = linkTo(methodOn(StudentController.class).getById(studentId)).withSelfRel();
             ResponseEntity<?> response = template.exchange(
                     linkToStudent.getHref(),
@@ -415,17 +335,9 @@ public class StudentIntegrationTests {
         @Test
         @DisplayName("when Student exists with given ID, delete should remove Student")
         public void whenStudentExistsWithGivenId_deleteShouldRemoveStudent() {
-            ResponseEntity<StudentDto> postResponse = template.exchange(
-                    baseUrl,
-                    HttpMethod.POST,
-                    auth.createHttpEntityWithAuthorization(student1),
-                    StudentDto.class);
+            long studentId = postStudent(student1).getId();
 
-            assertThat(postResponse.getStatusCode()).isEqualTo(HttpStatus.CREATED);
-            assertThat(postResponse.getBody()).isNotNull();
-
-            long studentId = postResponse.getBody().getId();
-
+            // delete student
             Link linkToStudent = linkTo(methodOn(StudentController.class).getById(studentId)).withSelfRel();
             template.exchange(
                     linkToStudent.getHref(),
@@ -433,6 +345,8 @@ public class StudentIntegrationTests {
                     auth.createHttpEntityWithAuthorization(null),
                     String.class
             );
+
+            // get student
             ResponseEntity<?> getResponse = template.exchange(
                     linkToStudent.getHref(),
                     HttpMethod.GET,
@@ -460,19 +374,11 @@ public class StudentIntegrationTests {
         @Test
         @DisplayName("when Student is used by a GradebookEntry, delete should return response 'Method Not Allowed'")
         public void whenStudentIsUsedByAnEntry_deleteShouldReturnResponseMethodNotAllowed() {
-            ResponseEntity<StudentDto> postResponse = template.exchange(
-                    baseUrl,
-                    HttpMethod.POST,
-                    auth.createHttpEntityWithAuthorization(student1),
-                    StudentDto.class
-            );
-            assertThat(postResponse.getStatusCode()).isEqualTo(HttpStatus.CREATED);
-            assertThat(postResponse.getBody()).isNotNull();
+            student1 = postStudent(student1);
+            postEntryRelatedToStudent(student1);
 
-            StudentDto studentPosted = postResponse.getBody();
-            Link linkToStudent = linkTo(methodOn(StudentController.class).getById(studentPosted.getId())).withSelfRel();
-
-            postEntryRelatedToStudent(studentPosted);
+            // delete student
+            Link linkToStudent = linkTo(methodOn(StudentController.class).getById(student1.getId())).withSelfRel();
             ResponseEntity<?> deleteResponse = template.exchange(
                     linkToStudent.getHref(),
                     HttpMethod.DELETE,
@@ -484,19 +390,39 @@ public class StudentIntegrationTests {
         }
     }
 
-    private void postEntryRelatedToStudent(StudentDto student) {
-        // post course
-        CourseInput course = CourseInput.builder().name("Algebra").build();
+    private StudentDto postStudent(StudentDto student) {
+        ResponseEntity<StudentDto> postResponse = template.exchange(
+                baseLink.getHref(),
+                HttpMethod.POST,
+                auth.createHttpEntityWithAuthorization(student),
+                StudentDto.class
+        );
+
+        assertThat(postResponse.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+        assertThat(postResponse.getBody()).isNotNull();
+
+        return postResponse.getBody();
+    }
+
+    private CourseOutput postCourse(CourseInput course) {
         Link linkToClasses = linkTo(CourseController.class).withSelfRel();
-        ResponseEntity<CourseOutput> coursePostResponse = template.exchange(
+        ResponseEntity<CourseOutput> postResponse = template.exchange(
                 linkToClasses.getHref(),
                 HttpMethod.POST,
                 auth.createHttpEntityWithAuthorization(course),
                 CourseOutput.class
         );
-        assertThat(coursePostResponse.getStatusCode()).isEqualTo(HttpStatus.CREATED);
-        assertThat(coursePostResponse.getBody()).isNotNull();
-        CourseOutput coursePosted = coursePostResponse.getBody();
+
+        assertThat(postResponse.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+        assertThat(postResponse.getBody()).isNotNull();
+
+        return postResponse.getBody();
+    }
+
+    private void postEntryRelatedToStudent(StudentDto student) {
+        // post course
+        CourseInput course = CourseInput.builder().name("Algebra").build();
+        CourseOutput coursePosted = postCourse(course);
 
         // post assignment
         AssignmentInput assignment = AssignmentInput.builder().name("Homework 1").type("HOMEWORK").build();

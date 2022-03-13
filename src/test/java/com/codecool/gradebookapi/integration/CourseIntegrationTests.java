@@ -4,7 +4,6 @@ import com.codecool.gradebookapi.controller.*;
 import com.codecool.gradebookapi.dto.*;
 import com.codecool.gradebookapi.dto.dataTypes.SimpleData;
 import com.codecool.gradebookapi.integration.util.AuthorizationManager;
-import com.codecool.gradebookapi.testmodel.CourseOutput;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;

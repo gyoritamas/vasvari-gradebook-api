@@ -4,15 +4,10 @@ import com.codecool.gradebookapi.controller.AssignmentController;
 import com.codecool.gradebookapi.controller.CourseController;
 import com.codecool.gradebookapi.controller.GradebookController;
 import com.codecool.gradebookapi.controller.StudentController;
-import com.codecool.gradebookapi.dto.AssignmentInput;
-import com.codecool.gradebookapi.dto.CourseInput;
-import com.codecool.gradebookapi.dto.GradebookInput;
+import com.codecool.gradebookapi.dto.*;
 import com.codecool.gradebookapi.dto.dataTypes.SimpleData;
 import com.codecool.gradebookapi.integration.util.AuthorizationManager;
 import com.codecool.gradebookapi.testmodel.AssignmentOutput;
-import com.codecool.gradebookapi.testmodel.CourseOutput;
-import com.codecool.gradebookapi.testmodel.GradebookOutput;
-import com.codecool.gradebookapi.testmodel.StudentDto;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ParameterContext;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -104,7 +99,7 @@ public class GradebookIntegrationTests {
         @Test
         @Order(1)
         @DisplayName("given empty database, getAll should return empty list")
-        public void givenEmptyDatabase_getAllShouldReturnEmptyLIst() {
+        public void givenEmptyDatabase_getAllShouldReturnEmptyList() {
             String urlToEntries = String.format("http://localhost:%d/api/gradebook", port);
             Traverson traverson = new Traverson(URI.create(urlToEntries), MediaTypes.HAL_JSON);
             TypeReferences.CollectionModelType<GradebookOutput> collectionModelType =
@@ -338,14 +333,18 @@ public class GradebookIntegrationTests {
                     GradebookOutput.class
             );
 
+
+            assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+            assertThat(response.getBody()).isNotNull();
+
             GradebookOutput expected = GradebookOutput.builder()
+                    .id(response.getBody().getId())
                     .student(new SimpleData(studentId, student1.getName()))
                     .course(new SimpleData(courseId, course.getName()))
                     .assignment(new SimpleData(assignmentId, assignment.getName()))
                     .grade(4)
                     .build();
 
-            assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
             assertThat(response.getBody()).isEqualTo(expected);
         }
 
