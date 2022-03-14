@@ -15,6 +15,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.hateoas.CollectionModel;
 import org.springframework.hateoas.EntityModel;
@@ -33,6 +34,7 @@ import java.util.stream.Collectors;
 @Slf4j
 @Tag(name = "teacher-user-controller", description = "Operations as teacher-user")
 @SecurityRequirement(name = "gradebookapi")
+@RequiredArgsConstructor
 public class TeacherUserController {
     private final UserService userService;
     private final CourseService courseService;
@@ -43,24 +45,6 @@ public class TeacherUserController {
     private final StudentModelAssembler studentModelAssembler;
     private final GradebookModelAssembler gradebookModelAssembler;
 
-    public TeacherUserController(UserService userService,
-                                 CourseService courseService,
-                                 TeacherService teacherService,
-                                 StudentService studentService,
-                                 GradebookService gradebookService,
-                                 CourseModelAssembler courseModelAssembler,
-                                 StudentModelAssembler studentModelAssembler,
-                                 GradebookModelAssembler gradebookModelAssembler) {
-        this.userService = userService;
-        this.courseService = courseService;
-        this.teacherService = teacherService;
-        this.studentService = studentService;
-        this.gradebookService = gradebookService;
-        this.courseModelAssembler = courseModelAssembler;
-        this.studentModelAssembler = studentModelAssembler;
-        this.gradebookModelAssembler = gradebookModelAssembler;
-    }
-
     @GetMapping("/courses")
     @Operation(summary = "Find all courses the current user as teacher is teaching")
     @ApiResponses(value = {
@@ -70,7 +54,7 @@ public class TeacherUserController {
     public ResponseEntity<CollectionModel<EntityModel<CourseOutput>>> getCoursesOfCurrentUserAsTeacher() {
         Long teacherId = userService.getTeacherIdOfCurrentUser();
         TeacherDto teacher = teacherService.findById(teacherId).orElseThrow(() -> new TeacherNotFoundException(teacherId));
-        List<CourseOutput> coursesOfTeacher = teacherService.findCoursesOfTeacher(teacher);
+        List<CourseOutput> coursesOfTeacher = courseService.findCoursesOfTeacher(teacher);
 
         log.info("Returned list of all courses related to teacher {}", teacherId);
 
@@ -92,7 +76,7 @@ public class TeacherUserController {
 
         List<StudentDto> students;
         if (courseId == null) {
-            students = teacherService.findStudentsOfTeacher(teacher);
+            students = courseService.findStudentsOfTeacher(teacher);
         } else {
             // check if this teacher is teaching the course
             CourseOutput course = courseService.findById(courseId).orElseThrow(() -> new CourseNotFoundException(courseId));
@@ -128,7 +112,7 @@ public class TeacherUserController {
         List<GradebookOutput> gradebookEntries = new ArrayList<>();
         if (courseId == null) {
             // every gradebook entry of every course taught by the teacher
-            List<CourseOutput> coursesOfTeacher = teacherService.findCoursesOfTeacher(teacher);
+            List<CourseOutput> coursesOfTeacher = courseService.findCoursesOfTeacher(teacher);
             for (CourseOutput course : coursesOfTeacher) {
                 gradebookEntries.addAll(gradebookService.findByClassId(course.getId()));
             }

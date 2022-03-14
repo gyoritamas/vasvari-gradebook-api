@@ -45,8 +45,8 @@ public class TeacherServiceTests {
     }
 
     @Test
-    @DisplayName("save should return saved Student")
-    public void saveShouldReturnSavedStudent() {
+    @DisplayName("save should return saved Teacher")
+    public void saveShouldReturnSavedTeacher() {
         TeacherDto teacherSaved = service.save(teacher1);
 
         assertThat(teacherSaved.getName()).isEqualTo("John Doe");
@@ -57,19 +57,19 @@ public class TeacherServiceTests {
     }
 
     @Test
-    @DisplayName("findAll should return list of Students")
-    public void findAll_shouldReturnListOfStudents() {
+    @DisplayName("findAll should return list of Teachers")
+    public void findAll_shouldReturnListOfTeachers() {
         teacher1 = service.save(teacher1);
         teacher2 = service.save(teacher2);
 
-        List<TeacherDto> actualListOfStudents = service.findAll();
+        List<TeacherDto> actualListOfTeachers = service.findAll();
 
-        assertThat(actualListOfStudents).containsExactly(teacher1, teacher2);
+        assertThat(actualListOfTeachers).containsExactly(teacher1, teacher2);
     }
 
     @Test
-    @DisplayName("when Student with given ID exists, findById should return Student")
-    public void whenStudentWithGivenIdExists_findByIdShouldReturnStudent() {
+    @DisplayName("when Teacher with given ID exists, findById should return Teacher")
+    public void whenTeacherWithGivenIdExists_findByIdShouldReturnTeacher() {
         teacher1 = service.save(teacher1);
 
         Optional<TeacherDto> teacherFound = service.findById(teacher1.getId());
@@ -79,8 +79,8 @@ public class TeacherServiceTests {
     }
 
     @Test
-    @DisplayName("when Student with given ID does not exist, findById should return empty Optional")
-    public void whenStudentWithGivenIdDoesNotExist_findByIdShouldReturnEmptyOptional() {
+    @DisplayName("when Teacher with given ID does not exist, findById should return empty Optional")
+    public void whenTeacherWithGivenIdDoesNotExist_findByIdShouldReturnEmptyOptional() {
         Long id = service.save(teacher2).getId();
 
         Optional<TeacherDto> teacherFound = service.findById(id + 1);
@@ -89,8 +89,8 @@ public class TeacherServiceTests {
     }
 
     @Test
-    @DisplayName("deleteById should delete Student with given ID")
-    public void deleteById_shouldDeleteStudentWithGivenId() {
+    @DisplayName("deleteById should delete Teacher with given ID")
+    public void deleteById_shouldDeleteTeacherWithGivenId() {
         long id = service.save(teacher1).getId();
 
         service.deleteById(id);
@@ -100,16 +100,16 @@ public class TeacherServiceTests {
     }
 
     @Test
-    @DisplayName("when Student with given ID already exists, save should update existing Student")
-    public void whenStudentWithGivenIdAlreadyExists_saveShouldUpdateExistingStudent() {
+    @DisplayName("when Teacher with given ID already exists, save should update existing Teacher")
+    public void whenTeacherWithGivenIdAlreadyExists_saveShouldUpdateExistingTeacher() {
         TeacherDto teacher = service.save(teacher1);
 
         teacher.setFirstname("Johnathan");
         service.save(teacher);
-        Optional<TeacherDto> updatedStudent = service.findById(teacher.getId());
+        Optional<TeacherDto> updatedTeacher = service.findById(teacher.getId());
 
-        assertThat(updatedStudent).isPresent();
-        assertThat(updatedStudent.get().getFirstname()).isEqualTo("Johnathan");
+        assertThat(updatedTeacher).isPresent();
+        assertThat(updatedTeacher.get().getFirstname()).isEqualTo("Johnathan");
     }
 }
 

@@ -5,6 +5,7 @@ import com.codecool.gradebookapi.dto.CourseOutput;
 import com.codecool.gradebookapi.dto.StudentDto;
 import com.codecool.gradebookapi.dto.TeacherDto;
 import com.codecool.gradebookapi.dto.dataTypes.SimpleData;
+import com.codecool.gradebookapi.exception.CourseNotFoundException;
 import com.codecool.gradebookapi.service.CourseService;
 import com.codecool.gradebookapi.service.StudentService;
 import com.codecool.gradebookapi.service.TeacherService;
@@ -20,6 +21,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.test.annotation.DirtiesContext.MethodMode.BEFORE_METHOD;
@@ -52,19 +54,19 @@ public class CourseServiceTests {
         student = StudentDto.builder()
                 .firstname("John")
                 .lastname("Doe")
-                .gradeLevel(2)
+                .gradeLevel(11)
                 .email("johndoe@email.com")
                 .address("666 Armstrong St., Mesa, AZ 85203")
                 .phone("202-555-0198")
-                .birthdate("1990-12-01")
+                .birthdate("2004-02-01")
                 .build();
         teacher = TeacherDto.builder()
-                .firstname("Jane")
-                .lastname("Doe")
-                .email("janedoe@email.com")
-                .address("9351 Morris St., Reisterstown, MD 21136")
-                .phone("202-555-0198")
-                .birthdate("1969-04-13")
+                .firstname("Darrell")
+                .lastname("Bowen")
+                .email("darrellbowen@email.com")
+                .address("3982 Turnpike Drive, Birmingham, AL 35203")
+                .phone("619-446-8496")
+                .birthdate("1984-02-01")
                 .build();
     }
 
@@ -129,9 +131,7 @@ public class CourseServiceTests {
     public void whenCourseWithGivenIdExists_saveShouldUpdateExistingCourse() {
         long id = courseService.save(course1).getId();
         course1.setName("Algebra II");
-        courseService.update(id, course1);
-
-        CourseOutput updatedCourse = courseService.findById(id).orElse(null);
+        CourseOutput updatedCourse = courseService.update(id, course1);
 
         assertThat(updatedCourse).isNotNull();
         assertThat(updatedCourse.getName()).isEqualTo("Algebra II");
@@ -198,4 +198,86 @@ public class CourseServiceTests {
         assertFalse(courseService.isStudentInCourse(studentId, courseId));
     }
 
+    @Test
+    @Transactional
+    @DisplayName("given Course exists with ID, getStudentOfCourse should return list of Students")
+    public void givenCourseExistsWithId_getStudentsOfCourse_shouldReturnListOfStudents() {
+        StudentDto studentSaved = studentService.save(student);
+        CourseOutput courseSaved = courseService.save(course1);
+        courseService.addStudentToCourse(studentSaved.getId(), courseSaved.getId());
+
+        List<StudentDto> studentsOfCourse = courseService.getStudentsOfCourse(courseSaved.getId());
+
+        assertThat(studentsOfCourse).containsExactly(studentSaved);
+    }
+
+    @Test
+    @DisplayName("given Course does not exist with ID, getStudentsOfCourse should throw exception")
+    public void givenCourseDoesNotExistWithId_getStudentsOfCourse_shouldThrowException() {
+        assertThatThrownBy(() -> courseService.getStudentsOfCourse(99L))
+                .isInstanceOf(CourseNotFoundException.class)
+                .hasMessage(CourseNotFoundException.ERROR_MESSAGE, 99L);
+    }
+
+    @Test
+    @DisplayName("given Teacher is not set as teacher of any Courses, findCoursesOfTeacher should return empty list")
+    public void givenTeacherIsNotSetAsTeacherOfAnyCourses_findCoursesOfTeacher_shouldReturnListOfCourses() {
+        TeacherDto teacherSaved = teacherService.save(teacher);
+        List<CourseOutput> coursesOfTeacher = courseService.findCoursesOfTeacher(teacherSaved);
+
+        assertThat(coursesOfTeacher).isEmpty();
+    }
+
+    @Test
+    @Transactional
+    @DisplayName("given Teacher is set as teacher of Courses, findCoursesOfTeacher should return list of Courses")
+    public void givenTeacherIsSetAsTeacherOfCourses_findCoursesOfTeacher_shouldReturnListOfCourses() {
+        CourseOutput course1Saved = courseService.save(course1);
+        CourseOutput course2Saved = courseService.save(course2);
+        TeacherDto teacherSaved = teacherService.save(teacher);
+        course1Saved = courseService.setTeacherOfCourse(teacherSaved.getId(), course1Saved.getId());
+        course2Saved = courseService.setTeacherOfCourse(teacherSaved.getId(), course2Saved.getId());
+
+        List<CourseOutput> coursesOfTeacher = courseService.findCoursesOfTeacher(teacherSaved);
+
+        assertThat(coursesOfTeacher).containsExactly(course1Saved, course2Saved);
+    }
+
+    @Test
+    @Transactional
+    @DisplayName("findStudentsOfTeacher")
+    public void findStudentsOfTeacher() {
+        // save students
+        StudentDto johnDoe = StudentDto.builder().firstname("John").lastname("Doe").gradeLevel(11).email("johndoe@gmail.com").address("").phone("").birthdate("2005-01-01").build();
+        StudentDto janeDoe = StudentDto.builder().firstname("Jane").lastname("Doe").gradeLevel(11).email("janedoe@gmail.com").address("").phone("").birthdate("2004-11-21").build();
+        StudentDto jimDoe = StudentDto.builder().firstname("Jim").lastname("Doe").gradeLevel(11).email("jimdoe@gmail.com").address("").phone("").birthdate("2005-03-09").build();
+        StudentDto jackDoe = StudentDto.builder().firstname("Jack").lastname("Doe").gradeLevel(11).email("jackdoe@gmail.com").address("").phone("").birthdate("2005-02-27").build();
+        johnDoe = studentService.save(johnDoe);
+        janeDoe = studentService.save(janeDoe);
+        jimDoe = studentService.save(jimDoe);
+        jackDoe = studentService.save(jackDoe);
+
+        // save teacher
+        TeacherDto darrelBowen = teacherService.save(teacher);
+
+        // save courses
+        CourseOutput algebra = courseService.save(course1);
+        CourseOutput biology = courseService.save(course2);
+        CourseOutput physics = courseService.save(CourseInput.builder().name("Physics").build());
+
+        // set Darrel Bowen as teacher of algebra and physics courses
+        algebra = courseService.setTeacherOfCourse(darrelBowen.getId(), algebra.getId());
+        physics = courseService.setTeacherOfCourse(darrelBowen.getId(), physics.getId());
+
+        // add students to courses
+        algebra = courseService.addStudentToCourse(johnDoe.getId(), algebra.getId());
+        algebra = courseService.addStudentToCourse(janeDoe.getId(), algebra.getId());
+        physics = courseService.addStudentToCourse(jimDoe.getId(), physics.getId());
+        physics = courseService.addStudentToCourse(johnDoe.getId(), physics.getId());
+        biology = courseService.addStudentToCourse(jackDoe.getId(), biology.getId());
+
+        List<StudentDto> studentsOfTeacher = courseService.findStudentsOfTeacher(darrelBowen);
+
+        assertThat(studentsOfTeacher).containsExactlyInAnyOrder(johnDoe, janeDoe, jimDoe);
+    }
 }
