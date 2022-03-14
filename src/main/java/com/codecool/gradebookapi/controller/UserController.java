@@ -16,6 +16,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.CollectionModel;
@@ -31,21 +32,14 @@ import javax.validation.Valid;
 @Slf4j
 @Tag(name = "user-controller", description = "Operations on users")
 @SecurityRequirement(name = "gradebookapi")
+@RequiredArgsConstructor
 public class UserController {
-    @Autowired
-    private UserService userService;
 
-    @Autowired
-    private StudentService studentService;
-
-    @Autowired
-    private TeacherService teacherService;
-
-    @Autowired
-    private UserModelAssembler userModelAssembler;
-
-    @Autowired
-    private InitialCredentialsModelAssembler credentialsModelAssembler;
+    private final UserService userService;
+    private final StudentService studentService;
+    private final TeacherService teacherService;
+    private final UserModelAssembler userModelAssembler;
+    private final InitialCredentialsModelAssembler credentialsModelAssembler;
 
     @GetMapping
     @Operation(summary = "Lists all users")

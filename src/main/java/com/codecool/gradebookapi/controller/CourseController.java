@@ -16,6 +16,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.CollectionModel;
@@ -32,22 +33,14 @@ import javax.validation.Valid;
 @Slf4j
 @Tag(name = "class-controller", description = "Operations on courses")
 @SecurityRequirement(name = "gradebookapi")
+@RequiredArgsConstructor
 public class CourseController {
 
-    @Autowired
-    private CourseService courseService;
-
-    @Autowired
-    private StudentService studentService;
-
-    @Autowired
-    private TeacherService teacherService;
-
-    @Autowired
-    private GradebookService gradebookService;
-
-    @Autowired
-    private CourseModelAssembler assembler;
+    private final CourseService courseService;
+    private final StudentService studentService;
+    private final TeacherService teacherService;
+    private final GradebookService gradebookService;
+    private final CourseModelAssembler assembler;
 
     @GetMapping
     @Operation(summary = "Lists all courses")

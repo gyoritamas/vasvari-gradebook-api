@@ -8,28 +8,20 @@ import com.codecool.gradebookapi.model.Course;
 import com.codecool.gradebookapi.model.Student;
 import com.codecool.gradebookapi.repository.CourseRepository;
 import com.codecool.gradebookapi.repository.StudentRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
 
 @Service
+@RequiredArgsConstructor
 public class StudentService {
 
     private final StudentRepository studentRepository;
     private final CourseRepository courseRepository;
     private final StudentMapper studentMapper;
     private final CourseMapper courseMapper;
-
-    public StudentService(StudentRepository studentRepository,
-                          CourseRepository courseRepository,
-                          StudentMapper studentMapper,
-                          CourseMapper courseMapper) {
-        this.studentRepository = studentRepository;
-        this.courseRepository = courseRepository;
-        this.studentMapper = studentMapper;
-        this.courseMapper = courseMapper;
-    }
 
     public List<StudentDto> findAll() {
         return studentMapper.mapAll(studentRepository.findAll());

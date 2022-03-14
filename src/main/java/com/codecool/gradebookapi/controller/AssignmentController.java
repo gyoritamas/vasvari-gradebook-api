@@ -12,6 +12,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.CollectionModel;
@@ -27,16 +28,12 @@ import javax.validation.Valid;
 @Slf4j
 @Tag(name = "assignment-controller", description = "Operations on assignments")
 @SecurityRequirement(name = "gradebookapi")
+@RequiredArgsConstructor
 public class AssignmentController {
 
-    @Autowired
-    private AssignmentService assignmentService;
-
-    @Autowired
-    private GradebookService gradebookService;
-
-    @Autowired
-    private AssignmentModelAssembler assembler;
+    private final AssignmentService assignmentService;
+    private final GradebookService gradebookService;
+    private final AssignmentModelAssembler assembler;
 
     @GetMapping
     @Operation(summary = "Lists all assignments")

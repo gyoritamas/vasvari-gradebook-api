@@ -5,6 +5,7 @@ import com.codecool.gradebookapi.dto.GradebookOutput;
 import com.codecool.gradebookapi.dto.mapper.GradebookEntryMapper;
 import com.codecool.gradebookapi.model.GradebookEntry;
 import com.codecool.gradebookapi.repository.GradebookEntryRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -12,13 +13,11 @@ import java.util.List;
 import java.util.Optional;
 
 @Service
+@RequiredArgsConstructor
 public class GradebookService {
 
-    @Autowired
-    private GradebookEntryRepository repository;
-
-    @Autowired
-    private GradebookEntryMapper mapper;
+    private final GradebookEntryRepository repository;
+    private final GradebookEntryMapper mapper;
 
     public List<GradebookOutput> findAll() {
         return mapper.mapAll(repository.findAll());

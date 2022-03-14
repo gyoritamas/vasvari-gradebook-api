@@ -9,6 +9,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.CollectionModel;
@@ -24,16 +25,11 @@ import javax.validation.Valid;
 @Slf4j
 @Tag(name = "teacher-controller", description = "Operations on teachers")
 @SecurityRequirement(name = "gradebookapi")
+@RequiredArgsConstructor
 public class TeacherController {
 
     private final TeacherService service;
     private final TeacherModelAssembler assembler;
-
-    @Autowired
-    public TeacherController(TeacherService service, TeacherModelAssembler assembler) {
-        this.service = service;
-        this.assembler = assembler;
-    }
 
     @GetMapping
     @Operation(summary = "Lists all teachers")

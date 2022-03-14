@@ -17,6 +17,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.hateoas.CollectionModel;
 import org.springframework.hateoas.EntityModel;
@@ -37,27 +38,15 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 @Slf4j
 @Tag(name = "student-user-controller", description = "Operations as student-user")
 @SecurityRequirement(name = "gradebookapi")
+@RequiredArgsConstructor
 public class StudentUserController {
+
     private final UserService userService;
     private final CourseService courseService;
     private final StudentService studentService;
     private final GradebookService gradebookService;
     private final CourseModelAssembler courseModelAssembler;
     private final GradebookModelAssembler gradebookModelAssembler;
-
-    public StudentUserController(UserService userService,
-                                 CourseService courseService,
-                                 StudentService studentService,
-                                 GradebookService gradebookService,
-                                 CourseModelAssembler courseModelAssembler,
-                                 GradebookModelAssembler gradebookModelAssembler) {
-        this.userService = userService;
-        this.courseService = courseService;
-        this.studentService = studentService;
-        this.gradebookService = gradebookService;
-        this.courseModelAssembler = courseModelAssembler;
-        this.gradebookModelAssembler = gradebookModelAssembler;
-    }
 
     @GetMapping("/courses")
     @Operation(summary = "Find all courses the current user as student is enrolled in")

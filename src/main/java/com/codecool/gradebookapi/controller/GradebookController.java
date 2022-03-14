@@ -13,6 +13,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.CollectionModel;
@@ -34,22 +35,14 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 @Slf4j
 @Tag(name = "gradebook-controller", description = "Operations on gradebook entries")
 @SecurityRequirement(name = "gradebookapi")
+@RequiredArgsConstructor
 public class GradebookController {
 
-    @Autowired
-    private GradebookService gradebookService;
-
-    @Autowired
-    private StudentService studentService;
-
-    @Autowired
-    private CourseService courseService;
-
-    @Autowired
-    private AssignmentService assignmentService;
-
-    @Autowired
-    private GradebookModelAssembler gradebookModelAssembler;
+    private final GradebookService gradebookService;
+    private final StudentService studentService;
+    private final CourseService courseService;
+    private final AssignmentService assignmentService;
+    private final GradebookModelAssembler gradebookModelAssembler;
 
     @GetMapping("/gradebook")
     @Operation(summary = "Finds all gradebook entries")
