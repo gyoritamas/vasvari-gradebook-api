@@ -1,4 +1,4 @@
-package com.codecool.gradebookapi.testmodel;
+package com.codecool.gradebookapi.integration.testmodel;
 
 import com.codecool.gradebookapi.model.AssignmentType;
 import com.codecool.gradebookapi.util.ZonedDateTimeDeserializer;

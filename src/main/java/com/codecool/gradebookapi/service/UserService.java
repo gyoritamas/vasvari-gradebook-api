@@ -1,14 +1,15 @@
 package com.codecool.gradebookapi.service;
 
-import com.codecool.gradebookapi.dto.*;
-import com.codecool.gradebookapi.dto.mapper.UserMapper;
+import com.codecool.gradebookapi.dto.StudentDto;
+import com.codecool.gradebookapi.dto.TeacherDto;
+import com.codecool.gradebookapi.dto.UserDto;
 import com.codecool.gradebookapi.dto.dataTypes.InitialCredentials;
-import com.codecool.gradebookapi.model.SchoolActorApplicationUserRelation;
+import com.codecool.gradebookapi.dto.mapper.UserMapper;
 import com.codecool.gradebookapi.model.ApplicationUser;
+import com.codecool.gradebookapi.model.SchoolActorApplicationUserRelation;
 import com.codecool.gradebookapi.repository.SchoolActorApplicationUserRelationRepository;
 import com.codecool.gradebookapi.repository.UserRepository;
 import com.codecool.gradebookapi.security.ApplicationUserRole;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -24,8 +25,8 @@ import java.util.Optional;
 import static com.codecool.gradebookapi.security.ApplicationUserRole.*;
 
 @Service
-@Slf4j
 public class UserService implements UserDetailsService {
+    public static final int PASSWORD_LENGTH = 12;
     private final UserRepository userRepository;
     private final SchoolActorApplicationUserRelationRepository relationRepository;
     private final PasswordEncoder passwordEncoder;
@@ -40,9 +41,9 @@ public class UserService implements UserDetailsService {
         this.passwordEncoder = passwordEncoder;
         this.mapper = mapper;
         // TODO: remove
-//        userRepository.save(new User(1L, "admin", this.passwordEncoder.encode("admin"), ApplicationUserRole.ADMIN));
-//        userRepository.save(new User(2L, "teacher", this.passwordEncoder.encode("teacher"), ApplicationUserRole.TEACHER));
-//        userRepository.save(new User(3L, "student", this.passwordEncoder.encode("student"), STUDENT));
+//        userRepository.save(new ApplicationUser(1L, "admin", this.passwordEncoder.encode("admin"), ApplicationUserRole.ADMIN));
+//        userRepository.save(new ApplicationUser(2L, "teacher", this.passwordEncoder.encode("teacher"), ApplicationUserRole.TEACHER));
+//        userRepository.save(new ApplicationUser(3L, "student", this.passwordEncoder.encode("student"), STUDENT));
     }
 
     public List<UserDto> findAll() {
@@ -89,6 +90,7 @@ public class UserService implements UserDetailsService {
     }
 
     public InitialCredentials createAdminUser(String username) {
+        if(isUsernameAlreadyTaken(username)) throw new RuntimeException("Username already taken");
 
         String password = generatePassword();
         UserDto newUser = new UserDto(username, passwordEncoder.encode(password), ADMIN);
@@ -110,12 +112,12 @@ public class UserService implements UserDetailsService {
         return generatedUsername;
     }
 
-    public boolean isUsernameAlreadyTaken(String username) {
+    private boolean isUsernameAlreadyTaken(String username) {
         return userRepository.findByUsername(username).isPresent();
     }
 
     private String generatePassword() {
-        return RandomStringUtils.randomAlphanumeric(12);
+        return RandomStringUtils.randomAlphanumeric(PASSWORD_LENGTH);
     }
 
     public Optional<UserDto> findById(Long id) {
@@ -147,6 +149,7 @@ public class UserService implements UserDetailsService {
     public Long getStudentIdOfCurrentUser() {
         String username = SecurityContextHolder.getContext().getAuthentication().getName();
         UserDto user = findByUsername(username)
+                // this should not happen
                 .orElseThrow(() -> new RuntimeException(String.format("No user with the name '%s' exists", username)));
 
         return findStudentIdByUserId(user.getId());
@@ -155,6 +158,7 @@ public class UserService implements UserDetailsService {
     public Long getTeacherIdOfCurrentUser() {
         String username = SecurityContextHolder.getContext().getAuthentication().getName();
         UserDto user = findByUsername(username)
+                // this should not happen
                 .orElseThrow(() -> new RuntimeException(String.format("No user with the name '%s' exists", username)));
 
         return findTeacherIdByUserId(user.getId());

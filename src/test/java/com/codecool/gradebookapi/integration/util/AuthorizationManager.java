@@ -1,48 +1,48 @@
 package com.codecool.gradebookapi.integration.util;
 
+import com.codecool.gradebookapi.dto.UserDto;
 import com.codecool.gradebookapi.jwt.JwtTokenUtil;
-import com.codecool.gradebookapi.model.ApplicationUser;
-import com.codecool.gradebookapi.repository.UserRepository;
 import com.codecool.gradebookapi.security.ApplicationUserRole;
+import com.codecool.gradebookapi.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.TestComponent;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.stereotype.Component;
 
 import static com.codecool.gradebookapi.security.ApplicationUserRole.*;
 
-@Component
+@TestComponent
 public class AuthorizationManager {
 
     private final JwtTokenUtil jwtTokenUtil;
-    private final UserRepository userRepository;
+    private final UserService userService;
 
-    private final ApplicationUser ADMIN_USER;
-    private final ApplicationUser TEACHER_USER;
-    private final ApplicationUser STUDENT_USER;
+    private final UserDto ADMIN_USER;
+    private final UserDto TEACHER_USER;
+    private final UserDto STUDENT_USER;
 
     private HttpHeaders headersWithAuthorization;
 
     @Autowired
-    public AuthorizationManager(JwtTokenUtil jwtTokenUtil, PasswordEncoder passwordEncoder, UserRepository userRepository) {
+    public AuthorizationManager(JwtTokenUtil jwtTokenUtil, PasswordEncoder passwordEncoder, UserService userService) {
         this.jwtTokenUtil = jwtTokenUtil;
-        this.userRepository = userRepository;
+        this.userService = userService;
 
-        ADMIN_USER = ApplicationUser.builder()
+        ADMIN_USER = UserDto.builder()
                 .username("admin")
                 .password(passwordEncoder.encode("admin"))
                 .role(ADMIN)
                 .build();
-        TEACHER_USER = ApplicationUser.builder()
+        TEACHER_USER = UserDto.builder()
                 .username("teacher")
                 .password(passwordEncoder.encode("teacher"))
                 .role(TEACHER)
                 .build();
-        STUDENT_USER = ApplicationUser.builder()
+        STUDENT_USER = UserDto.builder()
                 .username("student")
                 .password(passwordEncoder.encode("student"))
                 .role(STUDENT)
@@ -102,9 +102,8 @@ public class AuthorizationManager {
     }
 
     private void addDefaultUsers() {
-        userRepository.deleteAll();
-        userRepository.save(ADMIN_USER);
-        userRepository.save(TEACHER_USER);
-        userRepository.save(STUDENT_USER);
+        userService.save(ADMIN_USER);
+        userService.save(TEACHER_USER);
+        userService.save(STUDENT_USER);
     }
 }

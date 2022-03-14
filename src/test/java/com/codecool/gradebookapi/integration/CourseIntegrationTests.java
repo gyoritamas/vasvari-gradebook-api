@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.boot.web.server.LocalServerPort;
+import org.springframework.context.annotation.Import;
 import org.springframework.hateoas.CollectionModel;
 import org.springframework.hateoas.Link;
 import org.springframework.hateoas.MediaTypes;
@@ -30,6 +31,7 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 import static org.springframework.test.annotation.DirtiesContext.ClassMode.BEFORE_CLASS;
 
 @SpringBootTest(webEnvironment = RANDOM_PORT)
+@Import(AuthorizationManager.class)
 public class CourseIntegrationTests {
     @Autowired
     private TestRestTemplate template;
@@ -82,7 +84,6 @@ public class CourseIntegrationTests {
                 .phone("619-446-8496")
                 .birthdate("1984-02-01")
                 .build();
-
     }
 
     @Nested
@@ -317,6 +318,7 @@ public class CourseIntegrationTests {
 
     @Nested
     @DisplayName("PUT methods")
+    @DirtiesContext(classMode = BEFORE_CLASS)
     class UpdateMethodTests {
         @Test
         @DisplayName("when Class exists with given ID and ClassInput parameters are valid, update should return updated Class")
@@ -374,6 +376,7 @@ public class CourseIntegrationTests {
 
     @Nested
     @DisplayName("DELETE methods")
+    @DirtiesContext(classMode = BEFORE_CLASS)
     class DeleteMethodTests {
         @Test
         @DisplayName("when Class exists with given ID, delete should remove Class")

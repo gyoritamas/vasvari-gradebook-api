@@ -7,7 +7,7 @@ import com.codecool.gradebookapi.controller.StudentController;
 import com.codecool.gradebookapi.dto.*;
 import com.codecool.gradebookapi.dto.dataTypes.SimpleData;
 import com.codecool.gradebookapi.integration.util.AuthorizationManager;
-import com.codecool.gradebookapi.testmodel.AssignmentOutput;
+import com.codecool.gradebookapi.integration.testmodel.AssignmentOutput;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ParameterContext;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -20,6 +20,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.boot.web.server.LocalServerPort;
+import org.springframework.context.annotation.Import;
 import org.springframework.hateoas.CollectionModel;
 import org.springframework.hateoas.Link;
 import org.springframework.hateoas.MediaTypes;
@@ -32,7 +33,7 @@ import org.springframework.test.annotation.DirtiesContext;
 
 import java.net.URI;
 
-import static com.codecool.gradebookapi.security.ApplicationUserRole.ADMIN;
+import static com.codecool.gradebookapi.security.ApplicationUserRole.*;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
@@ -41,6 +42,7 @@ import static org.springframework.test.annotation.DirtiesContext.ClassMode.BEFOR
 
 @SpringBootTest(webEnvironment = RANDOM_PORT)
 @DirtiesContext(classMode = BEFORE_CLASS)
+@Import(AuthorizationManager.class)
 public class GradebookIntegrationTests {
     @Autowired
     private TestRestTemplate template;

@@ -133,12 +133,8 @@ public class UserController {
     })
     public ResponseEntity<EntityModel<InitialCredentials>> createAccountForAdmin(@RequestBody @Valid UsernameInput usernameInput) {
         String username = usernameInput.getUsername();
-        // TODO: create custom exception
-        if (userService.isUsernameAlreadyTaken(username)) throw new RuntimeException("Username already taken");
-
         InitialCredentials credentials = userService.createAdminUser(username);
         log.info("Created admin user account | username: {}, password: {}", credentials.getUsername(), credentials.getPassword());
-
         EntityModel<InitialCredentials> entityModel = credentialsModelAssembler.toModel(credentials);
 
         return ResponseEntity

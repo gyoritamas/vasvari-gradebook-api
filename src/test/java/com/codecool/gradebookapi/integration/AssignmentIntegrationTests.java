@@ -7,12 +7,13 @@ import com.codecool.gradebookapi.controller.StudentController;
 import com.codecool.gradebookapi.dto.*;
 import com.codecool.gradebookapi.integration.util.AuthorizationManager;
 import com.codecool.gradebookapi.model.AssignmentType;
-import com.codecool.gradebookapi.testmodel.AssignmentOutput;
+import com.codecool.gradebookapi.integration.testmodel.AssignmentOutput;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.boot.web.server.LocalServerPort;
+import org.springframework.context.annotation.Import;
 import org.springframework.hateoas.CollectionModel;
 import org.springframework.hateoas.Link;
 import org.springframework.hateoas.MediaTypes;
@@ -33,6 +34,7 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 import static org.springframework.test.annotation.DirtiesContext.ClassMode.BEFORE_CLASS;
 
 @SpringBootTest(webEnvironment = RANDOM_PORT)
+@Import(AuthorizationManager.class)
 public class AssignmentIntegrationTests {
     @Autowired
     private TestRestTemplate template;
@@ -217,6 +219,7 @@ public class AssignmentIntegrationTests {
 
     @Nested
     @DisplayName("PUT methods")
+    @DirtiesContext(classMode = BEFORE_CLASS)
     class UpdateMethodTests {
         @Test
         @DisplayName("when Assignment exists with given ID, update should return updated Assignment")
@@ -293,6 +296,7 @@ public class AssignmentIntegrationTests {
 
     @Nested
     @DisplayName("DELETE methods")
+    @DirtiesContext(classMode = BEFORE_CLASS)
     class DeleteMethodTests {
         @Test
         @DisplayName("when Assignment exists with given ID, delete should remove Assignment")
