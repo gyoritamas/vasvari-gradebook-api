@@ -1,13 +1,13 @@
 package com.codecool.gradebookapi.jwt;
 
-import lombok.Data;
-import lombok.RequiredArgsConstructor;
+import lombok.*;
 
 import java.io.Serializable;
 
 @Data
-@RequiredArgsConstructor
+@NoArgsConstructor
+@AllArgsConstructor
 public class JwtResponse implements Serializable {
 
-    private final String jwtToken;
+    private String jwtToken;
 }
