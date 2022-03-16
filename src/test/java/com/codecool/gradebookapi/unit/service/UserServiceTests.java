@@ -78,6 +78,7 @@ public class UserServiceTests {
     }
 
     @Test
+    @DisplayName("createStudentUser should return created Student user's initial credentials")
     @DirtiesContext(methodMode = BEFORE_METHOD)
     public void createStudentUser_shouldReturnCreatedStudentUsersInitialCredentials() {
         StudentDto student = StudentDto.builder()
@@ -94,6 +95,7 @@ public class UserServiceTests {
     }
 
     @Test
+    @DisplayName("given Student already has user account, createStudentUser should throw exception")
     @DirtiesContext(methodMode = BEFORE_METHOD)
     public void givenStudentAlreadyHasUserAccount_createStudentUserShouldThrowException() {
         StudentDto student = StudentDto.builder()
@@ -109,6 +111,7 @@ public class UserServiceTests {
     }
 
     @Test
+    @DisplayName("createTeacherUser should return created teacher's initial credentials")
     @DirtiesContext(methodMode = BEFORE_METHOD)
     public void createTeacherUser_shouldReturnCreatedTeacherUsersInitialCredentials() {
         TeacherDto teacher = TeacherDto.builder()
@@ -125,6 +128,7 @@ public class UserServiceTests {
     }
 
     @Test
+    @DisplayName("given teacher already has user account, createTeacherUser should throw exception")
     @DirtiesContext(methodMode = BEFORE_METHOD)
     public void givenTeacherAlreadyHasUserAccount_createTeacherUserShouldThrowException() {
         TeacherDto teacher = TeacherDto.builder()
@@ -140,6 +144,7 @@ public class UserServiceTests {
     }
 
     @Test
+    @DisplayName("given username is not in use, createAdminUser should return admin user's initial credentials")
     @DirtiesContext(methodMode = BEFORE_METHOD)
     public void givenUsernameNotInUse_createAdminUserShouldReturnAdminUsersInitialCredentials() {
         InitialCredentials credentials = userService.createAdminUser("admin");
@@ -149,6 +154,7 @@ public class UserServiceTests {
     }
 
     @Test
+    @DisplayName("given username is in use, createAdminUser should throw exception")
     @DirtiesContext(methodMode = BEFORE_METHOD)
     public void givenUsernameIsInUse_createAdminUserShouldThrowException() {
         userService.createAdminUser("admin");
@@ -159,6 +165,7 @@ public class UserServiceTests {
     }
 
     @Test
+    @DisplayName("given User exists with ID, findById should return user")
     @DirtiesContext(methodMode = BEFORE_METHOD)
     public void givenUserExistsWithId_findByIdShouldReturnUser() {
         studentUser = userService.save(studentUser);
@@ -171,6 +178,7 @@ public class UserServiceTests {
     }
 
     @Test
+    @DisplayName("given User does not exists with ID, findById should return empty Optional")
     @DirtiesContext(methodMode = BEFORE_METHOD)
     public void givenUserDoesNotExistWithId_findByIdShouldReturnEmptyOptional() {
         Optional<UserDto> userFound = userService.findById(99L);
@@ -179,6 +187,7 @@ public class UserServiceTests {
     }
 
     @Test
+    @DisplayName("given User exists with username, findByUsername should return User")
     @DirtiesContext(methodMode = BEFORE_METHOD)
     public void givenUserExistsWithUsername_findByUsernameShouldReturnUser() {
         teacherUser = userService.save(teacherUser);
@@ -190,6 +199,7 @@ public class UserServiceTests {
     }
 
     @Test
+    @DisplayName("given User does not exist with username, findByUsername should return empty Optional")
     @DirtiesContext(methodMode = BEFORE_METHOD)
     public void givenUserDoesNotExistWithUsername_findByUsernameShouldReturnEmptyOptional() {
         Optional<UserDto> userFound = userService.findByUsername("anonymous");
@@ -198,6 +208,7 @@ public class UserServiceTests {
     }
 
     @Test
+    @DisplayName("given User exists with ID, deleteById should delete User")
     @DirtiesContext(methodMode = BEFORE_METHOD)
     public void givenUserExistsWithId_deleteByIdShouldDeleteUser() {
         adminUser = userService.save(adminUser);
@@ -209,6 +220,7 @@ public class UserServiceTests {
     }
 
     @Test
+    @DisplayName("given User exists with ID, findStudentIdByUserId should return Student ID")
     @DirtiesContext(methodMode = BEFORE_METHOD)
     public void givenUserExistsWithId_findStudentIdByUserId_shouldReturnStudentId() {
         StudentDto student = StudentDto.builder()
@@ -228,6 +240,7 @@ public class UserServiceTests {
     }
 
     @Test
+    @DisplayName("given User does not exist with ID, findStudentIdByUserId should throw exception")
     @DirtiesContext(methodMode = BEFORE_METHOD)
     public void givenUserDoesNotExistWithId_findStudentIdByUserId_shouldThrowException() {
         assertThatThrownBy(() -> userService.findStudentIdByUserId(99L))
@@ -236,6 +249,7 @@ public class UserServiceTests {
     }
 
     @Test
+    @DisplayName("given User exists with ID, findTeacherIdByUserId should return Teacher ID")
     @DirtiesContext(methodMode = BEFORE_METHOD)
     public void givenUserExistsWithId_findTeacherIdByUserId_shouldReturnTeacherId() {
         TeacherDto teacher = TeacherDto.builder()
@@ -255,6 +269,7 @@ public class UserServiceTests {
     }
 
     @Test
+    @DisplayName("given User does not exist with given ID, findTeacherIdByUserId should throw exception")
     @DirtiesContext(methodMode = BEFORE_METHOD)
     public void givenUserDoesNotExistWithId_findTeacherIdByUserId_shouldThrowException() {
         assertThatThrownBy(() -> userService.findTeacherIdByUserId(99L))
@@ -263,6 +278,7 @@ public class UserServiceTests {
     }
 
     @Test
+    @DisplayName("given User is STUDENT and has an account, getStudentIdOfCurrentUser should return Student ID")
     @DirtiesContext(methodMode = BEFORE_METHOD)
     public void givenUserIsStudentAndHasAnAccount_getStudentIdOfCurrentUser_shouldReturnStudentId() {
         StudentDto student = StudentDto.builder()
@@ -279,6 +295,7 @@ public class UserServiceTests {
     }
 
     @Test
+    @DisplayName("given User is ADMIN, getStudentIdOfCurrentUser should throw exception")
     @DirtiesContext(methodMode = BEFORE_METHOD)
     public void givenUserIsAdmin_getStudentIdOfCurrentUser_shouldThrowException() {
         InitialCredentials credentials = userService.createAdminUser("admin");
@@ -291,6 +308,7 @@ public class UserServiceTests {
 
     @Test
     @DirtiesContext(methodMode = BEFORE_METHOD)
+    @DisplayName("given User is TEACHER, getStudentIdOfCurrentUser should throw exception")
     public void givenUserIsTeacher_getStudentIdOfCurrentUser_shouldThrowException() {
         TeacherDto teacher = TeacherDto.builder()
                 .id(44L)
@@ -307,6 +325,7 @@ public class UserServiceTests {
 
     @Test
     @DirtiesContext(methodMode = BEFORE_METHOD)
+    @DisplayName("given User is TEACHER and has an account, getTeacherIdOfCurrentUser should return Teacher ID")
     public void givenUserIsTeacherAndHasAnAccount_getTeacherIdOfCurrentUser_shouldReturnTeacherId() {
         TeacherDto teacher = TeacherDto.builder()
                 .id(44L)
@@ -322,6 +341,7 @@ public class UserServiceTests {
     }
 
     @Test
+    @DisplayName("given User is STUDENT, getTeacherIdOfCurrentUser should throw exception")
     @DirtiesContext(methodMode = BEFORE_METHOD)
     public void givenUserIsStudent_getTeacherIdOfCurrentUser_shouldThrowException() {
         StudentDto student = StudentDto.builder()
@@ -338,6 +358,7 @@ public class UserServiceTests {
     }
 
     @Test
+    @DisplayName("given User is ADMIN, getTeacherIdOfCurrentUser should throw exception")
     @DirtiesContext(methodMode = BEFORE_METHOD)
     public void givenUserIsAdmin_getTeacherIdOfCurrentUser_shouldThrowException() {
         InitialCredentials credentials = userService.createAdminUser("admin");
@@ -356,8 +377,9 @@ public class UserServiceTests {
     }
 
     @Test
+    @DisplayName("given User with username exists, loadUserByUsername should return UserDetails")
     @DirtiesContext(methodMode = BEFORE_METHOD)
-    public void givenUserWithUsernameExists_loadUserByUsernameTest_shouldReturnUserDetails() {
+    public void givenUserWithUsernameExists_loadUserByUsername_shouldReturnUserDetails() {
         userService.save(adminUser);
         UserDetails userDetails = userService.loadUserByUsername(adminUser.getUsername());
 
@@ -368,8 +390,9 @@ public class UserServiceTests {
     }
 
     @Test
+    @DisplayName("given User with username does not exist, loadUserByUsername should throw exception")
     @DirtiesContext(methodMode = BEFORE_METHOD)
-    public void givenUserWithUsernameDoesNotExists_loadUserByUsernameTest_shouldThrowException() {
+    public void givenUserWithUsernameDoesNotExist_loadUserByUsername_shouldThrowException() {
         assertThatThrownBy(() -> userService.loadUserByUsername("anonymous"))
                 .isInstanceOf(UsernameNotFoundException.class)
                 .hasMessage(String.format("User not found with username \"%s\"", "anonymous"));

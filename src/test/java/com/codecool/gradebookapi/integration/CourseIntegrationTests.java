@@ -4,6 +4,7 @@ import com.codecool.gradebookapi.controller.*;
 import com.codecool.gradebookapi.dto.*;
 import com.codecool.gradebookapi.dto.dataTypes.SimpleData;
 import com.codecool.gradebookapi.integration.util.AuthorizationManager;
+import com.codecool.gradebookapi.model.AssignmentType;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -21,6 +22,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.test.annotation.DirtiesContext;
 
 import java.net.URI;
+import java.time.LocalDate;
 import java.util.Collections;
 
 import static com.codecool.gradebookapi.security.ApplicationUserRole.ADMIN;
@@ -418,10 +420,10 @@ public class CourseIntegrationTests {
         }
 
         @Test
-        @DisplayName("when Class is used by a GradebookEntry, delete should return response 'Method Not Allowed'")
-        public void whenClassIsUsedByAnEntry_deleteShouldReturnResponseMethodNotAllowed() {
+        @DisplayName("when Course is used by a GradebookEntry, delete should return response 'Method Not Allowed'")
+        public void whenCourseIsUsedByAnEntry_deleteShouldReturnResponseMethodNotAllowed() {
             CourseOutput course = postCourse(courseInput1);
-            postEntryRelatedToClass(course);
+            postEntryRelatedToCourse(course);
 
             // delete course
             Link linkToClass = linkTo(methodOn(CourseController.class).getById(course.getId())).withSelfRel();
@@ -478,9 +480,34 @@ public class CourseIntegrationTests {
         return postCourseResponse.getBody();
     }
 
-    private void postEntryRelatedToClass(CourseOutput course) {
+    private void postEntryRelatedToCourse(CourseOutput course) {
+        // post teacher
+        TeacherDto teacher = TeacherDto.builder()
+                .firstname("Darrell")
+                .lastname("Bowen")
+                .email("darrellbowen@email.com")
+                .address("3982 Turnpike Drive, Birmingham, AL 35203")
+                .phone("619-446-8496")
+                .birthdate("1984-02-01")
+                .build();
+        Link linkToTeachers = linkTo(TeacherController.class).withSelfRel();
+        ResponseEntity<TeacherDto> teacherPostResponse = template.exchange(
+                linkToTeachers.getHref(),
+                HttpMethod.POST,
+                auth.createHttpEntityWithAuthorization(teacher),
+                TeacherDto.class
+        );
+        assertThat(teacherPostResponse.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+        assertThat(teacherPostResponse.getBody()).isNotNull();
+        teacher = teacherPostResponse.getBody();
+
         // post assignment
-        AssignmentInput assignmentInput = AssignmentInput.builder().name("Homework 1").type("HOMEWORK").build();
+        AssignmentInput assignmentInput = AssignmentInput.builder()
+                .name("Homework 1")
+                .type(AssignmentType.HOMEWORK)
+                .deadline(LocalDate.of(2051, 1, 1))
+                .teacherId(teacher.getId())
+                .build();
         Link linkToAssignments = linkTo(AssignmentController.class).withSelfRel();
         ResponseEntity<AssignmentOutput> assignmentPostResponse = template.exchange(
                 linkToAssignments.getHref(),

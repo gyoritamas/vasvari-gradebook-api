@@ -4,6 +4,7 @@ import com.codecool.gradebookapi.controller.AssignmentController;
 import com.codecool.gradebookapi.dto.AssignmentInput;
 import com.codecool.gradebookapi.dto.AssignmentOutput;
 import com.codecool.gradebookapi.dto.GradebookOutput;
+import com.codecool.gradebookapi.dto.TeacherDto;
 import com.codecool.gradebookapi.dto.assembler.AssignmentModelAssembler;
 import com.codecool.gradebookapi.dto.dataTypes.SimpleData;
 import com.codecool.gradebookapi.jwt.JwtAuthenticationEntryPoint;
@@ -12,10 +13,9 @@ import com.codecool.gradebookapi.model.AssignmentType;
 import com.codecool.gradebookapi.security.PasswordConfig;
 import com.codecool.gradebookapi.service.AssignmentService;
 import com.codecool.gradebookapi.service.GradebookService;
+import com.codecool.gradebookapi.service.TeacherService;
 import com.codecool.gradebookapi.service.UserService;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -27,11 +27,12 @@ import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 
-import java.time.ZonedDateTime;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.is;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
@@ -51,35 +52,49 @@ public class AssignmentControllerTests {
     private GradebookService gradebookService;
 
     @MockBean
+    private TeacherService teacherService;
+
+    @MockBean
     private UserService userService;
 
     @MockBean
     private JwtTokenUtil jwtTokenUtil;
 
-    private static ObjectMapper mapper;
+    @Autowired
+    private ObjectMapper mapper;
 
     private AssignmentInput assignmentInput1;
     private AssignmentInput assignmentInput2;
     private AssignmentOutput assignmentOutput1;
     private AssignmentOutput assignmentOutput2;
 
-    public AssignmentControllerTests() {
-        mapper = new ObjectMapper();
-        mapper.registerModule(new JavaTimeModule());
-        mapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
-    }
-
     @BeforeEach
     public void setUp() {
+        TeacherDto teacher = TeacherDto.builder()
+                .id(1L)
+                .firstname("Darrell")
+                .lastname("Bowen")
+                .email("darrellbowen@email.com")
+                .address("3982 Turnpike Drive, Birmingham, AL 35203")
+                .phone("619-446-8496")
+                .birthdate("1984-02-01")
+                .build();
+
+        when(teacherService.findById(1L)).thenReturn(Optional.of(teacher));
+
         assignmentInput1 = AssignmentInput.builder()
                 .name("Homework 1")
-                .type("HOMEWORK")
+                .type(AssignmentType.HOMEWORK)
                 .description("Read chapters 1 to 5")
+                .deadline(LocalDate.of(2051, 1, 1))
+                .teacherId(1L)
                 .build();
         assignmentInput2 = AssignmentInput.builder()
                 .name("Homework 2")
-                .type("HOMEWORK")
+                .type(AssignmentType.HOMEWORK)
                 .description("Read chapters 6 to 9")
+                .deadline(LocalDate.of(2052, 1, 1))
+                .teacherId(1L)
                 .build();
 
         assignmentOutput1 = AssignmentOutput.builder()
@@ -87,14 +102,14 @@ public class AssignmentControllerTests {
                 .name("Homework 1")
                 .type(AssignmentType.HOMEWORK)
                 .description("Read chapters 1 to 5")
-                .createdAt(ZonedDateTime.now())
+                .deadline(LocalDate.of(2051, 1, 1))
                 .build();
         assignmentOutput2 = AssignmentOutput.builder()
                 .id(2L)
                 .name("Homework 2")
                 .type(AssignmentType.HOMEWORK)
                 .description("Read Chapters 6 and 9.")
-                .createdAt(ZonedDateTime.now())
+                .deadline(LocalDate.of(2052, 1, 1))
                 .build();
     }
 
@@ -182,7 +197,12 @@ public class AssignmentControllerTests {
     }
 
     private void givenAssignmentWithEmptyName_addAssignment_shouldReturnWithBadRequest() throws Exception {
-        AssignmentInput inputWithEmptyName = AssignmentInput.builder().name(" ").type("TEST").build();
+        AssignmentInput inputWithEmptyName = AssignmentInput.builder()
+                .name(" ")
+                .type(AssignmentType.TEST)
+                .deadline(LocalDate.of(2051, 1, 1))
+                .teacherId(1L)
+                .build();
         String inputAsString = mapper.writeValueAsString(inputWithEmptyName);
 
         this.mockMvc
@@ -196,8 +216,14 @@ public class AssignmentControllerTests {
     }
 
     private void givenAssignmentWithWrongType_addAssignment_shouldReturnWithBadRequest() throws Exception {
-        AssignmentInput inputWithWrongType = AssignmentInput.builder().name("Test II").type("BAD_TYPE").build();
-        String inputAsString = mapper.writeValueAsString(inputWithWrongType);
+        AssignmentInput inputWithWrongType = AssignmentInput.builder()
+                .name("Test II")
+                .type(AssignmentType.valueOf("TEST"))
+                .deadline(LocalDate.of(2051, 1, 1))
+                .teacherId(1L)
+                .build();
+        String inputAsString = mapper.writeValueAsString(inputWithWrongType)
+                .replaceAll("\"type\":\"(\\w+)\"", "\"type\":\"WRONG_TYPE\"");
 
         this.mockMvc
                 .perform(
@@ -259,7 +285,12 @@ public class AssignmentControllerTests {
     }
 
     private void givenAssignmentWithEmptyName_updateAssignment_shouldReturnWithBadRequest() throws Exception {
-        AssignmentInput inputWithEmptyName = AssignmentInput.builder().name(" ").type("TEST").build();
+        AssignmentInput inputWithEmptyName = AssignmentInput.builder()
+                .name(" ")
+                .type(AssignmentType.TEST)
+                .deadline(LocalDate.of(2051, 1, 1))
+                .teacherId(1L)
+                .build();
         String inputAsString = mapper.writeValueAsString(inputWithEmptyName);
 
         this.mockMvc
@@ -273,8 +304,14 @@ public class AssignmentControllerTests {
     }
 
     private void givenAssignmentWithWrongType_updateAssignment_shouldReturnWithBadRequest() throws Exception {
-        AssignmentInput inputWithWrongType = AssignmentInput.builder().name("Final test").type("BAD_TYPE").build();
-        String inputAsString = mapper.writeValueAsString(inputWithWrongType);
+        AssignmentInput inputWithWrongType = AssignmentInput.builder()
+                .name("Final test")
+                .type(AssignmentType.HOMEWORK)
+                .deadline(LocalDate.of(2051, 1, 1))
+                .teacherId(1L)
+                .build();
+        String inputAsString = mapper.writeValueAsString(inputWithWrongType)
+                .replaceAll("\"type\":\"(\\w+)\"", "\"type\":\"WRONG_TYPE\"");
 
         this.mockMvc
                 .perform(

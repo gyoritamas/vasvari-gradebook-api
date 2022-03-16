@@ -1,13 +1,10 @@
 package com.codecool.gradebookapi.integration;
 
-import com.codecool.gradebookapi.controller.AssignmentController;
-import com.codecool.gradebookapi.controller.CourseController;
-import com.codecool.gradebookapi.controller.GradebookController;
-import com.codecool.gradebookapi.controller.StudentController;
+import com.codecool.gradebookapi.controller.*;
 import com.codecool.gradebookapi.dto.*;
+import com.codecool.gradebookapi.dto.dataTypes.SimpleData;
 import com.codecool.gradebookapi.integration.util.AuthorizationManager;
 import com.codecool.gradebookapi.model.AssignmentType;
-import com.codecool.gradebookapi.integration.testmodel.AssignmentOutput;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -25,6 +22,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.test.annotation.DirtiesContext;
 
 import java.net.URI;
+import java.time.LocalDate;
 
 import static com.codecool.gradebookapi.security.ApplicationUserRole.ADMIN;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -50,6 +48,7 @@ public class AssignmentIntegrationTests {
     private AssignmentInput assignmentInput1;
     private AssignmentInput assignmentInput2;
     private StudentDto student;
+    private TeacherDto teacher;
 
     @BeforeEach
     public void setUp() {
@@ -59,13 +58,15 @@ public class AssignmentIntegrationTests {
 
         assignmentInput1 = AssignmentInput.builder()
                 .name("Homework 1")
-                .type("HOMEWORK")
+                .type(AssignmentType.HOMEWORK)
                 .description("Read chapters 1 to 5")
+                .deadline(LocalDate.of(2051, 1, 1))
                 .build();
         assignmentInput2 = AssignmentInput.builder()
                 .name("Homework 2")
-                .type("HOMEWORK")
+                .type(AssignmentType.HOMEWORK)
                 .description("Read Chapters 6 and 9.")
+                .deadline(LocalDate.of(2052, 1, 1))
                 .build();
         student = StudentDto.builder()
                 .firstname("John")
@@ -76,6 +77,14 @@ public class AssignmentIntegrationTests {
                 .phone("202-555-0198")
                 .birthdate("2005-12-01")
                 .build();
+        teacher = TeacherDto.builder()
+                .firstname("Darrell")
+                .lastname("Bowen")
+                .email("darrellbowen@email.com")
+                .address("3982 Turnpike Drive, Birmingham, AL 35203")
+                .phone("619-446-8496")
+                .birthdate("1984-02-01")
+                .build();
     }
 
     @Nested
@@ -84,6 +93,8 @@ public class AssignmentIntegrationTests {
         @Test
         @DisplayName("when Assignment posted with valid parameters, should return created Assignment")
         public void whenAssignmentPostedWithValidParameters_shouldReturnCreatedAssignment() {
+            long teacherId = postTeacher(teacher).getId();
+            assignmentInput1.setTeacherId(teacherId);
             ResponseEntity<AssignmentOutput> response = template.exchange(
                     linkToAssignments.getHref(),
                     HttpMethod.POST,
@@ -94,9 +105,12 @@ public class AssignmentIntegrationTests {
             assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
             assertThat(response.getBody()).isNotNull();
             AssignmentOutput expected = AssignmentOutput.builder()
+                    .id(response.getBody().getId())
                     .name(assignmentInput1.getName())
-                    .type(AssignmentType.valueOf(assignmentInput1.getType()))
+                    .type(assignmentInput1.getType())
                     .description(assignmentInput1.getDescription())
+                    .deadline(assignmentInput1.getDeadline())
+                    .createdBy(new SimpleData(teacherId, teacher.getName()))
                     .build();
 
             assertThat(response.getBody()).isEqualTo(expected);
@@ -106,11 +120,19 @@ public class AssignmentIntegrationTests {
         @DisplayName("when Assignment posted with invalid parameter, should return response 'Bad Request'")
         public void whenAssignmentPostedWithInvalidParameter_shouldReturnResponseBadRequest() {
             givenAssignmentWithEmptyName_postAssignment_shouldReturnWithBadRequest();
-            givenAssignmentWithWrongType_postAssignment_shouldReturnWithBadRequest();
+            givenAssignmentWithPastDeadlineDate_postAssignment_shouldReturnWithBadRequest();
+            givenAssignmentWithInvalidTeacherId_postAssignment_shouldReturnWithTeacherNotFound();
         }
 
         private void givenAssignmentWithEmptyName_postAssignment_shouldReturnWithBadRequest() {
-            AssignmentInput inputWithBlankName = AssignmentInput.builder().name(" ").type("TEST").build();
+            long teacherId = postTeacher(teacher).getId();
+
+            AssignmentInput inputWithBlankName = AssignmentInput.builder()
+                    .name(" ")
+                    .type(AssignmentType.TEST)
+                    .deadline(LocalDate.of(2051, 1, 1))
+                    .teacherId(teacherId)
+                    .build();
             ResponseEntity<?> response = template.exchange(
                     linkToAssignments.getHref(),
                     HttpMethod.POST,
@@ -121,8 +143,31 @@ public class AssignmentIntegrationTests {
             assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
         }
 
-        private void givenAssignmentWithWrongType_postAssignment_shouldReturnWithBadRequest() {
-            AssignmentInput inputWithWrongType = AssignmentInput.builder().name("Test").type("BAD_TYPE").build();
+        private void givenAssignmentWithPastDeadlineDate_postAssignment_shouldReturnWithBadRequest() {
+            long teacherId = postTeacher(teacher).getId();
+            AssignmentInput inputWithWrongType = AssignmentInput.builder()
+                    .name("Test")
+                    .type(AssignmentType.TEST)
+                    .deadline(LocalDate.of(1991, 1, 1))
+                    .teacherId(teacherId)
+                    .build();
+            ResponseEntity<?> response = template.exchange(
+                    linkToAssignments.getHref(),
+                    HttpMethod.POST,
+                    auth.createHttpEntityWithAuthorization(inputWithWrongType),
+                    String.class
+            );
+
+            assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+        }
+
+        private void givenAssignmentWithInvalidTeacherId_postAssignment_shouldReturnWithTeacherNotFound() {
+            AssignmentInput inputWithWrongType = AssignmentInput.builder()
+                    .name("Test")
+                    .type(AssignmentType.TEST)
+                    .deadline(LocalDate.of(2051, 1, 1))
+                    .teacherId(99L)
+                    .build();
             ResponseEntity<?> response = template.exchange(
                     linkToAssignments.getHref(),
                     HttpMethod.POST,
@@ -161,6 +206,9 @@ public class AssignmentIntegrationTests {
         @Order(2)
         @DisplayName("when Assignments posted, getAll should return list of Assignments")
         public void whenAssignmentsPosted_getAllShouldReturnListOfAssignments() {
+            long teacherId = postTeacher(teacher).getId();
+            assignmentInput1.setTeacherId(teacherId);
+            assignmentInput2.setTeacherId(teacherId);
             AssignmentOutput assignment1 = postAssignment(assignmentInput1);
             AssignmentOutput assignment2 = postAssignment(assignmentInput2);
 
@@ -182,9 +230,11 @@ public class AssignmentIntegrationTests {
         @Test
         @DisplayName("when Assignment exists with given ID, getById should return Assignment")
         public void whenAssignmentExistsWithGivenId_getByIdShouldReturnAssignment() {
-            long id = postAssignment(assignmentInput1).getId();
+            long teacherId = postTeacher(teacher).getId();
+            assignmentInput1.setTeacherId(teacherId);
+            long assignmentId = postAssignment(assignmentInput1).getId();
 
-            Link linkToAssignment = linkTo(methodOn(AssignmentController.class).getById(id)).withSelfRel();
+            Link linkToAssignment = linkTo(methodOn(AssignmentController.class).getById(assignmentId)).withSelfRel();
             ResponseEntity<AssignmentOutput> assignmentGetResponse = template.exchange(
                     linkToAssignment.getHref(),
                     HttpMethod.GET,
@@ -195,9 +245,12 @@ public class AssignmentIntegrationTests {
             assertThat(assignmentGetResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
             assertThat(assignmentGetResponse.getBody()).isNotNull();
             AssignmentOutput expected = AssignmentOutput.builder()
+                    .id(assignmentId)
                     .name(assignmentInput1.getName())
-                    .type(AssignmentType.valueOf(assignmentInput1.getType()))
+                    .type(assignmentInput1.getType())
                     .description(assignmentInput1.getDescription())
+                    .deadline(assignmentInput1.getDeadline())
+                    .createdBy(new SimpleData(teacherId, teacher.getName()))
                     .build();
             assertThat(assignmentGetResponse.getBody()).isEqualTo(expected);
         }
@@ -224,11 +277,18 @@ public class AssignmentIntegrationTests {
         @Test
         @DisplayName("when Assignment exists with given ID, update should return updated Assignment")
         public void whenAssignmentExistsWithGivenId_updateShouldReturnUpdatedAssignment() {
-            long id = postAssignment(assignmentInput1).getId();
+            long teacherId = postTeacher(teacher).getId();
+            assignmentInput1.setTeacherId(teacherId);
+            long assignmentId = postAssignment(assignmentInput1).getId();
 
             // update assignment
-            Link linkToAssignment = linkTo(methodOn(AssignmentController.class).getById(id)).withSelfRel();
-            AssignmentInput update = AssignmentInput.builder().name("Homework III").type("HOMEWORK").build();
+            Link linkToAssignment = linkTo(methodOn(AssignmentController.class).getById(assignmentId)).withSelfRel();
+            AssignmentInput update = AssignmentInput.builder()
+                    .name("Homework III")
+                    .type(AssignmentType.HOMEWORK)
+                    .deadline(LocalDate.of(2051, 1, 1))
+                    .teacherId(teacherId)
+                    .build();
             ResponseEntity<AssignmentOutput> response = template.exchange(
                     linkToAssignment.getHref(),
                     HttpMethod.PUT,
@@ -238,13 +298,15 @@ public class AssignmentIntegrationTests {
 
             assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
             assertThat(response.getBody()).isNotNull();
-            assertThat(response.getBody().getId()).isEqualTo(id);
+            assertThat(response.getBody().getId()).isEqualTo(assignmentId);
             assertThat(response.getBody().getName()).isEqualTo("Homework III");
         }
 
         @Test
         @DisplayName("when Assignment does not exist with given ID, update should return response 'Not Found'")
         public void whenAssignmentDoesNotExistWithGivenId_updateShouldReturnResponseNotFound() {
+            long teacherId = postTeacher(teacher).getId();
+            assignmentInput1.setTeacherId(teacherId);
             Link linkToAssignment = linkTo(methodOn(AssignmentController.class).getById(99L)).withSelfRel();
             ResponseEntity<?> response = template.exchange(
                     linkToAssignment.getHref(),
@@ -259,14 +321,25 @@ public class AssignmentIntegrationTests {
         @Test
         @DisplayName("when Assignment updated with invalid parameter, update should return response 'Bad Request'")
         public void whenAssignmentUpdatedWithInvalidParameter_shouldReturnResponseBadRequest() {
+            long teacherId = postTeacher(teacher).getId();
+            assignmentInput1.setTeacherId(teacherId);
             long assignmentId = postAssignment(assignmentInput1).getId();
 
             givenAssignmentWithEmptyName_updateAssignment_shouldReturnWithBadRequest(assignmentId);
-            givenAssignmentWithWrongType_updateAssignment_shouldReturnWithBadRequest(assignmentId);
+            givenAssignmentWithPastDeadlineDate_updateAssignment_shouldReturnWithBadRequest(assignmentId);
+            givenAssignmentWithInvalidTeacherId_updateAssignment_shouldReturnWithTeacherNotFound(assignmentId);
         }
 
         private void givenAssignmentWithEmptyName_updateAssignment_shouldReturnWithBadRequest(Long id) {
-            AssignmentInput updateWithBlankName = AssignmentInput.builder().name(" ").type("TEST").build();
+            long teacherId = postTeacher(teacher).getId();
+            assignmentInput1.setTeacherId(teacherId);
+            AssignmentInput updateWithBlankName = AssignmentInput.builder()
+                    .name(" ")
+                    .type(AssignmentType.TEST)
+                    .deadline(LocalDate.of(2051, 1, 1))
+                    .teacherId(teacherId)
+                    .build();
+
             Link linkToUpdate =
                     linkTo(methodOn(AssignmentController.class).update(updateWithBlankName, id)).withSelfRel();
             ResponseEntity<?> response = template.exchange(
@@ -279,8 +352,34 @@ public class AssignmentIntegrationTests {
             assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
         }
 
-        private void givenAssignmentWithWrongType_updateAssignment_shouldReturnWithBadRequest(Long id) {
-            AssignmentInput updateWithWrongType = AssignmentInput.builder().name("Test").type("BAD_TYPE").build();
+        private void givenAssignmentWithPastDeadlineDate_updateAssignment_shouldReturnWithBadRequest(Long id) {
+            long teacherId = postTeacher(teacher).getId();
+            assignmentInput1.setTeacherId(teacherId);
+            AssignmentInput updateWithWrongType = AssignmentInput.builder()
+                    .name("Test")
+                    .type(AssignmentType.TEST)
+                    .deadline(LocalDate.of(1991, 1, 1))
+                    .teacherId(teacherId)
+                    .build();
+            Link linkToUpdate =
+                    linkTo(methodOn(AssignmentController.class).update(updateWithWrongType, id)).withSelfRel();
+            ResponseEntity<?> response = template.exchange(
+                    linkToUpdate.getHref(),
+                    HttpMethod.PUT,
+                    auth.createHttpEntityWithAuthorization(updateWithWrongType),
+                    String.class
+            );
+
+            assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+        }
+
+        private void givenAssignmentWithInvalidTeacherId_updateAssignment_shouldReturnWithTeacherNotFound(Long id) {
+            AssignmentInput updateWithWrongType = AssignmentInput.builder()
+                    .name("Test")
+                    .type(AssignmentType.TEST)
+                    .deadline(LocalDate.of(2051, 1, 1))
+                    .teacherId(99L)
+                    .build();
             Link linkToUpdate =
                     linkTo(methodOn(AssignmentController.class).update(updateWithWrongType, id)).withSelfRel();
             ResponseEntity<?> response = template.exchange(
@@ -301,6 +400,8 @@ public class AssignmentIntegrationTests {
         @Test
         @DisplayName("when Assignment exists with given ID, delete should remove Assignment")
         public void whenAssignmentExistsWithGivenId_deleteShouldRemoveAssignment() {
+            long teacherId = postTeacher(teacher).getId();
+            assignmentInput1.setTeacherId(teacherId);
             long id = postAssignment(assignmentInput1).getId();
 
             // delete assignment
@@ -339,6 +440,8 @@ public class AssignmentIntegrationTests {
         @Test
         @DisplayName("when Assignment is used by a GradebookEntry, delete should return response 'Method Not Allowed'")
         public void whenAssignmentIsUsedByAnEntry_deleteShouldReturnResponseMethodNotAllowed() {
+            long teacherId = postTeacher(teacher).getId();
+            assignmentInput1.setTeacherId(teacherId);
             AssignmentOutput assignment = postAssignment(assignmentInput1);
             postEntryRelatedToAssignment(assignment);
 
@@ -355,18 +458,33 @@ public class AssignmentIntegrationTests {
         }
     }
 
+    private TeacherDto postTeacher(TeacherDto teacher) {
+        Link linkToTeachers = linkTo(TeacherController.class).withSelfRel();
+        ResponseEntity<TeacherDto> teacherPostResponse = template.exchange(
+                linkToTeachers.getHref(),
+                HttpMethod.POST,
+                auth.createHttpEntityWithAuthorization(teacher),
+                TeacherDto.class
+        );
+
+        assertThat(teacherPostResponse.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+        assertThat(teacherPostResponse.getBody()).isNotNull();
+
+        return teacherPostResponse.getBody();
+    }
+
     private AssignmentOutput postAssignment(AssignmentInput assignment) {
-        ResponseEntity<AssignmentOutput> assignment1PostResponse = template.exchange(
+        ResponseEntity<AssignmentOutput> assignmentPostResponse = template.exchange(
                 linkToAssignments.getHref(),
                 HttpMethod.POST,
                 auth.createHttpEntityWithAuthorization(assignment),
                 AssignmentOutput.class
         );
 
-        assertThat(assignment1PostResponse.getStatusCode()).isEqualTo(HttpStatus.CREATED);
-        assertThat(assignment1PostResponse.getBody()).isNotNull();
+        assertThat(assignmentPostResponse.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+        assertThat(assignmentPostResponse.getBody()).isNotNull();
 
-        return assignment1PostResponse.getBody();
+        return assignmentPostResponse.getBody();
     }
 
     private void postEntryRelatedToAssignment(AssignmentOutput assignment) {

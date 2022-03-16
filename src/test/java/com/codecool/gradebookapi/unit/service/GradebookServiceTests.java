@@ -1,10 +1,8 @@
 package com.codecool.gradebookapi.unit.service;
 
 import com.codecool.gradebookapi.dto.*;
-import com.codecool.gradebookapi.service.AssignmentService;
-import com.codecool.gradebookapi.service.CourseService;
-import com.codecool.gradebookapi.service.GradebookService;
-import com.codecool.gradebookapi.service.StudentService;
+import com.codecool.gradebookapi.model.AssignmentType;
+import com.codecool.gradebookapi.service.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -12,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
 import javax.transaction.Transactional;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
@@ -26,6 +25,8 @@ public class GradebookServiceTests {
     private GradebookService gradebookService;
     @Autowired
     private StudentService studentService;
+    @Autowired
+    private TeacherService teacherService;
     @Autowired
     private CourseService courseService;
     @Autowired
@@ -45,6 +46,8 @@ public class GradebookServiceTests {
                 .phone("202-555-0198")
                 .birthdate("1990-12-01")
                 .build();
+        long student1Id = studentService.save(student1).getId();
+
         StudentDto student2 = StudentDto.builder()
                 .firstname("Jane")
                 .lastname("Doe")
@@ -54,32 +57,45 @@ public class GradebookServiceTests {
                 .phone("202-555-0198")
                 .birthdate("1990-04-13")
                 .build();
-        CourseInput class1 = CourseInput.builder()
+        long student2Id = studentService.save(student2).getId();
+
+        TeacherDto teacher = TeacherDto.builder()
+                .firstname("Darrell")
+                .lastname("Bowen")
+                .email("darrellbowen@email.com")
+                .address("3982 Turnpike Drive, Birmingham, AL 35203")
+                .phone("619-446-8496")
+                .birthdate("1984-02-01")
+                .build();
+        long teacherId = teacherService.save(teacher).getId();
+
+        CourseInput course1 = CourseInput.builder()
                 .name("Algebra")
                 .build();
-        CourseInput class2 = CourseInput.builder()
+        long course1Id = courseService.save(course1).getId();
+
+        CourseInput course2 = CourseInput.builder()
                 .name("Biology")
                 .build();
+        long course2Id = courseService.save(course2).getId();
+
         AssignmentInput assignment = AssignmentInput.builder()
                 .name("Homework 1")
-                .type("HOMEWORK")
+                .type(AssignmentType.HOMEWORK)
+                .deadline(LocalDate.of(2051, 1, 1))
+                .teacherId(teacherId)
                 .build();
-
-        long student1Id = studentService.save(student1).getId();
-        long student2Id = studentService.save(student2).getId();
-        long class1Id = courseService.save(class1).getId();
-        long class2Id = courseService.save(class2).getId();
         long assignmentId = assignmentService.save(assignment).getId();
 
         entry1 = GradebookInput.builder()
                 .studentId(student1Id)
-                .courseId(class1Id)
+                .courseId(course1Id)
                 .assignmentId(assignmentId)
                 .grade(4)
                 .build();
         entry2 = GradebookInput.builder()
                 .studentId(student2Id)
-                .courseId(class2Id)
+                .courseId(course2Id)
                 .assignmentId(assignmentId)
                 .grade(5)
                 .build();

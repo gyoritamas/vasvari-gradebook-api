@@ -5,6 +5,7 @@ import com.codecool.gradebookapi.jwt.JwtAuthenticationController;
 import com.codecool.gradebookapi.jwt.JwtRequest;
 import com.codecool.gradebookapi.jwt.JwtResponse;
 import com.codecool.gradebookapi.jwt.JwtTokenUtil;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -29,6 +30,7 @@ public class JwtAuthenticationIntegrationTests {
     private JwtTokenUtil jwtTokenUtil;
 
     @Test
+    @DisplayName("given correct username and password, authentication token is created")
     public void givenCorrectUsernameAndPassword_authenticationTokenIsCreated() {
         JwtRequest request = new JwtRequest("admin", "admin");
         Link linkToAuthenticate =
@@ -48,6 +50,7 @@ public class JwtAuthenticationIntegrationTests {
     }
 
     @Test
+    @DisplayName("given wrong password, createAuthenticationToken returns with HttpResponse 'Bad Request'")
     public void givenWrongPassword_createAuthenticationToken_returnsWithHttpResponseBadRequest() {
         JwtRequest request = new JwtRequest("admin", "wrong_password");
         Link linkToAuthenticate =
@@ -62,6 +65,7 @@ public class JwtAuthenticationIntegrationTests {
     }
 
     @Test
+    @DisplayName("given wrong username, createAuthenticationToken returns with HttpResponse 'Bad Request'")
     public void givenWrongUsername_createAuthenticationToken_returnsWithHttpResponseBadRequest() {
         JwtRequest request = new JwtRequest("wrong_username", "admin");
         Link linkToAuthenticate =

@@ -1,12 +1,9 @@
 package com.codecool.gradebookapi.integration;
 
-import com.codecool.gradebookapi.controller.AssignmentController;
-import com.codecool.gradebookapi.controller.CourseController;
-import com.codecool.gradebookapi.controller.GradebookController;
-import com.codecool.gradebookapi.controller.StudentController;
+import com.codecool.gradebookapi.controller.*;
 import com.codecool.gradebookapi.dto.*;
 import com.codecool.gradebookapi.integration.util.AuthorizationManager;
-import com.codecool.gradebookapi.integration.testmodel.AssignmentOutput;
+import com.codecool.gradebookapi.model.AssignmentType;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ParameterContext;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -31,6 +28,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.test.annotation.DirtiesContext;
 
 import java.net.URI;
+import java.time.LocalDate;
 
 import static com.codecool.gradebookapi.security.ApplicationUserRole.ADMIN;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -422,12 +420,37 @@ public class StudentIntegrationTests {
     }
 
     private void postEntryRelatedToStudent(StudentDto student) {
+        // post teacher
+        TeacherDto teacher = TeacherDto.builder()
+                .firstname("Darrell")
+                .lastname("Bowen")
+                .email("darrellbowen@email.com")
+                .address("3982 Turnpike Drive, Birmingham, AL 35203")
+                .phone("619-446-8496")
+                .birthdate("1984-02-01")
+                .build();
+        Link linkToTeachers = linkTo(TeacherController.class).withSelfRel();
+        ResponseEntity<TeacherDto> teacherPostResponse = template.exchange(
+                linkToTeachers.getHref(),
+                HttpMethod.POST,
+                auth.createHttpEntityWithAuthorization(teacher),
+                TeacherDto.class
+        );
+        assertThat(teacherPostResponse.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+        assertThat(teacherPostResponse.getBody()).isNotNull();
+        TeacherDto teacherPosted = teacherPostResponse.getBody();
+
         // post course
         CourseInput course = CourseInput.builder().name("Algebra").build();
         CourseOutput coursePosted = postCourse(course);
 
         // post assignment
-        AssignmentInput assignment = AssignmentInput.builder().name("Homework 1").type("HOMEWORK").build();
+        AssignmentInput assignment = AssignmentInput.builder()
+                .name("Homework 1")
+                .type(AssignmentType.HOMEWORK)
+                .deadline(LocalDate.of(2051, 1, 1))
+                .teacherId(teacherPosted.getId())
+                .build();
         Link linkToAssignments = linkTo(AssignmentController.class).withSelfRel();
         ResponseEntity<AssignmentOutput> assignmentPostResponse = template.exchange(
                 linkToAssignments.getHref(),

@@ -28,21 +28,21 @@ public class TeacherServiceTests {
     @BeforeEach
     public void setUp() {
         teacher1 = TeacherDto.builder()
-                .firstname("John")
-                .lastname("Doe")
-                .email("johndoe@email.com")
-                .address("666 Armstrong St., Mesa, AZ 85203")
-                .phone("202-555-0198")
-                .birthdate("1960-12-01")
+                .firstname("Darrell")
+                .lastname("Bowen")
+                .email("darrellbowen@email.com")
+                .address("3982 Turnpike Drive, Birmingham, AL 35203")
+                .phone("619-446-8496")
+                .birthdate("1984-02-01")
                 .build();
 
         teacher2 = TeacherDto.builder()
-                .firstname("Jane")
-                .lastname("Doe")
-                .email("janedoe@email.com")
-                .address("9351 Morris St., Reisterstown, MD 21136")
-                .phone("202-555-0198")
-                .birthdate("1962-04-13")
+                .firstname("Lilian")
+                .lastname("Stafford")
+                .email("lilianstafford@email.com")
+                .address("4498 Sugar Camp Road, Vernon Center, MN 56090")
+                .phone("507-549-1665")
+                .birthdate("1985-04-13")
                 .build();
     }
 
@@ -51,11 +51,11 @@ public class TeacherServiceTests {
     public void saveShouldReturnSavedTeacher() {
         TeacherDto teacherSaved = service.save(teacher1);
 
-        assertThat(teacherSaved.getName()).isEqualTo("John Doe");
-        assertThat(teacherSaved.getEmail()).isEqualTo("johndoe@email.com");
-        assertThat(teacherSaved.getAddress()).isEqualTo("666 Armstrong St., Mesa, AZ 85203");
-        assertThat(teacherSaved.getPhone()).isEqualTo("202-555-0198");
-        assertThat(teacherSaved.getBirthdate()).isEqualTo("1960-12-01");
+        assertThat(teacherSaved.getName()).isEqualTo(teacher1.getName());
+        assertThat(teacherSaved.getEmail()).isEqualTo(teacher1.getEmail());
+        assertThat(teacherSaved.getAddress()).isEqualTo(teacher1.getAddress());
+        assertThat(teacherSaved.getPhone()).isEqualTo(teacher1.getPhone());
+        assertThat(teacherSaved.getBirthdate()).isEqualTo(teacher1.getBirthdate());
     }
 
     @Test
@@ -105,14 +105,14 @@ public class TeacherServiceTests {
     @Test
     @DisplayName("when Teacher with given ID already exists, save should update existing Teacher")
     public void whenTeacherWithGivenIdAlreadyExists_saveShouldUpdateExistingTeacher() {
-        TeacherDto teacher = service.save(teacher1);
+        TeacherDto teacher = service.save(teacher2);
 
-        teacher.setFirstname("Johnathan");
+        teacher.setLastname("Bowen");
         service.save(teacher);
         Optional<TeacherDto> updatedTeacher = service.findById(teacher.getId());
 
         assertThat(updatedTeacher).isPresent();
-        assertThat(updatedTeacher.get().getFirstname()).isEqualTo("Johnathan");
+        assertThat(updatedTeacher.get().getLastname()).isEqualTo("Bowen");
     }
 }
 
