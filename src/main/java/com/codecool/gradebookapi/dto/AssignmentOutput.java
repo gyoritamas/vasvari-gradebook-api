@@ -1,17 +1,21 @@
 package com.codecool.gradebookapi.dto;
 
+import com.codecool.gradebookapi.dto.dataTypes.SimpleData;
 import com.codecool.gradebookapi.model.AssignmentType;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateDeserializer;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.*;
 import org.springframework.hateoas.server.core.Relation;
 
-import java.time.ZonedDateTime;
+import java.time.LocalDate;
 
 @NoArgsConstructor
 @AllArgsConstructor
 @Getter
 @Setter
 @Builder
+@EqualsAndHashCode
 @Relation(collectionRelation = "assignments", itemRelation = "assignment")
 public class AssignmentOutput {
 
@@ -26,6 +30,11 @@ public class AssignmentOutput {
     @Schema(example = "Read Chapters 6 and 9.")
     private String description;
 
-    private ZonedDateTime createdAt;
+    @Schema(example = "2051-01-01")
+    @JsonDeserialize(using = LocalDateDeserializer.class)
+    private LocalDate deadline;
+
+    @Schema(example = "{\"id\":\"1\", \"name\":\"Darrell Bowen\"}")
+    private SimpleData createdBy;
 
 }

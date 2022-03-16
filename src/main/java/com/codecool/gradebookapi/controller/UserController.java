@@ -1,6 +1,8 @@
 package com.codecool.gradebookapi.controller;
 
-import com.codecool.gradebookapi.dto.*;
+import com.codecool.gradebookapi.dto.StudentDto;
+import com.codecool.gradebookapi.dto.TeacherDto;
+import com.codecool.gradebookapi.dto.UserDto;
 import com.codecool.gradebookapi.dto.assembler.InitialCredentialsModelAssembler;
 import com.codecool.gradebookapi.dto.assembler.UserModelAssembler;
 import com.codecool.gradebookapi.dto.dataTypes.InitialCredentials;
@@ -18,7 +20,6 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.CollectionModel;
 import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.IanaLinkRelations;

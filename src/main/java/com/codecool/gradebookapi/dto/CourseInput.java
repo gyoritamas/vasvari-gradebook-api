@@ -16,5 +16,4 @@ public class CourseInput {
     @NotBlank(message = "Name field cannot be empty")
     @Schema(example = "Algebra")
     private String name;
-
 }

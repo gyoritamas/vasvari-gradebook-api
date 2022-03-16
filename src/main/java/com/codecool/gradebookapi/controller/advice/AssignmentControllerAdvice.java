@@ -6,8 +6,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.zalando.problem.Problem;
 import org.zalando.problem.Status;
 
@@ -50,4 +52,20 @@ public class AssignmentControllerAdvice {
                 .body(problem);
     }
 
+
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<Object> handleHttpMessageNotReadableException(HttpMessageNotReadableException e) {
+        Problem problem = Problem.builder()
+                .withType(URI.create("/assignments/json-parse-error"))
+                .withTitle("JSON parse error")
+                .withStatus(Status.BAD_REQUEST)
+                .withDetail(e.getMessage())
+                .build();
+
+        log.warn(e.getMessage());
+
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .contentType(MediaType.APPLICATION_PROBLEM_JSON)
+                .body(problem);
+    }
 }

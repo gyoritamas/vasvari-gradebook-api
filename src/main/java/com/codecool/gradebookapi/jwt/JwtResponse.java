@@ -8,6 +8,5 @@ import java.io.Serializable;
 @NoArgsConstructor
 @AllArgsConstructor
 public class JwtResponse implements Serializable {
-
     private String jwtToken;
 }

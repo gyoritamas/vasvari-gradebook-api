@@ -6,10 +6,8 @@ import com.codecool.gradebookapi.dto.mapper.AssignmentMapper;
 import com.codecool.gradebookapi.model.Assignment;
 import com.codecool.gradebookapi.repository.AssignmentRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 
@@ -25,25 +23,22 @@ public class AssignmentService {
     }
 
     public AssignmentOutput save(AssignmentInput assignmentInput) {
-        Assignment assignmentToSave = mapper.map(assignmentInput);
-        assignmentToSave.setCreatedAt(Instant.now());
-        Assignment assignmentSaved = repository.save(assignmentToSave);
+        Assignment assignment = mapper.map(assignmentInput);
+        Assignment assignmentSaved = repository.save(assignment);
 
         return mapper.map(assignmentSaved);
     }
 
     public AssignmentOutput update(Long id, AssignmentInput assignmentInput) {
-        Assignment assignmentToUpdate = repository.getById(id);
         Assignment update = mapper.map(assignmentInput);
         update.setId(id);
-        update.setCreatedAt(assignmentToUpdate.getCreatedAt());
         Assignment assignmentUpdated = repository.save(update);
 
         return mapper.map(assignmentUpdated);
     }
 
     public Optional<AssignmentOutput> findById(Long id) {
-        return repository.findById(id).map(assignment -> mapper.map(assignment));
+        return repository.findById(id).map(mapper::map);
     }
 
     public void deleteById(Long id) {

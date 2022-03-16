@@ -7,6 +7,7 @@ import com.codecool.gradebookapi.model.GradebookEntry;
 import com.codecool.gradebookapi.repository.AssignmentRepository;
 import com.codecool.gradebookapi.repository.CourseRepository;
 import com.codecool.gradebookapi.repository.StudentRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -14,15 +15,11 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Component
+@RequiredArgsConstructor
 public class GradebookEntryMapper {
-    @Autowired
-    private StudentRepository studentRepository;
-
-    @Autowired
-    private CourseRepository courseRepository;
-
-    @Autowired
-    private AssignmentRepository assignmentRepository;
+    private final StudentRepository studentRepository;
+    private final CourseRepository courseRepository;
+    private final AssignmentRepository assignmentRepository;
 
     public GradebookOutput map(GradebookEntry gradebookEntry) {
         return GradebookOutput.builder()
