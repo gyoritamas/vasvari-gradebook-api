@@ -10,20 +10,17 @@ import org.springframework.hateoas.server.core.Relation;
 @Getter
 @Setter
 @Builder
-@Relation(collectionRelation = "entries", itemRelation = "entry")
 @EqualsAndHashCode
+@Relation(collectionRelation = "entries", itemRelation = "entry")
 public class GradebookOutput {
 
     @Schema(example = "1")
     private Long id;
 
-    @Schema(example = "{\"id\":\"1\", \"name\":\"John Doe\"}")
     private SimpleData student;
 
-    @Schema(example = "{\"id\":\"1\", \"name\":\"Algebra\"}")
     private SimpleData course;
 
-    @Schema(example = "{\"id\":\"1\", \"name\":\"Pop Quiz\"}")
     private SimpleData assignment;
 
     private Integer grade;

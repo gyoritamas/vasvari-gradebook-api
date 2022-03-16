@@ -34,7 +34,6 @@ public class AssignmentOutput {
     @JsonDeserialize(using = LocalDateDeserializer.class)
     private LocalDate deadline;
 
-    @Schema(example = "{\"id\":\"1\", \"name\":\"Darrell Bowen\"}")
     private SimpleData createdBy;
 
 }

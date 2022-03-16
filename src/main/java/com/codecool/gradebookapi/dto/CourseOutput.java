@@ -21,10 +21,8 @@ public class CourseOutput {
     @Schema(example = "Algebra")
     private String name;
 
-    @Schema(example = "{\"id\":\"1\", \"name\":\"Darrell Bowen\"}")
     private SimpleData teacher;
 
-    @Schema(example = "?")
     private List<SimpleData> students;
 
 }
