@@ -38,6 +38,9 @@ public class CourseService {
     public CourseOutput save(CourseInput courseInput) {
         Course course = Course.builder()
                 .name(courseInput.getName())
+                .teacher(
+                        teacherRepository.getById(courseInput.getTeacherId())
+                )
                 .students(new HashSet<>())
                 .build();
 
@@ -50,6 +53,9 @@ public class CourseService {
         Course course = Course.builder()
                 .id(id)
                 .name(courseInput.getName())
+                .teacher(
+                        teacherRepository.getById(courseInput.getTeacherId())
+                )
                 .students(courseRepository.getById(id).getStudents())
                 .build();
 
