@@ -4,6 +4,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.*;
 
 import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
 
 @NoArgsConstructor
 @AllArgsConstructor
@@ -16,4 +17,8 @@ public class CourseInput {
     @NotBlank(message = "Name field cannot be empty")
     @Schema(example = "Algebra")
     private String name;
+
+    @NotNull(message = "Teacher ID cannot be empty")
+    @Schema(example = "1")
+    private Long teacherId;
 }
