@@ -48,6 +48,7 @@ public class AssignmentIntegrationTests {
     private AssignmentInput assignmentInput1;
     private AssignmentInput assignmentInput2;
     private StudentDto student;
+    private TeacherDto teacher;
     private CourseInput courseInput;
 
     @BeforeEach
@@ -77,6 +78,14 @@ public class AssignmentIntegrationTests {
                 .phone("202-555-0198")
                 .birthdate("2005-12-01")
                 .build();
+        teacher = TeacherDto.builder()
+                .firstname("Darrell")
+                .lastname("Bowen")
+                .email("darrellbowen@email.com")
+                .address("3982 Turnpike Drive, Birmingham, AL 35203")
+                .phone("619-446-8496")
+                .birthdate("1984-02-01")
+                .build();
         courseInput = CourseInput.builder()
                 .name("Algebra")
                 .build();
@@ -88,6 +97,8 @@ public class AssignmentIntegrationTests {
         @Test
         @DisplayName("when Assignment posted with valid parameters, should return created Assignment")
         public void whenAssignmentPostedWithValidParameters_shouldReturnCreatedAssignment() {
+            long teacherId = postTeacher(teacher).getId();
+            courseInput.setTeacherId(teacherId);
             long courseId = postCourse(courseInput).getId();
             assignmentInput1.setCourseId(courseId);
             ResponseEntity<AssignmentOutput> response = template.exchange(
@@ -120,8 +131,9 @@ public class AssignmentIntegrationTests {
         }
 
         private void givenAssignmentWithEmptyName_postAssignment_shouldReturnWithBadRequest() {
-            long courseId
-                    = postCourse(courseInput).getId();
+            long teacherId = postTeacher(teacher).getId();
+            courseInput.setTeacherId(teacherId);
+            long courseId= postCourse(courseInput).getId();
 
             AssignmentInput inputWithBlankName = AssignmentInput.builder()
                     .name(" ")
@@ -140,6 +152,8 @@ public class AssignmentIntegrationTests {
         }
 
         private void givenAssignmentWithPastDeadlineDate_postAssignment_shouldReturnWithBadRequest() {
+            long teacherId = postTeacher(teacher).getId();
+            courseInput.setTeacherId(teacherId);
             long courseId = postCourse(courseInput).getId();
             AssignmentInput inputWithWrongType = AssignmentInput.builder()
                     .name("Test")
@@ -202,6 +216,8 @@ public class AssignmentIntegrationTests {
         @Order(2)
         @DisplayName("when Assignments posted, getAll should return list of Assignments")
         public void whenAssignmentsPosted_getAllShouldReturnListOfAssignments() {
+            long teacherId = postTeacher(teacher).getId();
+            courseInput.setTeacherId(teacherId);
             long courseId = postCourse(courseInput).getId();
             assignmentInput1.setCourseId(courseId);
             assignmentInput2.setCourseId(courseId);
@@ -226,6 +242,8 @@ public class AssignmentIntegrationTests {
         @Test
         @DisplayName("when Assignment exists with given ID, getById should return Assignment")
         public void whenAssignmentExistsWithGivenId_getByIdShouldReturnAssignment() {
+            long teacherId = postTeacher(teacher).getId();
+            courseInput.setTeacherId(teacherId);
             long courseId = postCourse(courseInput).getId();
             assignmentInput1.setCourseId(courseId);
             long assignmentId = postAssignment(assignmentInput1).getId();
@@ -273,6 +291,8 @@ public class AssignmentIntegrationTests {
         @Test
         @DisplayName("when Assignment exists with given ID, update should return updated Assignment")
         public void whenAssignmentExistsWithGivenId_updateShouldReturnUpdatedAssignment() {
+            long teacherId = postTeacher(teacher).getId();
+            courseInput.setTeacherId(teacherId);
             long courseId = postCourse(courseInput).getId();
             assignmentInput1.setCourseId(courseId);
             long assignmentId = postAssignment(assignmentInput1).getId();
@@ -301,6 +321,8 @@ public class AssignmentIntegrationTests {
         @Test
         @DisplayName("when Assignment does not exist with given ID, update should return response 'Not Found'")
         public void whenAssignmentDoesNotExistWithGivenId_updateShouldReturnResponseNotFound() {
+            long teacherId = postTeacher(teacher).getId();
+            courseInput.setTeacherId(teacherId);
             long courseId = postCourse(courseInput).getId();
             assignmentInput1.setCourseId(courseId);
             Link linkToAssignment = linkTo(methodOn(AssignmentController.class).getById(99L)).withSelfRel();
@@ -317,6 +339,8 @@ public class AssignmentIntegrationTests {
         @Test
         @DisplayName("when Assignment updated with invalid parameter, update should return response 'Bad Request'")
         public void whenAssignmentUpdatedWithInvalidParameter_shouldReturnResponseBadRequest() {
+            long teacherId = postTeacher(teacher).getId();
+            courseInput.setTeacherId(teacherId);
             long courseId = postCourse(courseInput).getId();
             assignmentInput1.setCourseId(courseId
             );
@@ -328,6 +352,8 @@ public class AssignmentIntegrationTests {
         }
 
         private void givenAssignmentWithEmptyName_updateAssignment_shouldReturnWithBadRequest(Long id) {
+            long teacherId = postTeacher(teacher).getId();
+            courseInput.setTeacherId(teacherId);
             long courseId = postCourse(courseInput).getId();
             assignmentInput1.setCourseId(courseId);
             AssignmentInput updateWithBlankName = AssignmentInput.builder()
@@ -350,6 +376,8 @@ public class AssignmentIntegrationTests {
         }
 
         private void givenAssignmentWithPastDeadlineDate_updateAssignment_shouldReturnWithBadRequest(Long id) {
+            long teacherId = postTeacher(teacher).getId();
+            courseInput.setTeacherId(teacherId);
             long courseId = postCourse(courseInput).getId();
             assignmentInput1.setCourseId(courseId);
             AssignmentInput updateWithWrongType = AssignmentInput.builder()
@@ -397,6 +425,8 @@ public class AssignmentIntegrationTests {
         @Test
         @DisplayName("when Assignment exists with given ID, delete should remove Assignment")
         public void whenAssignmentExistsWithGivenId_deleteShouldRemoveAssignment() {
+            long teacherId = postTeacher(teacher).getId();
+            courseInput.setTeacherId(teacherId);
             long courseId = postCourse(courseInput).getId();
             assignmentInput1.setCourseId(courseId);
             long id = postAssignment(assignmentInput1).getId();
@@ -437,6 +467,8 @@ public class AssignmentIntegrationTests {
         @Test
         @DisplayName("when Assignment is used by a GradebookEntry, delete should return response 'Method Not Allowed'")
         public void whenAssignmentIsUsedByAnEntry_deleteShouldReturnResponseMethodNotAllowed() {
+            long teacherId = postTeacher(teacher).getId();
+            courseInput.setTeacherId(teacherId);
             long courseId = postCourse(courseInput).getId();
             assignmentInput1.setCourseId(courseId);
             AssignmentOutput assignment = postAssignment(assignmentInput1);
@@ -453,6 +485,21 @@ public class AssignmentIntegrationTests {
 
             assertThat(response.getStatusCode()).isEqualTo(HttpStatus.METHOD_NOT_ALLOWED);
         }
+    }
+
+    private TeacherDto postTeacher(TeacherDto teacher) {
+        Link linkToTeachers = linkTo(TeacherController.class).withSelfRel();
+        ResponseEntity<TeacherDto> postTeacherResponse = template.exchange(
+                linkToTeachers.getHref(),
+                HttpMethod.POST,
+                auth.createHttpEntityWithAuthorization(teacher),
+                TeacherDto.class
+        );
+
+        assertThat(postTeacherResponse.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+        assertThat(postTeacherResponse.getBody()).isNotNull();
+
+        return postTeacherResponse.getBody();
     }
 
     private CourseOutput postCourse(CourseInput course) {

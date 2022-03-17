@@ -55,6 +55,8 @@ public class StudentIntegrationTests {
     private StudentDto student1;
     private StudentDto student2;
 
+    private TeacherDto teacher;
+
     @BeforeEach
     public void setUp() {
         this.baseUrl = "http://localhost:" + port + "/api/students";
@@ -79,6 +81,14 @@ public class StudentIntegrationTests {
                 .address("9351 Morris St., Reisterstown, MD 21136")
                 .phone("202-555-9810")
                 .birthdate("1990-04-13")
+                .build();
+        teacher = TeacherDto.builder()
+                .firstname("Darrell")
+                .lastname("Bowen")
+                .email("darrellbowen@email.com")
+                .address("3982 Turnpike Drive, Birmingham, AL 35203")
+                .phone("619-446-8496")
+                .birthdate("1984-02-01")
                 .build();
     }
 
@@ -201,9 +211,10 @@ public class StudentIntegrationTests {
         public void whenStudentExistsWithGivenId_getClassesOfStudentShouldReturnListOfClasses() {
             student1 = postStudent(student1);
             student2 = postStudent(student2);
+            long teacherId = postTeacher(teacher).getId();
 
-            CourseInput courseInput1 = CourseInput.builder().name("Algebra").build();
-            CourseInput courseInput2 = CourseInput.builder().name("Biology").build();
+            CourseInput courseInput1 = CourseInput.builder().name("Algebra").teacherId(teacherId).build();
+            CourseInput courseInput2 = CourseInput.builder().name("Biology").teacherId(teacherId).build();
             CourseOutput courseOutput1 = postCourse(courseInput1);
             CourseOutput courseOutput2 = postCourse(courseInput2);
 
@@ -390,6 +401,21 @@ public class StudentIntegrationTests {
         }
     }
 
+    private TeacherDto postTeacher(TeacherDto teacher) {
+        Link linkToTeachers = linkTo(TeacherController.class).withSelfRel();
+        ResponseEntity<TeacherDto> postResponse = template.exchange(
+                linkToTeachers.getHref(),
+                HttpMethod.POST,
+                auth.createHttpEntityWithAuthorization(teacher),
+                TeacherDto.class
+        );
+
+        assertThat(postResponse.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+        assertThat(postResponse.getBody()).isNotNull();
+
+        return postResponse.getBody();
+    }
+
     private StudentDto postStudent(StudentDto student) {
         ResponseEntity<StudentDto> postResponse = template.exchange(
                 baseLink.getHref(),
@@ -420,8 +446,11 @@ public class StudentIntegrationTests {
     }
 
     private void postEntryRelatedToStudent(StudentDto student) {
+        // post teacher
+        long teacherId = postTeacher(teacher).getId();
+
         // post course
-        CourseInput course = CourseInput.builder().name("Algebra").build();
+        CourseInput course = CourseInput.builder().name("Algebra").teacherId(teacherId).build();
         CourseOutput coursePosted = postCourse(course);
 
         // post assignment

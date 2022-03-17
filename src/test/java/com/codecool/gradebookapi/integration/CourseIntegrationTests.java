@@ -94,6 +94,8 @@ public class CourseIntegrationTests {
         @Test
         @DisplayName("when Class posted with valid parameters, should return created Class")
         public void whenClassPostedWithValidParameters_shouldReturnCreatedClass() {
+            long teacherId = postTeacher(teacher).getId();
+            courseInput1.setTeacherId(teacherId);
             ResponseEntity<CourseOutput> response = template.exchange(
                     linkToClasses.getHref(),
                     HttpMethod.POST,
@@ -130,6 +132,8 @@ public class CourseIntegrationTests {
         @DisplayName("add Student to Class should return Class with added Student")
         public void addStudentToClass_shouldReturnClassWithAddedStudent() {
             long studentId = postStudent(student).getId();
+            long teacherId = postTeacher(teacher).getId();
+            courseInput1.setTeacherId(teacherId);
             long courseId = postCourse(courseInput1).getId();
 
             // add student to course
@@ -150,6 +154,8 @@ public class CourseIntegrationTests {
         @Test
         @DisplayName("when Student does not exist with given ID, should return response 'Not Found'")
         public void whenStudentDoesNotExistWithGivenId_shouldReturnResponseNotFound() {
+            long teacherId = postTeacher(teacher).getId();
+            courseInput1.setTeacherId(teacherId);
             long courseId = postCourse(courseInput1).getId();
 
             // add nonexistent student to course
@@ -187,6 +193,7 @@ public class CourseIntegrationTests {
         @DisplayName("setTeacherOfCourse should return Course with set teacher")
         public void setTeacherOfCourse_shouldReturnCourseWithGivenTeacherSetAsParameter() {
             long teacherId = postTeacher(teacher).getId();
+            courseInput1.setTeacherId(teacherId);
             long courseId = postCourse(courseInput1).getId();
 
             // set teacher as teacher of course
@@ -208,6 +215,8 @@ public class CourseIntegrationTests {
         @Test
         @DisplayName("when Teacher does not exist with given ID, should return response 'Not Found'")
         public void whenTeacherDoesNotExistWithGivenId_shouldReturnResponseNotFound() {
+            long teacherId = postTeacher(teacher).getId();
+            courseInput1.setTeacherId(teacherId);
             long courseId = postCourse(courseInput1).getId();
 
             // set nonexistent teacher as teacher of course
@@ -269,6 +278,9 @@ public class CourseIntegrationTests {
         @Order(2)
         @DisplayName("when Classes posted, getAll should return list of Classes")
         public void whenClassesPosted_getAllShouldReturnListOfClasses() {
+            long teacherId = postTeacher(teacher).getId();
+            courseInput1.setTeacherId(teacherId);
+            courseInput2.setTeacherId(teacherId);
             CourseOutput course1 = postCourse(courseInput1);
             CourseOutput course2 = postCourse(courseInput2);
 
@@ -289,6 +301,8 @@ public class CourseIntegrationTests {
         @Test
         @DisplayName("when Class exists with given ID, getById should return Class")
         public void whenClassExistsWithGivenId_getByIdShouldReturnClass() {
+            long teacherId = postTeacher(teacher).getId();
+            courseInput1.setTeacherId(teacherId);
             CourseOutput coursePosted = postCourse(courseInput1);
 
             Link linkToClass = linkTo(methodOn(CourseController.class).getById(coursePosted.getId())).withSelfRel();
@@ -325,10 +339,12 @@ public class CourseIntegrationTests {
         @Test
         @DisplayName("when Class exists with given ID and ClassInput parameters are valid, update should return updated Class")
         public void whenClassExistsWithGivenIdAndClassInputParametersAreValid_updateShouldReturnUpdatedClass() {
+            long teacherId = postTeacher(teacher).getId();
+            courseInput1.setTeacherId(teacherId);
             long courseId = postCourse(courseInput1).getId();
 
             // update course
-            CourseInput update = CourseInput.builder().name("Algebra II").build();
+            CourseInput update = CourseInput.builder().name("Algebra II").teacherId(teacherId).build();
             Link linkToClass = linkTo(methodOn(CourseController.class).getById(courseId)).withSelfRel();
             ResponseEntity<CourseOutput> response = template.exchange(
                     linkToClass.getHref(),
@@ -346,6 +362,8 @@ public class CourseIntegrationTests {
         @Test
         @DisplayName("when Class does not exist with given ID, update should return response 'Not Found'")
         public void whenClassDoesNotExistWithGivenId_updateShouldReturnResponseNotFound() {
+            long teacherId = postTeacher(teacher).getId();
+            courseInput1.setTeacherId(teacherId);
             Link linkToClass = linkTo(methodOn(CourseController.class).getById(99L)).withSelfRel();
             ResponseEntity<?> response = template.exchange(
                     linkToClass.getHref(),
@@ -360,6 +378,8 @@ public class CourseIntegrationTests {
         @Test
         @DisplayName("when ClassInput has invalid parameters, update should return response 'Bad Request'")
         public void whenClassInputHasInvalidParameters_updateShouldReturnResponseBadRequest() {
+            long teacherId = postTeacher(teacher).getId();
+            courseInput1.setTeacherId(teacherId);
             long courseId = postCourse(courseInput1).getId();
 
             // update course
@@ -383,6 +403,8 @@ public class CourseIntegrationTests {
         @Test
         @DisplayName("when Class exists with given ID, delete should remove Class")
         public void whenClassExistsWithGivenId_deleteShouldRemoveClass() {
+            long teacherId = postTeacher(teacher).getId();
+            courseInput1.setTeacherId(teacherId);
             long courseId = postCourse(courseInput1).getId();
 
             // delete course
@@ -422,6 +444,8 @@ public class CourseIntegrationTests {
         @Test
         @DisplayName("when Course is used by a GradebookEntry, delete should return response 'Method Not Allowed'")
         public void whenCourseIsUsedByAnEntry_deleteShouldReturnResponseMethodNotAllowed() {
+            long teacherId = postTeacher(teacher).getId();
+            courseInput1.setTeacherId(teacherId);
             CourseOutput course = postCourse(courseInput1);
             postEntryRelatedToCourse(course);
 

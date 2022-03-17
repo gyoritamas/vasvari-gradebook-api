@@ -69,9 +69,11 @@ public class CourseControllerTests {
     public void setUp() {
         courseInput1 = CourseInput.builder()
                 .name("Algebra")
+                .teacherId(1L)
                 .build();
         courseInput2 = CourseInput.builder()
                 .name("Biology")
+                .teacherId(2L)
                 .build();
         courseOutput1 = CourseOutput.builder()
                 .id(1L)
@@ -80,6 +82,9 @@ public class CourseControllerTests {
                         new SimpleData(1L, "Diophantus"),
                         new SimpleData(2L, "Brahmagupta")
                 ))
+                .teacher(
+                        new SimpleData(1L, "teacher1")
+                )
                 .build();
         courseOutput2 = CourseOutput.builder()
                 .id(2L)
@@ -88,6 +93,9 @@ public class CourseControllerTests {
                         new SimpleData(3L, "Charles Darwin"),
                         new SimpleData(4L, "Gregor Mendel")
                 ))
+                .teacher(
+                        new SimpleData(2L, "teacher2")
+                )
                 .build();
     }
 
@@ -205,8 +213,15 @@ public class CourseControllerTests {
     @DisplayName("when Class exists with given ID and ClassInput parameters are valid, update should return updated Class")
     public void whenClassExistsWithGivenIdAndClassInputParametersAreValid_updateShouldReturnUpdatedClass() throws Exception {
         when(courseService.findById(1L)).thenReturn(Optional.of(courseOutput1));
-        CourseInput updateInput = CourseInput.builder().name("Algebra II").build();
-        CourseOutput classUpdated = CourseOutput.builder().id(1L).name("Algebra II").build();
+        CourseInput updateInput = CourseInput.builder()
+                .name("Algebra II")
+                .teacherId(courseInput1.getTeacherId())
+                .build();
+        CourseOutput classUpdated = CourseOutput.builder()
+                .id(1L)
+                .name("Algebra II")
+                .teacher(courseOutput1.getTeacher())
+                .build();
         when(courseService.update(1L, updateInput)).thenReturn(classUpdated);
 
         String inputAsString = mapper.writeValueAsString(updateInput);

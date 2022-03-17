@@ -55,6 +55,7 @@ public class GradebookIntegrationTests {
 
     private StudentDto student1;
     private StudentDto student2;
+    private TeacherDto teacher;
     private CourseInput course;
     private AssignmentInput assignment;
 
@@ -81,6 +82,15 @@ public class GradebookIntegrationTests {
                 .address("9351 Morris St., Reisterstown, MD 21136")
                 .phone("202-555-0198")
                 .birthdate("1990-04-13")
+                .build();
+
+        teacher = TeacherDto.builder()
+                .firstname("Darrell")
+                .lastname("Bowen")
+                .email("darrellbowen@email.com")
+                .address("3982 Turnpike Drive, Birmingham, AL 35203")
+                .phone("619-446-8496")
+                .birthdate("1984-02-01")
                 .build();
 
         course = CourseInput.builder()
@@ -122,6 +132,8 @@ public class GradebookIntegrationTests {
         public void whenEntriesPosted_getAllShouldReturnListOfEntries() {
             long student1Id = postStudent(student1).getId();
             long student2Id = postStudent(student2).getId();
+            long teacherId = postTeacher(teacher).getId();
+            course.setTeacherId(teacherId);
             long courseId = postCourse(course).getId();
             assignment.setCourseId(courseId);
             long assignmentId = postAssignment(assignment).getId();
@@ -163,6 +175,8 @@ public class GradebookIntegrationTests {
         @DisplayName("when entry exists with given ID, getById should return entry")
         public void whenEntryExistsWithGivenId_getByIdShouldReturnEntry() {
             long studentId = postStudent(student1).getId();
+            long teacherId = postTeacher(teacher).getId();
+            course.setTeacherId(teacherId);
             long courseId = postCourse(course).getId();
             assignment.setCourseId(courseId);
             long assignmentId = postAssignment(assignment).getId();
@@ -208,6 +222,8 @@ public class GradebookIntegrationTests {
         public void whenStudentExistsWithGivenId_getGradesOfStudentShouldReturnListOfEntries() {
             long student1Id = postStudent(student1).getId();
             long student2Id = postStudent(student2).getId();
+            long teacherId = postTeacher(teacher).getId();
+            course.setTeacherId(teacherId);
             long courseId = postCourse(course).getId();
             assignment.setCourseId(courseId);
             long assignmentId = postAssignment(assignment).getId();
@@ -263,6 +279,8 @@ public class GradebookIntegrationTests {
         public void whenClassExistsWithGivenId_getGradesOfClassShouldReturnListOfEntries() {
             long student1Id = postStudent(student1).getId();
             long student2Id = postStudent(student2).getId();
+            long teacherId = postTeacher(teacher).getId();
+            course.setTeacherId(teacherId);
             long courseId = postCourse(course).getId();
             assignment.setCourseId(courseId);
             long assignmentId = postAssignment(assignment).getId();
@@ -321,6 +339,8 @@ public class GradebookIntegrationTests {
         @DisplayName("when entities found with given IDs, gradeAssignment should return created GradebookEntry")
         public void whenEntitiesFoundWithGivenIds_gradeAssignmentShouldReturnCreatedGradebookEntry() {
             long studentId = postStudent(student1).getId();
+            long teacherId = postTeacher(teacher).getId();
+            course.setTeacherId(teacherId);
             long courseId = postCourse(course).getId();
             assignment.setCourseId(courseId);
             long assignmentId = postAssignment(assignment).getId();
@@ -359,6 +379,8 @@ public class GradebookIntegrationTests {
         @DisplayName("when an entry exists with the given IDs, gradeAssignment should return response 'Conflict'")
         public void whenAnEntryExistsWithTheGivenIds_gradeAssignmentShouldReturnResponseConflict() {
             long studentId = postStudent(student2).getId();
+            long teacherId = postTeacher(teacher).getId();
+            course.setTeacherId(teacherId);
             long courseId = postCourse(course).getId();
             assignment.setCourseId(courseId);
             long assignmentId = postAssignment(assignment).getId();
@@ -400,6 +422,8 @@ public class GradebookIntegrationTests {
         @Test
         @DisplayName("when Student does not exist with given ID, gradeAssignment should return response 'Not Found'")
         public void whenStudentDoesNotExistWithGivenId_gradeAssignmentShouldReturnResponseNotFound() {
+            long teacherId = postTeacher(teacher).getId();
+            course.setTeacherId(teacherId);
             long courseId = postCourse(course).getId();
             assignment.setCourseId(courseId);
             long assignmentId = postAssignment(assignment).getId();
@@ -424,6 +448,8 @@ public class GradebookIntegrationTests {
         @DisplayName("when Class does not exist with given ID, gradeAssignment should return response 'Not Found'")
         public void whenClassDoesNotExistWithGivenId_gradeAssignmentShouldReturnResponseNotFound() {
             student1 = postStudent(student1);
+            long teacherId = postTeacher(teacher).getId();
+            course.setTeacherId(teacherId);
             long courseId = postCourse(course).getId();
             assignment.setCourseId(courseId);
             AssignmentOutput assignmentPosted = postAssignment(assignment);
@@ -448,6 +474,8 @@ public class GradebookIntegrationTests {
         @DisplayName("when Assignment does not exist with given ID, gradeAssignment should return response 'Not Found'")
         public void whenAssignmentDoesNotExistWithGivenId_gradeAssignmentShouldReturnResponseNotFound() {
             long studentId = postStudent(student1).getId();
+            long teacherId = postTeacher(teacher).getId();
+            course.setTeacherId(teacherId);
             long courseId = postCourse(course).getId();
 
             GradebookInput gradebookInput = GradebookInput.builder()
@@ -480,6 +508,21 @@ public class GradebookIntegrationTests {
         assertThat(studentPostResponse.getBody()).isNotNull();
 
         return studentPostResponse.getBody();
+    }
+
+    private TeacherDto postTeacher(TeacherDto teacher) {
+        Link linkToTeachers = linkTo(TeacherController.class).withSelfRel();
+        ResponseEntity<TeacherDto> teacherPostResponse = template.exchange(
+                linkToTeachers.getHref(),
+                HttpMethod.POST,
+                auth.createHttpEntityWithAuthorization(teacher),
+                TeacherDto.class
+        );
+
+        assertThat(teacherPostResponse.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+        assertThat(teacherPostResponse.getBody()).isNotNull();
+
+        return teacherPostResponse.getBody();
     }
 
     private CourseOutput postCourse(CourseInput course) {
