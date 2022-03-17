@@ -481,32 +481,12 @@ public class CourseIntegrationTests {
     }
 
     private void postEntryRelatedToCourse(CourseOutput course) {
-        // post teacher
-        TeacherDto teacher = TeacherDto.builder()
-                .firstname("Darrell")
-                .lastname("Bowen")
-                .email("darrellbowen@email.com")
-                .address("3982 Turnpike Drive, Birmingham, AL 35203")
-                .phone("619-446-8496")
-                .birthdate("1984-02-01")
-                .build();
-        Link linkToTeachers = linkTo(TeacherController.class).withSelfRel();
-        ResponseEntity<TeacherDto> teacherPostResponse = template.exchange(
-                linkToTeachers.getHref(),
-                HttpMethod.POST,
-                auth.createHttpEntityWithAuthorization(teacher),
-                TeacherDto.class
-        );
-        assertThat(teacherPostResponse.getStatusCode()).isEqualTo(HttpStatus.CREATED);
-        assertThat(teacherPostResponse.getBody()).isNotNull();
-        teacher = teacherPostResponse.getBody();
-
         // post assignment
         AssignmentInput assignmentInput = AssignmentInput.builder()
                 .name("Homework 1")
                 .type(AssignmentType.HOMEWORK)
                 .deadline(LocalDate.of(2051, 1, 1))
-                .teacherId(teacher.getId())
+                .courseId(course.getId())
                 .build();
         Link linkToAssignments = linkTo(AssignmentController.class).withSelfRel();
         ResponseEntity<AssignmentOutput> assignmentPostResponse = template.exchange(
@@ -519,6 +499,7 @@ public class CourseIntegrationTests {
         assertThat(assignmentPostResponse.getBody()).isNotNull();
         AssignmentOutput assignment = assignmentPostResponse.getBody();
 
+        // post student
         student = postStudent(student);
 
         // add student to course

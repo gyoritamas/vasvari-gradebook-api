@@ -420,26 +420,6 @@ public class StudentIntegrationTests {
     }
 
     private void postEntryRelatedToStudent(StudentDto student) {
-        // post teacher
-        TeacherDto teacher = TeacherDto.builder()
-                .firstname("Darrell")
-                .lastname("Bowen")
-                .email("darrellbowen@email.com")
-                .address("3982 Turnpike Drive, Birmingham, AL 35203")
-                .phone("619-446-8496")
-                .birthdate("1984-02-01")
-                .build();
-        Link linkToTeachers = linkTo(TeacherController.class).withSelfRel();
-        ResponseEntity<TeacherDto> teacherPostResponse = template.exchange(
-                linkToTeachers.getHref(),
-                HttpMethod.POST,
-                auth.createHttpEntityWithAuthorization(teacher),
-                TeacherDto.class
-        );
-        assertThat(teacherPostResponse.getStatusCode()).isEqualTo(HttpStatus.CREATED);
-        assertThat(teacherPostResponse.getBody()).isNotNull();
-        TeacherDto teacherPosted = teacherPostResponse.getBody();
-
         // post course
         CourseInput course = CourseInput.builder().name("Algebra").build();
         CourseOutput coursePosted = postCourse(course);
@@ -449,7 +429,7 @@ public class StudentIntegrationTests {
                 .name("Homework 1")
                 .type(AssignmentType.HOMEWORK)
                 .deadline(LocalDate.of(2051, 1, 1))
-                .teacherId(teacherPosted.getId())
+                .courseId(coursePosted.getId())
                 .build();
         Link linkToAssignments = linkTo(AssignmentController.class).withSelfRel();
         ResponseEntity<AssignmentOutput> assignmentPostResponse = template.exchange(

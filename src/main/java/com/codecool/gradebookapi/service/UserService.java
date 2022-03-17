@@ -41,7 +41,7 @@ public class UserService implements UserDetailsService {
         this.passwordEncoder = passwordEncoder;
         this.mapper = mapper;
         // TODO: remove
-        userRepository.save(new ApplicationUser(1L, "admin", this.passwordEncoder.encode("admin"), ApplicationUserRole.ADMIN));
+//        userRepository.save(new ApplicationUser(1L, "admin", this.passwordEncoder.encode("admin"), ApplicationUserRole.ADMIN));
 //        userRepository.save(new ApplicationUser(2L, "teacher", this.passwordEncoder.encode("teacher"), ApplicationUserRole.TEACHER));
 //        userRepository.save(new ApplicationUser(3L, "student", this.passwordEncoder.encode("student"), STUDENT));
     }

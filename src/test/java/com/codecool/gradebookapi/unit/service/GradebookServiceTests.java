@@ -26,8 +26,6 @@ public class GradebookServiceTests {
     @Autowired
     private StudentService studentService;
     @Autowired
-    private TeacherService teacherService;
-    @Autowired
     private CourseService courseService;
     @Autowired
     private AssignmentService assignmentService;
@@ -59,16 +57,6 @@ public class GradebookServiceTests {
                 .build();
         long student2Id = studentService.save(student2).getId();
 
-        TeacherDto teacher = TeacherDto.builder()
-                .firstname("Darrell")
-                .lastname("Bowen")
-                .email("darrellbowen@email.com")
-                .address("3982 Turnpike Drive, Birmingham, AL 35203")
-                .phone("619-446-8496")
-                .birthdate("1984-02-01")
-                .build();
-        long teacherId = teacherService.save(teacher).getId();
-
         CourseInput course1 = CourseInput.builder()
                 .name("Algebra")
                 .build();
@@ -83,7 +71,7 @@ public class GradebookServiceTests {
                 .name("Homework 1")
                 .type(AssignmentType.HOMEWORK)
                 .deadline(LocalDate.of(2051, 1, 1))
-                .teacherId(teacherId)
+                .courseId(course1Id)
                 .build();
         long assignmentId = assignmentService.save(assignment).getId();
 

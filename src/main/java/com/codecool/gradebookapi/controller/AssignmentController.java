@@ -5,10 +5,9 @@ import com.codecool.gradebookapi.dto.AssignmentOutput;
 import com.codecool.gradebookapi.dto.assembler.AssignmentModelAssembler;
 import com.codecool.gradebookapi.exception.AssignmentInUseException;
 import com.codecool.gradebookapi.exception.AssignmentNotFoundException;
-import com.codecool.gradebookapi.exception.TeacherNotFoundException;
 import com.codecool.gradebookapi.service.AssignmentService;
+import com.codecool.gradebookapi.service.CourseService;
 import com.codecool.gradebookapi.service.GradebookService;
-import com.codecool.gradebookapi.service.TeacherService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -16,7 +15,6 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.CollectionModel;
 import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.IanaLinkRelations;
@@ -34,7 +32,7 @@ import javax.validation.Valid;
 public class AssignmentController {
 
     private final AssignmentService assignmentService;
-    private final TeacherService teacherService;
+    private final CourseService courseService;
     private final GradebookService gradebookService;
     private final AssignmentModelAssembler assembler;
 
@@ -70,9 +68,9 @@ public class AssignmentController {
             @ApiResponse(responseCode = "400", description = "Could not create assignment due to invalid parameters")
     })
     public ResponseEntity<EntityModel<AssignmentOutput>> add(@RequestBody @Valid AssignmentInput assignment) {
-        long teacherId = assignment.getTeacherId();
+        long courseId = assignment.getCourseId();
         // TODO: return proper response with Problem
-        if (teacherService.findById(teacherId).isEmpty())
+        if (courseService.findById(courseId).isEmpty())
             return ResponseEntity.badRequest().build();
 
         AssignmentOutput assignmentCreated = assignmentService.save(assignment);
@@ -93,8 +91,8 @@ public class AssignmentController {
     })
     public ResponseEntity<EntityModel<AssignmentOutput>> update(@RequestBody @Valid AssignmentInput assignment,
                                                                 @PathVariable("id") Long id) {
-        long teacherId = assignment.getTeacherId();
-        if (teacherService.findById(teacherId).isEmpty())
+        long courseId = assignment.getCourseId();
+        if (courseService.findById(courseId).isEmpty())
             return ResponseEntity.badRequest().build();
 
         assignmentService.findById(id).orElseThrow(() -> new AssignmentNotFoundException(id));

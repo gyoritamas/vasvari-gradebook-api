@@ -2,9 +2,11 @@ package com.codecool.gradebookapi.unit.service;
 
 import com.codecool.gradebookapi.dto.AssignmentInput;
 import com.codecool.gradebookapi.dto.AssignmentOutput;
+import com.codecool.gradebookapi.dto.CourseInput;
 import com.codecool.gradebookapi.dto.TeacherDto;
 import com.codecool.gradebookapi.model.AssignmentType;
 import com.codecool.gradebookapi.service.AssignmentService;
+import com.codecool.gradebookapi.service.CourseService;
 import com.codecool.gradebookapi.service.TeacherService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -28,37 +30,32 @@ public class AssignmentServiceTests {
     private AssignmentService assignmentService;
 
     @Autowired
-    private TeacherService teacherService;
+    private CourseService courseService;
 
     private AssignmentInput assignmentInput1;
     private AssignmentInput assignmentInput2;
 
     @BeforeEach
     public void setUp() {
-        TeacherDto teacher = TeacherDto.builder()
-                .firstname("Lilian")
-                .lastname("Stafford")
-                .email("lilianstafford@email.com")
-                .address("4498 Sugar Camp Road, Vernon Center, MN 56090")
-                .phone("507-549-1665")
-                .birthdate("1985-04-13")
+        CourseInput course = CourseInput.builder()
+                .name("Algebra")
                 .build();
 
-        long teacherId = teacherService.save(teacher).getId();
+        long courseId = courseService.save(course).getId();
 
         assignmentInput1 = AssignmentInput.builder()
                 .name("Homework 1")
                 .type(AssignmentType.HOMEWORK)
                 .description("Read chapters 1 to 5")
                 .deadline(LocalDate.of(2051, 1, 1))
-                .teacherId(teacherId)
+                .courseId(courseId)
                 .build();
         assignmentInput2 = AssignmentInput.builder()
                 .name("Homework 2")
                 .type(AssignmentType.HOMEWORK)
                 .description("Read chapters 6 to 9")
                 .deadline(LocalDate.of(2052, 1, 1))
-                .teacherId(teacherId)
+                .courseId(courseId)
                 .build();
     }
 

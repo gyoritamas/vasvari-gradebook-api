@@ -34,8 +34,8 @@ public class AssignmentInput {
     @JsonDeserialize(using = LocalDateDeserializer.class)
     private LocalDate deadline;
 
-    @NotNull(message = "Teacher ID cannot be empty")
+    @NotNull(message = "Course ID cannot be empty")
     @Schema(example = "1")
-    private Long teacherId;
+    private Long courseId;
 
 }

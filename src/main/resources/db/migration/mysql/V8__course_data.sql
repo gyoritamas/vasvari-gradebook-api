@@ -1,4 +1,4 @@
 insert into course
-    (name)
-values ('Algebra'),
-       ('Biology');
+    (name, teacher_id)
+values ('Algebra', 1),
+       ('Biology', 2);
