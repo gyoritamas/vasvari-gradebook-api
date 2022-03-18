@@ -11,6 +11,7 @@ import com.codecool.gradebookapi.repository.SchoolActorApplicationUserRelationRe
 import com.codecool.gradebookapi.repository.UserRepository;
 import com.codecool.gradebookapi.security.ApplicationUserRole;
 import org.apache.commons.lang3.RandomStringUtils;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -90,7 +91,7 @@ public class UserService implements UserDetailsService {
     }
 
     public InitialCredentials createAdminUser(String username) {
-        if(isUsernameAlreadyTaken(username)) throw new RuntimeException("Username already taken");
+        if (isUsernameAlreadyTaken(username)) throw new RuntimeException("Username already taken");
 
         String password = generatePassword();
         UserDto newUser = new UserDto(username, passwordEncoder.encode(password), ADMIN);
@@ -162,6 +163,15 @@ public class UserService implements UserDetailsService {
                 .orElseThrow(() -> new RuntimeException(String.format("No user with the name '%s' exists", username)));
 
         return findTeacherIdByUserId(user.getId());
+    }
+
+    public ApplicationUserRole getRoleOfCurrentUser() {
+        String role = SecurityContextHolder.getContext().getAuthentication().getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority)
+                .findFirst()
+                .orElseThrow(() -> new RuntimeException("Unable to determine user role"));
+
+        return ApplicationUserRole.valueOf(role.substring("ROLE_".length()));
     }
 
     @Override

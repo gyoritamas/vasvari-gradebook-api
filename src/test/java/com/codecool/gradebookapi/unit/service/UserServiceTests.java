@@ -4,6 +4,7 @@ import com.codecool.gradebookapi.dto.StudentDto;
 import com.codecool.gradebookapi.dto.TeacherDto;
 import com.codecool.gradebookapi.dto.UserDto;
 import com.codecool.gradebookapi.dto.dataTypes.InitialCredentials;
+import com.codecool.gradebookapi.security.ApplicationUserRole;
 import com.codecool.gradebookapi.service.UserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -396,5 +397,48 @@ public class UserServiceTests {
         assertThatThrownBy(() -> userService.loadUserByUsername("anonymous"))
                 .isInstanceOf(UsernameNotFoundException.class)
                 .hasMessage(String.format("User not found with username \"%s\"", "anonymous"));
+    }
+
+    @Test
+    @DisplayName("given current User is ADMIN, getRoleOfCurrentUser should return ADMIN")
+    public void givenCurrentUserIsAdmin_getRoleOfCurrentUserShouldReturnAdmin(){
+        InitialCredentials credentials = userService.createAdminUser("mrrobot");
+        setCurrentUser(credentials.getUsername());
+
+        ApplicationUserRole roleOfCurrentUser = userService.getRoleOfCurrentUser();
+
+        assertThat(roleOfCurrentUser).isEqualTo(ADMIN);
+    }
+
+    @Test
+    @DisplayName("given current User is TEACHER, getRoleOfCurrentUser should return TEACHER")
+    public void givenCurrentUserIsTeacher_getRoleOfCurrentUserShouldReturnTeacher(){
+        TeacherDto teacher = TeacherDto.builder()
+                .id(44L)
+                .firstname("Darrell")
+                .lastname("Bowen")
+                .build();
+        InitialCredentials credentials = userService.createTeacherUser(teacher);
+        setCurrentUser(credentials.getUsername());
+
+        ApplicationUserRole roleOfCurrentUser = userService.getRoleOfCurrentUser();
+
+        assertThat(roleOfCurrentUser).isEqualTo(TEACHER);
+    }
+
+    @Test
+    @DisplayName("given current User is STUDENT, getRoleOfCurrentUser should return STUDENT")
+    public void givenCurrentUserIsStudent_getRoleOfCurrentUserShouldReturnStudent(){
+        StudentDto student = StudentDto.builder()
+                .id(79L)
+                .firstname("John")
+                .lastname("Doe")
+                .build();
+        InitialCredentials credentials = userService.createStudentUser(student);
+        setCurrentUser(credentials.getUsername());
+
+        ApplicationUserRole roleOfCurrentUser = userService.getRoleOfCurrentUser();
+
+        assertThat(roleOfCurrentUser).isEqualTo(STUDENT);
     }
 }
