@@ -50,7 +50,6 @@ public class StudentIntegrationTests {
     private int port;
 
     private String baseUrl;
-    private Link baseLink;
 
     private StudentDto student1;
     private StudentDto student2;
@@ -60,7 +59,6 @@ public class StudentIntegrationTests {
     @BeforeEach
     public void setUp() {
         this.baseUrl = "http://localhost:" + port + "/api/students";
-        baseLink = linkTo(StudentController.class).withRel("students");
 
         auth.setRole(ADMIN);
 
@@ -98,8 +96,9 @@ public class StudentIntegrationTests {
         @Test
         @DisplayName("when Student posted with valid parameters, should return created Student")
         public void whenStudentPostedWithValidParameters_shouldReturnCreatedStudent() {
+            Link linkToStudents = linkTo(methodOn(StudentController.class).add(student1)).withSelfRel();
             ResponseEntity<StudentDto> response = template.exchange(
-                    baseLink.getHref(),
+                    linkToStudents.getHref(),
                     HttpMethod.POST,
                     auth.createHttpEntityWithAuthorization(student1),
                     StudentDto.class
@@ -119,8 +118,9 @@ public class StudentIntegrationTests {
         @DisplayName("when Student posted with invalid parameters, should return response 'Bad Request'")
         public void whenStudentPostedWithInvalidParameters_shouldReturnResponseBadRequest(
                 @AggregateWith(StudentAggregator.class) StudentDto student) {
+            Link linkToStudents = linkTo(methodOn(StudentController.class).add(student)).withSelfRel();
             ResponseEntity<?> response = template.exchange(
-                    baseLink.getHref(),
+                    linkToStudents.getHref(),
                     HttpMethod.POST,
                     auth.createHttpEntityWithAuthorization(student),
                     String.class
@@ -417,8 +417,9 @@ public class StudentIntegrationTests {
     }
 
     private StudentDto postStudent(StudentDto student) {
+        Link linkToStudents = linkTo(methodOn(StudentController.class).add(student)).withSelfRel();
         ResponseEntity<StudentDto> postResponse = template.exchange(
-                baseLink.getHref(),
+                linkToStudents.getHref(),
                 HttpMethod.POST,
                 auth.createHttpEntityWithAuthorization(student),
                 StudentDto.class
@@ -431,7 +432,7 @@ public class StudentIntegrationTests {
     }
 
     private CourseOutput postCourse(CourseInput course) {
-        Link linkToClasses = linkTo(CourseController.class).withSelfRel();
+        Link linkToClasses = linkTo(methodOn(CourseController.class).add(course)).withSelfRel();
         ResponseEntity<CourseOutput> postResponse = template.exchange(
                 linkToClasses.getHref(),
                 HttpMethod.POST,

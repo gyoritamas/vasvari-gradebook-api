@@ -503,7 +503,7 @@ public class AssignmentIntegrationTests {
     }
 
     private CourseOutput postCourse(CourseInput course) {
-        Link linkToCourses = linkTo(CourseController.class).withSelfRel();
+        Link linkToCourses = linkTo(methodOn(CourseController.class).add(course)).withSelfRel();
         ResponseEntity<CourseOutput> coursePostResponse = template.exchange(
                 linkToCourses.getHref(),
                 HttpMethod.POST,
@@ -532,7 +532,7 @@ public class AssignmentIntegrationTests {
 
     private void postEntryRelatedToAssignment(AssignmentOutput assignment) {
         // post student
-        Link linkToStudents = linkTo(StudentController.class).withSelfRel();
+        Link linkToStudents = linkTo(methodOn(StudentController.class).add(student)).withSelfRel();
         ResponseEntity<StudentDto> studentPostResponse = template.exchange(
                 linkToStudents.getHref(),
                 HttpMethod.POST,

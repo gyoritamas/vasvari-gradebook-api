@@ -72,14 +72,6 @@ public class CourseService {
         courseRepository.deleteById(id);
     }
 
-    public CourseOutput setTeacherOfCourse(Long teacherId, Long courseId) {
-        Teacher teacher = teacherRepository.getById(teacherId);
-        Course course = courseRepository.getById(courseId);
-        course.setTeacher(teacher);
-
-        return courseMapper.map(courseRepository.save(course));
-    }
-
     public CourseOutput addStudentToCourse(Long studentId, Long courseId) {
         Student student = studentRepository.getById(studentId);
         Course course = courseRepository.getById(courseId);

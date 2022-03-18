@@ -28,6 +28,8 @@ public class GradebookServiceTests {
     @Autowired
     private CourseService courseService;
     @Autowired
+    private TeacherService teacherService;
+    @Autowired
     private AssignmentService assignmentService;
 
     private GradebookInput entry1;
@@ -57,13 +59,24 @@ public class GradebookServiceTests {
                 .build();
         long student2Id = studentService.save(student2).getId();
 
+        TeacherDto teacher = TeacherDto.builder()
+                .firstname("Darrell")
+                .lastname("Bowen")
+                .email("darrellbowen@email.com")
+                .address("3982 Turnpike Drive, Birmingham, AL 35203")
+                .phone("619-446-8496")
+                .birthdate("1984-02-01")
+                .build();
+        long teacherId = teacherService.save(teacher).getId();
         CourseInput course1 = CourseInput.builder()
                 .name("Algebra")
+                .teacherId(teacherId)
                 .build();
         long course1Id = courseService.save(course1).getId();
 
         CourseInput course2 = CourseInput.builder()
                 .name("Biology")
+                .teacherId(teacherId)
                 .build();
         long course2Id = courseService.save(course2).getId();
 

@@ -10,10 +10,7 @@ import com.codecool.gradebookapi.dto.dataTypes.SimpleData;
 import com.codecool.gradebookapi.jwt.JwtAuthenticationEntryPoint;
 import com.codecool.gradebookapi.jwt.JwtTokenUtil;
 import com.codecool.gradebookapi.security.PasswordConfig;
-import com.codecool.gradebookapi.service.CourseService;
-import com.codecool.gradebookapi.service.GradebookService;
-import com.codecool.gradebookapi.service.StudentService;
-import com.codecool.gradebookapi.service.UserService;
+import com.codecool.gradebookapi.service.*;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
@@ -57,6 +54,9 @@ public class StudentControllerTests {
 
     @MockBean
     private CourseService courseService;
+
+    @MockBean
+    private TeacherService teacherService;
 
     @MockBean
     private UserService userService;

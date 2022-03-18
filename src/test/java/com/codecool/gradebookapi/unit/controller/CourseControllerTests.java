@@ -3,6 +3,7 @@ package com.codecool.gradebookapi.unit.controller;
 import com.codecool.gradebookapi.controller.CourseController;
 import com.codecool.gradebookapi.dto.*;
 import com.codecool.gradebookapi.dto.assembler.CourseModelAssembler;
+import com.codecool.gradebookapi.dto.assembler.StudentModelAssembler;
 import com.codecool.gradebookapi.dto.dataTypes.SimpleData;
 import com.codecool.gradebookapi.jwt.JwtAuthenticationEntryPoint;
 import com.codecool.gradebookapi.jwt.JwtTokenUtil;
@@ -30,7 +31,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(CourseController.class)
-@Import({CourseModelAssembler.class, PasswordConfig.class, JwtAuthenticationEntryPoint.class})
+@Import({CourseModelAssembler.class,
+        StudentModelAssembler.class,
+        JwtAuthenticationEntryPoint.class,
+        PasswordConfig.class})
 public class CourseControllerTests {
 
     @Autowired
@@ -106,7 +110,7 @@ public class CourseControllerTests {
         when(courseService.findAll()).thenReturn(List.of());
 
         this.mockMvc
-                .perform(get("/api/classes"))
+                .perform(get("/api/courses"))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$._embedded.classes").doesNotExist());
@@ -119,7 +123,7 @@ public class CourseControllerTests {
         when(courseService.findAll()).thenReturn(List.of(courseOutput1, courseOutput2));
 
         this.mockMvc
-                .perform(get("/api/classes"))
+                .perform(get("/api/courses"))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$._embedded.courses", hasSize(2)))
@@ -134,7 +138,7 @@ public class CourseControllerTests {
         when(courseService.findById(1L)).thenReturn(Optional.of(courseOutput1));
 
         this.mockMvc
-                .perform(get("/api/classes/1"))
+                .perform(get("/api/courses/1"))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.name", is("Algebra")));
@@ -147,7 +151,7 @@ public class CourseControllerTests {
         when(courseService.findById(99L)).thenReturn(Optional.empty());
 
         this.mockMvc
-                .perform(get("/api/classes/99"))
+                .perform(get("/api/courses/99"))
                 .andDo(print())
                 .andExpect(status().isNotFound());
     }
@@ -162,7 +166,7 @@ public class CourseControllerTests {
 
         this.mockMvc
                 .perform(
-                        post("/api/classes")
+                        post("/api/courses")
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(inputAsString)
                 )
@@ -182,7 +186,7 @@ public class CourseControllerTests {
 
         this.mockMvc
                 .perform(
-                        post("/api/classes")
+                        post("/api/courses")
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(inputAsString)
                 )
@@ -200,7 +204,7 @@ public class CourseControllerTests {
 
         this.mockMvc
                 .perform(
-                        put("/api/classes/99")
+                        put("/api/courses/99")
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(class2AsString)
                 )
@@ -229,7 +233,7 @@ public class CourseControllerTests {
 
         this.mockMvc
                 .perform(
-                        put("/api/classes/1")
+                        put("/api/courses/1")
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(inputAsString)
                 )
@@ -249,7 +253,7 @@ public class CourseControllerTests {
 
         this.mockMvc
                 .perform(
-                        put("/api/classes/1")
+                        put("/api/courses/1")
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(inputAsString)
                 )
@@ -264,7 +268,7 @@ public class CourseControllerTests {
         when(courseService.findById(2L)).thenReturn(Optional.of(courseOutput2));
 
         this.mockMvc
-                .perform(delete("/api/classes/2"))
+                .perform(delete("/api/courses/2"))
                 .andDo(print())
                 .andExpect(status().isNoContent());
     }
@@ -276,7 +280,7 @@ public class CourseControllerTests {
         when(courseService.findById(99L)).thenReturn(Optional.empty());
 
         this.mockMvc
-                .perform(delete("/api/classes/99"))
+                .perform(delete("/api/courses/99"))
                 .andDo(print())
                 .andExpect(status().isNotFound());
     }
@@ -293,7 +297,7 @@ public class CourseControllerTests {
         when(gradebookService.findByClassId(1L)).thenReturn(List.of(savedEntry));
 
         this.mockMvc
-                .perform(delete("/api/classes/1"))
+                .perform(delete("/api/courses/1"))
                 .andDo(print())
                 .andExpect(status().isMethodNotAllowed());
     }
@@ -314,7 +318,7 @@ public class CourseControllerTests {
         when(courseService.addStudentToCourse(1L, 1L)).thenReturn(clazz);
 
         this.mockMvc
-                .perform(post("/api/classes/1/class_enrollment/1"))
+                .perform(post("/api/courses/1/class_enrollment/1"))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id", is(1)))
@@ -332,7 +336,7 @@ public class CourseControllerTests {
         when(courseService.findById(1L)).thenReturn(Optional.of(courseOutput1));
 
         this.mockMvc
-                .perform(post("/api/classes/1/class_enrollment/99"))
+                .perform(post("/api/courses/1/class_enrollment/99"))
                 .andDo(print())
                 .andExpect(status().isNotFound());
     }
@@ -344,53 +348,7 @@ public class CourseControllerTests {
         when(courseService.findById(99L)).thenReturn(Optional.empty());
 
         this.mockMvc
-                .perform(post("/api/classes/99/class_enrollment/1"))
-                .andDo(print())
-                .andExpect(status().isNotFound());
-    }
-
-    @Test
-    @WithMockUser(username = "admin", password = "admin", roles = "ADMIN")
-    @DisplayName("when entities exist with given IDs, setTeacherOfCourse should return Course with added Teacher")
-    public void whenEntitiesExistWithGivenIds_setTeacherOfCourse_shouldReturnCourseWithAddedTeacher() throws Exception {
-        TeacherDto teacher = TeacherDto.builder().id(1L).firstname("John").lastname("Smith").build();
-        CourseOutput course = CourseOutput.builder().id(1L).name("Algebra").teacher(new SimpleData(1L, "Diophantus")).build();
-
-        when(teacherService.findById(1L)).thenReturn(Optional.of(teacher));
-        when(courseService.findById(1L)).thenReturn(Optional.of(course));
-        when(courseService.setTeacherOfCourse(1L, 1L)).thenReturn(course);
-
-        this.mockMvc
-                .perform(post("/api/classes/1/set_teacher/1"))
-                .andDo(print())
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id", is(1)))
-                .andExpect(jsonPath("$.name", is("Algebra")))
-                .andExpect(jsonPath("$.teacher.id", is(1)))
-                .andExpect(jsonPath("$.teacher.name", is("Diophantus")));
-    }
-
-    @Test
-    @WithMockUser(username = "admin", password = "admin", roles = "ADMIN")
-    @DisplayName("when Teacher does not exist with given ID, setTeacherOfCourse should return response 'Not Found'")
-    public void whenTeacherDoesNotExistWithGivenId_setTeacherOfCourse_shouldReturnResponseNotFound() throws Exception {
-        when(teacherService.findById(99L)).thenReturn(Optional.empty());
-        when(courseService.findById(1L)).thenReturn(Optional.of(courseOutput1));
-
-        this.mockMvc
-                .perform(post("/api/classes/1/set_teacher/99"))
-                .andDo(print())
-                .andExpect(status().isNotFound());
-    }
-
-    @Test
-    @WithMockUser(username = "admin", password = "admin", roles = "ADMIN")
-    @DisplayName("when Course does not exist with given ID, setTeacherOfCourse should return response 'Not Found'")
-    public void whenCourseDoesNotExistWithGivenId_setTeacherOfCourse_shouldReturnResponseNotFound() throws Exception {
-        when(courseService.findById(99L)).thenReturn(Optional.empty());
-
-        this.mockMvc
-                .perform(post("/api/classes/99/set_teacher/1"))
+                .perform(post("/api/courses/99/class_enrollment/1"))
                 .andDo(print())
                 .andExpect(status().isNotFound());
     }

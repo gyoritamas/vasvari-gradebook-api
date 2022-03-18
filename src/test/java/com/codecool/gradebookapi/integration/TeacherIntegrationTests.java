@@ -61,20 +61,20 @@ public class TeacherIntegrationTests {
         auth.setRole(ADMIN);
 
         teacher1 = TeacherDto.builder()
-                .firstname("John")
-                .lastname("Doe")
-                .email("johndoe@email.com")
-                .address("666 Armstrong St., Mesa, AZ 85203")
-                .phone("202-555-0198")
-                .birthdate("1985-12-01")
+                .firstname("Darrell")
+                .lastname("Bowen")
+                .email("darrellbowen@email.com")
+                .address("3982 Turnpike Drive, Birmingham, AL 35203")
+                .phone("619-446-8496")
+                .birthdate("1984-02-01")
                 .build();
         teacher2 = TeacherDto.builder()
-                .firstname("Jane")
-                .lastname("Doe")
-                .email("janedoe@email.com")
-                .address("9351 Morris St., Reisterstown, MD 21136")
-                .phone("202-555-9810")
-                .birthdate("1987-04-13")
+                .firstname("Lilian")
+                .lastname("Stafford")
+                .email("lilianstafford@email.com")
+                .address("4498 Sugar Camp Road, Vernon Center, MN 56090")
+                .phone("507-549-1665")
+                .birthdate("1985-04-13")
                 .build();
     }
 

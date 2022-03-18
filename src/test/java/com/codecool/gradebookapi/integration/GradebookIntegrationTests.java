@@ -496,7 +496,7 @@ public class GradebookIntegrationTests {
     }
 
     private StudentDto postStudent(StudentDto student) {
-        Link linkToStudents = linkTo(StudentController.class).withSelfRel();
+        Link linkToStudents = linkTo(methodOn(StudentController.class).add(student)).withSelfRel();
         ResponseEntity<StudentDto> studentPostResponse = template.exchange(
                 linkToStudents.getHref(),
                 HttpMethod.POST,
@@ -526,7 +526,7 @@ public class GradebookIntegrationTests {
     }
 
     private CourseOutput postCourse(CourseInput course) {
-        Link linkToClasses = linkTo(CourseController.class).withSelfRel();
+        Link linkToClasses = linkTo(methodOn(CourseController.class).add(course)).withSelfRel();
         ResponseEntity<CourseOutput> coursePostResponse = template.exchange(
                 linkToClasses.getHref(),
                 HttpMethod.POST,

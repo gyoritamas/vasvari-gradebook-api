@@ -41,7 +41,8 @@ public class CourseServiceTests {
     private CourseInput course1;
     private CourseInput course2;
     private StudentDto student;
-    private TeacherDto teacher;
+    private TeacherDto teacher1;
+    private TeacherDto teacher2;
 
     @BeforeEach
     public void setUp() {
@@ -60,7 +61,7 @@ public class CourseServiceTests {
                 .phone("202-555-0198")
                 .birthdate("2004-02-01")
                 .build();
-        teacher = TeacherDto.builder()
+        teacher1 = TeacherDto.builder()
                 .firstname("Darrell")
                 .lastname("Bowen")
                 .email("darrellbowen@email.com")
@@ -68,11 +69,22 @@ public class CourseServiceTests {
                 .phone("619-446-8496")
                 .birthdate("1984-02-01")
                 .build();
+        teacher2 = TeacherDto.builder()
+                .firstname("Lilian")
+                .lastname("Stafford")
+                .email("lilianstafford@email.com")
+                .address("4498 Sugar Camp Road, Vernon Center, MN 56090")
+                .phone("507-549-1665")
+                .birthdate("1985-04-13")
+                .build();
     }
 
     @Test
+    @Transactional
     @DisplayName("save should return saved Course")
     public void saveShouldReturnSavedCourse() {
+        long teacherId = teacherService.save(teacher1).getId();
+        course1.setTeacherId(teacherId);
         CourseOutput courseSaved = courseService.save(course1);
 
         assertThat(courseSaved.getId()).isNotNull();
@@ -81,9 +93,13 @@ public class CourseServiceTests {
     }
 
     @Test
+    @Transactional
     @DirtiesContext(methodMode = BEFORE_METHOD)
     @DisplayName("findAll should return list of Courses")
     public void findAll_shouldReturnListOfCourses() {
+        long teacherId = teacherService.save(teacher1).getId();
+        course1.setTeacherId(teacherId);
+        course2.setTeacherId(teacherId);
         CourseOutput output1 = courseService.save(course1);
         CourseOutput output2 = courseService.save(course2);
 
@@ -94,8 +110,11 @@ public class CourseServiceTests {
     }
 
     @Test
+    @Transactional
     @DisplayName("when Course with given ID exists, findById should return Course")
     public void whenCourseWithGivenIdExists_findByIdShouldReturnCourse() {
+        long teacherId = teacherService.save(teacher1).getId();
+        course1.setTeacherId(teacherId);
         Long id = courseService.save(course1).getId();
 
         Optional<CourseOutput> courseFound = courseService.findById(id);
@@ -105,8 +124,12 @@ public class CourseServiceTests {
     }
 
     @Test
+    @Transactional
     @DisplayName("when Course with given ID does not exist, findById should return empty Optional")
     public void whenCourseWithGivenIdDoesNotExist_findByIdShouldReturnEmptyOptional() {
+        long teacherId = teacherService.save(teacher1).getId();
+        course1.setTeacherId(teacherId);
+        course2.setTeacherId(teacherId);
         Long id = courseService.save(course2).getId();
 
         Optional<CourseOutput> courseFound = courseService.findById(id + 1);
@@ -115,8 +138,11 @@ public class CourseServiceTests {
     }
 
     @Test
+    @Transactional
     @DisplayName("deleteById should delete Course with given ID")
     public void deleteById_shouldDeleteCourseWithGivenId() {
+        long teacherId = teacherService.save(teacher1).getId();
+        course1.setTeacherId(teacherId);
         long id = courseService.save(course1).getId();
 
         courseService.deleteById(id);
@@ -129,6 +155,8 @@ public class CourseServiceTests {
     @Transactional
     @DisplayName("when Course with given ID exists, save should update existing Course")
     public void whenCourseWithGivenIdExists_saveShouldUpdateExistingCourse() {
+        long teacherId = teacherService.save(teacher1).getId();
+        course1.setTeacherId(teacherId);
         long id = courseService.save(course1).getId();
         course1.setName("Algebra II");
         CourseOutput updatedCourse = courseService.update(id, course1);
@@ -141,6 +169,8 @@ public class CourseServiceTests {
     @Transactional
     @DisplayName("addStudentToCourse should add Student to list of students of Course")
     public void addStudentToCourse_shouldAddStudentToListOfStudentsOfCourse() {
+        long teacherId = teacherService.save(teacher1).getId();
+        course1.setTeacherId(teacherId);
         student = studentService.save(student);
         CourseOutput courseSaved = courseService.save(course1);
 
@@ -153,20 +183,11 @@ public class CourseServiceTests {
 
     @Test
     @Transactional
-    @DisplayName("setTeacherOfCourse should set Teacher field of Course")
-    public void setTeacherOfCourse_shouldSetTeacherFieldOfCourse() {
-        TeacherDto teacherSaved = teacherService.save(teacher);
-        CourseOutput courseSaved = courseService.save(course1);
-
-        courseSaved = courseService.setTeacherOfCourse(teacherSaved.getId(), courseSaved.getId());
-
-        assertThat(courseSaved.getTeacher().getId()).isEqualTo(teacherSaved.getId());
-    }
-
-    @Test
-    @Transactional
     @DisplayName("when Student exists with given ID, findCoursesOfStudent should return list of Courses")
     public void whenStudentExistsWithGivenId_findCoursesOfStudentShouldReturnListOfCourses() {
+        long teacherId = teacherService.save(teacher1).getId();
+        course1.setTeacherId(teacherId);
+        course2.setTeacherId(teacherId);
         student = studentService.save(student);
         CourseOutput course1Saved = courseService.save(course1);
         CourseOutput course2Saved = courseService.save(course2);
@@ -182,6 +203,8 @@ public class CourseServiceTests {
     @Transactional
     @DisplayName("when Student is enrolled in given Course, isStudentInCourse should return true")
     public void whenStudentIsEnrolledInGivenCourse_isStudentInCourseShouldReturnTrue() {
+        long teacherId = teacherService.save(teacher1).getId();
+        course1.setTeacherId(teacherId);
         long studentId = studentService.save(student).getId();
         long courseId = courseService.save(course1).getId();
         courseService.addStudentToCourse(studentId, courseId);
@@ -190,8 +213,11 @@ public class CourseServiceTests {
     }
 
     @Test
+    @Transactional
     @DisplayName("when Student is not enrolled in given Course, isStudentInCourse should return false")
     public void whenStudentIsNotEnrolledInGivenCourse_isStudentInCourseShouldReturnFalse() {
+        long teacherId = teacherService.save(teacher1).getId();
+        course1.setTeacherId(teacherId);
         long studentId = studentService.save(student).getId();
         long courseId = courseService.save(course1).getId();
 
@@ -202,6 +228,8 @@ public class CourseServiceTests {
     @Transactional
     @DisplayName("given Course exists with ID, getStudentOfCourse should return list of Students")
     public void givenCourseExistsWithId_getStudentsOfCourse_shouldReturnListOfStudents() {
+        long teacherId = teacherService.save(teacher1).getId();
+        course1.setTeacherId(teacherId);
         StudentDto studentSaved = studentService.save(student);
         CourseOutput courseSaved = courseService.save(course1);
         courseService.addStudentToCourse(studentSaved.getId(), courseSaved.getId());
@@ -222,7 +250,7 @@ public class CourseServiceTests {
     @Test
     @DisplayName("given Teacher is not set as teacher of any Courses, findCoursesOfTeacher should return empty list")
     public void givenTeacherIsNotSetAsTeacherOfAnyCourses_findCoursesOfTeacher_shouldReturnListOfCourses() {
-        TeacherDto teacherSaved = teacherService.save(teacher);
+        TeacherDto teacherSaved = teacherService.save(teacher1);
         List<CourseOutput> coursesOfTeacher = courseService.findCoursesOfTeacher(teacherSaved);
 
         assertThat(coursesOfTeacher).isEmpty();
@@ -232,13 +260,13 @@ public class CourseServiceTests {
     @Transactional
     @DisplayName("given Teacher is set as teacher of Courses, findCoursesOfTeacher should return list of Courses")
     public void givenTeacherIsSetAsTeacherOfCourses_findCoursesOfTeacher_shouldReturnListOfCourses() {
+        teacher1 = teacherService.save(teacher1);
+        course1.setTeacherId(teacher1.getId());
+        course2.setTeacherId(teacher1.getId());
         CourseOutput course1Saved = courseService.save(course1);
         CourseOutput course2Saved = courseService.save(course2);
-        TeacherDto teacherSaved = teacherService.save(teacher);
-        course1Saved = courseService.setTeacherOfCourse(teacherSaved.getId(), course1Saved.getId());
-        course2Saved = courseService.setTeacherOfCourse(teacherSaved.getId(), course2Saved.getId());
 
-        List<CourseOutput> coursesOfTeacher = courseService.findCoursesOfTeacher(teacherSaved);
+        List<CourseOutput> coursesOfTeacher = courseService.findCoursesOfTeacher(teacher1);
 
         assertThat(coursesOfTeacher).containsExactly(course1Saved, course2Saved);
     }
@@ -258,16 +286,18 @@ public class CourseServiceTests {
         jackDoe = studentService.save(jackDoe);
 
         // save teacher
-        TeacherDto darrelBowen = teacherService.save(teacher);
+        TeacherDto darrelBowen = teacherService.save(teacher1);
+        TeacherDto lilianStafford = teacherService.save(teacher2);
+
+        course1.setTeacherId(darrelBowen.getId());
+        course2.setTeacherId(lilianStafford.getId());
 
         // save courses
         CourseOutput algebra = courseService.save(course1);
         CourseOutput biology = courseService.save(course2);
-        CourseOutput physics = courseService.save(CourseInput.builder().name("Physics").build());
-
-        // set Darrel Bowen as teacher of algebra and physics courses
-        algebra = courseService.setTeacherOfCourse(darrelBowen.getId(), algebra.getId());
-        physics = courseService.setTeacherOfCourse(darrelBowen.getId(), physics.getId());
+        CourseOutput physics = courseService.save(
+                CourseInput.builder().name("Physics").teacherId(darrelBowen.getId()).build()
+        );
 
         // add students to courses
         algebra = courseService.addStudentToCourse(johnDoe.getId(), algebra.getId());

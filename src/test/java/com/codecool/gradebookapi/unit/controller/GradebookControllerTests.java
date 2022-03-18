@@ -54,6 +54,9 @@ public class GradebookControllerTests {
     private CourseService courseService;
 
     @MockBean
+    private TeacherService teacherService;
+
+    @MockBean
     private AssignmentService assignmentService;
 
     @MockBean

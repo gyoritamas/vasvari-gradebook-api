@@ -30,6 +30,9 @@ public class AssignmentServiceTests {
     private AssignmentService assignmentService;
 
     @Autowired
+    private TeacherService teacherService;
+
+    @Autowired
     private CourseService courseService;
 
     private AssignmentInput assignmentInput1;
@@ -37,8 +40,20 @@ public class AssignmentServiceTests {
 
     @BeforeEach
     public void setUp() {
+        TeacherDto teacher = TeacherDto.builder()
+                .firstname("Darrell")
+                .lastname("Bowen")
+                .email("darrellbowen@email.com")
+                .address("3982 Turnpike Drive, Birmingham, AL 35203")
+                .phone("619-446-8496")
+                .birthdate("1984-02-01")
+                .build();
+
+        long teacherId = teacherService.save(teacher).getId();
+
         CourseInput course = CourseInput.builder()
                 .name("Algebra")
+                .teacherId(teacherId)
                 .build();
 
         long courseId = courseService.save(course).getId();
