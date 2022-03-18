@@ -5,10 +5,9 @@ import com.codecool.gradebookapi.dto.GradebookOutput;
 import com.codecool.gradebookapi.dto.dataTypes.SimpleData;
 import com.codecool.gradebookapi.model.GradebookEntry;
 import com.codecool.gradebookapi.repository.AssignmentRepository;
-import com.codecool.gradebookapi.repository.CourseRepository;
+import com.codecool.gradebookapi.repository.SubjectRepository;
 import com.codecool.gradebookapi.repository.StudentRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -18,7 +17,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class GradebookEntryMapper {
     private final StudentRepository studentRepository;
-    private final CourseRepository courseRepository;
+    private final SubjectRepository subjectRepository;
     private final AssignmentRepository assignmentRepository;
 
     public GradebookOutput map(GradebookEntry gradebookEntry) {
@@ -27,8 +26,8 @@ public class GradebookEntryMapper {
                 .student(
                         new SimpleData(gradebookEntry.getStudent().getId(), gradebookEntry.getStudent().getName())
                 )
-                .course(
-                        new SimpleData(gradebookEntry.getCourse().getId(), gradebookEntry.getCourse().getName())
+                .subject(
+                        new SimpleData(gradebookEntry.getSubject().getId(), gradebookEntry.getSubject().getName())
                 )
                 .assignment(
                         new SimpleData(gradebookEntry.getAssignment().getId(), gradebookEntry.getAssignment().getName())
@@ -42,8 +41,8 @@ public class GradebookEntryMapper {
                 .student(
                         studentRepository.getById(gradebookInput.getStudentId())
                 )
-                .course(
-                        courseRepository.getById(gradebookInput.getCourseId())
+                .subject(
+                        subjectRepository.getById(gradebookInput.getSubjectId())
                 )
                 .assignment(
                         assignmentRepository.getById(gradebookInput.getAssignmentId())

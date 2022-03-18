@@ -51,7 +51,7 @@ public class GradebookControllerTests {
     private StudentService studentService;
 
     @MockBean
-    private CourseService courseService;
+    private SubjectService subjectService;
 
     @MockBean
     private TeacherService teacherService;
@@ -69,7 +69,7 @@ public class GradebookControllerTests {
 
     private StudentDto student1;
     private StudentDto student2;
-    private CourseOutput course;
+    private SubjectOutput subject;
     private AssignmentOutput assignment;
     private GradebookInput entry1;
     private GradebookInput entry2;
@@ -90,7 +90,7 @@ public class GradebookControllerTests {
                 .firstname("Jane")
                 .lastname("Doe")
                 .build();
-        course = CourseOutput.builder()
+        subject = SubjectOutput.builder()
                 .name("Algebra")
                 .build();
         assignment = AssignmentOutput.builder()
@@ -98,27 +98,27 @@ public class GradebookControllerTests {
                 .build();
         entry1 = GradebookInput.builder()
                 .studentId(1L)
-                .courseId(1L)
+                .subjectId(1L)
                 .assignmentId(1L)
                 .grade(4)
                 .build();
         entry2 = GradebookInput.builder()
                 .studentId(2L)
-                .courseId(1L)
+                .subjectId(1L)
                 .assignmentId(1L)
                 .grade(5)
                 .build();
         savedEntry1 = GradebookOutput.builder()
                 .id(1L)
                 .student(new SimpleData(1L, "John Doe"))
-                .course(new SimpleData(1L, "Algebra"))
+                .subject(new SimpleData(1L, "Algebra"))
                 .assignment(new SimpleData(1L, "Homework 1"))
                 .grade(4)
                 .build();
         savedEntry2 = GradebookOutput.builder()
                 .id(1L)
                 .student(new SimpleData(2L, "Jane Doe"))
-                .course(new SimpleData(1L, "Algebra"))
+                .subject(new SimpleData(1L, "Algebra"))
                 .assignment(new SimpleData(1L, "Homework 1"))
                 .grade(5)
                 .build();
@@ -163,7 +163,7 @@ public class GradebookControllerTests {
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.student.id", is(1)))
-                .andExpect(jsonPath("$.course.id", is(1)))
+                .andExpect(jsonPath("$.subject.id", is(1)))
                 .andExpect(jsonPath("$.assignment.id", is(1)))
                 .andExpect(jsonPath("$.grade", is(4)));
     }
@@ -182,12 +182,12 @@ public class GradebookControllerTests {
 
     @Test
     @WithMockUser(username = "admin", password = "admin", roles = "ADMIN")
-    @DisplayName("when Class does not exist with given ID, getGradesOfClass should return response 'Not Found'")
-    public void whenClassDoesNotExistWithGivenId_getGradesOfClassShouldReturnResponseNotFound() throws Exception {
+    @DisplayName("when Subject does not exist with given ID, getGradesOfSubject should return response 'Not Found'")
+    public void whenSubjectDoesNotExistWithGivenId_getGradesOfSubjectShouldReturnResponseNotFound() throws Exception {
         when(studentService.findById(99L)).thenReturn(Optional.empty());
 
         this.mockMvc
-                .perform(get("/api/class_gradebook/99"))
+                .perform(get("/api/subject_gradebook/99"))
                 .andDo(print())
                 .andExpect(status().isNotFound());
     }
@@ -205,7 +205,7 @@ public class GradebookControllerTests {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$._embedded.entries", hasSize(1)))
                 .andExpect(jsonPath("$._embedded.entries[0].student.id", is(1)))
-                .andExpect(jsonPath("$._embedded.entries[0].course.id", is(1)))
+                .andExpect(jsonPath("$._embedded.entries[0].subject.id", is(1)))
                 .andExpect(jsonPath("$._embedded.entries[0].assignment.id", is(1)))
                 .andExpect(jsonPath("$._embedded.entries[0].grade", is(4)));
     }
@@ -224,23 +224,23 @@ public class GradebookControllerTests {
 
     @Test
     @WithMockUser(username = "admin", password = "admin", roles = "ADMIN")
-    @DisplayName("when Class exists with given ID, getGradesOfClass should return list of GradebookEntries")
-    public void whenClassExistsWithGivenId_getGradesOfClassShouldReturnListOfGradebookEntries() throws Exception {
-        when(courseService.findById(1L)).thenReturn(Optional.of(course));
-        when(gradebookService.findByClassId(1L)).thenReturn(List.of(savedEntry1, savedEntry2));
+    @DisplayName("when Subject exists with given ID, getGradesOfSubject should return list of GradebookEntries")
+    public void whenSubjectExistsWithGivenId_getGradesOfSubjectShouldReturnListOfGradebookEntries() throws Exception {
+        when(subjectService.findById(1L)).thenReturn(Optional.of(subject));
+        when(gradebookService.findBySubjectId(1L)).thenReturn(List.of(savedEntry1, savedEntry2));
 
         this.mockMvc
-                .perform(get("/api/class_gradebook/1"))
+                .perform(get("/api/subject_gradebook/1"))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$._embedded.entries", hasSize(2)))
 
                 .andExpect(jsonPath("$._embedded.entries[0].student.id", is(1)))
-                .andExpect(jsonPath("$._embedded.entries[0].course.id", is(1)))
+                .andExpect(jsonPath("$._embedded.entries[0].subject.id", is(1)))
                 .andExpect(jsonPath("$._embedded.entries[0].grade", is(4)))
 
                 .andExpect(jsonPath("$._embedded.entries[1].student.id", is(2)))
-                .andExpect(jsonPath("$._embedded.entries[1].course.id", is(1)))
+                .andExpect(jsonPath("$._embedded.entries[1].subject.id", is(1)))
                 .andExpect(jsonPath("$._embedded.entries[1].grade", is(5)));
     }
 
@@ -249,10 +249,10 @@ public class GradebookControllerTests {
     @DisplayName("when Student does not exist with given ID, gradeAssignment should return response 'Not Found'")
     public void whenStudentDoesNotExistWithGivenId_gradeAssignmentShouldReturnResponseNotFound() throws Exception {
         when(studentService.findById(99L)).thenReturn(Optional.empty());
-        when(courseService.findById(1L)).thenReturn(Optional.of(course));
+        when(subjectService.findById(1L)).thenReturn(Optional.of(subject));
         when(assignmentService.findById(1L)).thenReturn(Optional.of(assignment));
 
-        GradebookInput entry = GradebookInput.builder().studentId(99L).courseId(1L).assignmentId(1L).grade(4).build();
+        GradebookInput entry = GradebookInput.builder().studentId(99L).subjectId(1L).assignmentId(1L).grade(4).build();
         String entryAsString = mapper.writeValueAsString(entry);
 
         this.mockMvc
@@ -267,13 +267,13 @@ public class GradebookControllerTests {
 
     @Test
     @WithMockUser(username = "admin", password = "admin", roles = "ADMIN")
-    @DisplayName("when Class does not exist with given ID, gradeAssignment should return response 'Not Found'")
-    public void whenClassDoesNotExistWithGivenId_gradeAssignmentShouldReturnResponseNotFound() throws Exception {
+    @DisplayName("when Subject does not exist with given ID, gradeAssignment should return response 'Not Found'")
+    public void whenSubjectDoesNotExistWithGivenId_gradeAssignmentShouldReturnResponseNotFound() throws Exception {
         when(studentService.findById(1L)).thenReturn(Optional.of(student1));
-        when(courseService.findById(99L)).thenReturn(Optional.empty());
+        when(subjectService.findById(99L)).thenReturn(Optional.empty());
         when(assignmentService.findById(1L)).thenReturn(Optional.of(assignment));
 
-        GradebookInput entry = GradebookInput.builder().studentId(1L).courseId(99L).assignmentId(1L).grade(5).build();
+        GradebookInput entry = GradebookInput.builder().studentId(1L).subjectId(99L).assignmentId(1L).grade(5).build();
         String entryAsString = mapper.writeValueAsString(entry);
 
         this.mockMvc
@@ -291,10 +291,10 @@ public class GradebookControllerTests {
     @DisplayName("when Assignment does not exist with given ID, gradeAssignment should return response 'Not Found'")
     public void whenAssignmentDoesNotExistWithGivenId_gradeAssignmentShouldReturnResponseNotFound() throws Exception {
         when(studentService.findById(1L)).thenReturn(Optional.of(student1));
-        when(courseService.findById(1L)).thenReturn(Optional.of(course));
+        when(subjectService.findById(1L)).thenReturn(Optional.of(subject));
         when(assignmentService.findById(99L)).thenReturn(Optional.empty());
 
-        GradebookInput entry = GradebookInput.builder().studentId(1L).courseId(1L).assignmentId(99L).grade(4).build();
+        GradebookInput entry = GradebookInput.builder().studentId(1L).subjectId(1L).assignmentId(99L).grade(4).build();
         String entryAsString = mapper.writeValueAsString(entry);
 
         this.mockMvc
@@ -312,9 +312,9 @@ public class GradebookControllerTests {
     @DisplayName("when an entry exists with the given IDs, gradeAssignment should return response 'Conflict'")
     public void whenAnEntryExistsWithTheGivenIds_gradeAssignmentShouldReturnResponseConflict() throws Exception {
         when(studentService.findById(2L)).thenReturn(Optional.of(student2));
-        when(courseService.findById(1L)).thenReturn(Optional.of(course));
+        when(subjectService.findById(1L)).thenReturn(Optional.of(subject));
         when(assignmentService.findById(1L)).thenReturn(Optional.of(assignment));
-        when(courseService.isStudentInCourse(2L, 1L)).thenReturn(true);
+        when(subjectService.isStudentAddedToSubject(2L, 1L)).thenReturn(true);
         when(gradebookService.isDuplicateEntry(entry2)).thenReturn(true);
 
         String entry2AsString = mapper.writeValueAsString(entry2);
@@ -331,12 +331,12 @@ public class GradebookControllerTests {
 
     @Test
     @WithMockUser(username = "admin", password = "admin", roles = "ADMIN")
-    @DisplayName("when Student not enrolled in given Class, gradeAssignment should return response 'Bad Request'")
-    public void whenStudentNotEnrolledInGivenClass_gradeAssignmentShouldReturnResponseBadRequest() throws Exception {
+    @DisplayName("when Student not enrolled in given Subject, gradeAssignment should return response 'Bad Request'")
+    public void whenStudentNotEnrolledInGivenSubject_gradeAssignmentShouldReturnResponseBadRequest() throws Exception {
         when(studentService.findById(2L)).thenReturn(Optional.of(student2));
-        when(courseService.findById(1L)).thenReturn(Optional.of(course));
+        when(subjectService.findById(1L)).thenReturn(Optional.of(subject));
         when(assignmentService.findById(1L)).thenReturn(Optional.of(assignment));
-        when(courseService.isStudentInCourse(2L, 1L)).thenReturn(false);
+        when(subjectService.isStudentAddedToSubject(2L, 1L)).thenReturn(false);
 
         String entry2AsString = mapper.writeValueAsString(entry2);
 
@@ -374,10 +374,10 @@ public class GradebookControllerTests {
     @DisplayName("when entities found with given IDs, gradeAssignment should return created GradebookEntry")
     public void whenEntitiesFoundWithGivenIds_gradeAssignmentShouldReturnCreatedGradebookEntry() throws Exception {
         when(studentService.findById(1L)).thenReturn(Optional.of(student1));
-        when(courseService.findById(1L)).thenReturn(Optional.of(course));
+        when(subjectService.findById(1L)).thenReturn(Optional.of(subject));
         when(assignmentService.findById(1L)).thenReturn(Optional.of(assignment));
         when(gradebookService.save(entry1)).thenReturn(savedEntry1);
-        when(courseService.isStudentInCourse(1L, 1L)).thenReturn(true);
+        when(subjectService.isStudentAddedToSubject(1L, 1L)).thenReturn(true);
 
         String entry1AsString = mapper.writeValueAsString(entry1);
 
@@ -390,7 +390,7 @@ public class GradebookControllerTests {
                 .andDo(print())
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.student.id", is(1)))
-                .andExpect(jsonPath("$.course.id", is(1)))
+                .andExpect(jsonPath("$.subject.id", is(1)))
                 .andExpect(jsonPath("$.assignment.id", is(1)))
                 .andExpect(jsonPath("$.grade", is(4)));
     }
@@ -401,7 +401,7 @@ public class GradebookControllerTests {
                 throws ArgumentsAggregationException {
             return GradebookInput.builder()
                     .studentId(accessor.getLong(0))
-                    .courseId(accessor.getLong(1))
+                    .subjectId(accessor.getLong(1))
                     .assignmentId(accessor.getLong(2))
                     .grade(accessor.getInteger(3))
                     .build();

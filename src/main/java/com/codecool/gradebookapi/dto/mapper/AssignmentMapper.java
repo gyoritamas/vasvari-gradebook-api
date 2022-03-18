@@ -4,8 +4,7 @@ import com.codecool.gradebookapi.dto.AssignmentInput;
 import com.codecool.gradebookapi.dto.AssignmentOutput;
 import com.codecool.gradebookapi.dto.dataTypes.SimpleData;
 import com.codecool.gradebookapi.model.Assignment;
-import com.codecool.gradebookapi.repository.CourseRepository;
-import com.codecool.gradebookapi.repository.TeacherRepository;
+import com.codecool.gradebookapi.repository.SubjectRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -15,7 +14,7 @@ import java.util.stream.Collectors;
 @Component
 @RequiredArgsConstructor
 public class AssignmentMapper {
-    private final CourseRepository courseRepository;
+    private final SubjectRepository subjectRepository;
 
     public Assignment map(AssignmentInput input) {
         return Assignment.builder()
@@ -23,8 +22,8 @@ public class AssignmentMapper {
                 .type(input.getType())
                 .description(input.getDescription())
                 .deadline(input.getDeadline())
-                .course(
-                        courseRepository.getById(input.getCourseId())
+                .subject(
+                        subjectRepository.getById(input.getSubjectId())
                 )
                 .build();
     }
@@ -36,8 +35,8 @@ public class AssignmentMapper {
                 .type(assignment.getType())
                 .description(assignment.getDescription())
                 .deadline(assignment.getDeadline())
-                .course(
-                        new SimpleData(assignment.getCourse().getId(), assignment.getCourse().getName())
+                .subject(
+                        new SimpleData(assignment.getSubject().getId(), assignment.getSubject().getName())
                 )
                 .build();
     }

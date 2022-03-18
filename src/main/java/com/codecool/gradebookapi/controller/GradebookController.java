@@ -1,6 +1,6 @@
 package com.codecool.gradebookapi.controller;
 
-import com.codecool.gradebookapi.dto.CourseOutput;
+import com.codecool.gradebookapi.dto.SubjectOutput;
 import com.codecool.gradebookapi.dto.GradebookInput;
 import com.codecool.gradebookapi.dto.GradebookOutput;
 import com.codecool.gradebookapi.dto.TeacherDto;
@@ -40,7 +40,7 @@ public class GradebookController {
     private final TeacherService teacherService;
     private final GradebookService gradebookService;
     private final StudentService studentService;
-    private final CourseService courseService;
+    private final SubjectService subjectService;
     private final AssignmentService assignmentService;
     private final GradebookModelAssembler gradebookModelAssembler;
 
@@ -91,25 +91,25 @@ public class GradebookController {
                                 .withRel("student_gradebook")));
     }
 
-    @GetMapping("/class_gradebook/{classId}")
+    @GetMapping("/subject_gradebook/{subjectId}")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Returned list of all gradebook entries related to class"),
-            @ApiResponse(responseCode = "404", description = "Could not find class with given ID")
+            @ApiResponse(responseCode = "200", description = "Returned list of all gradebook entries related to subject"),
+            @ApiResponse(responseCode = "404", description = "Could not find subject with given ID")
     })
-    @Operation(summary = "Finds all gradebook entries related to class given by ID")
-    public ResponseEntity<CollectionModel<EntityModel<GradebookOutput>>> getGradesOfClass(
-            @PathVariable("classId") Long classId) {
-        courseService.findById(classId).orElseThrow(() -> new CourseNotFoundException(classId));
+    @Operation(summary = "Finds all gradebook entries related to subject given by ID")
+    public ResponseEntity<CollectionModel<EntityModel<GradebookOutput>>> getGradesOfSubject(
+            @PathVariable("subjectId") Long subjectId) {
+        subjectService.findById(subjectId).orElseThrow(() -> new SubjectNotFoundException(subjectId));
 
-        List<EntityModel<GradebookOutput>> entityModels = gradebookService.findByClassId(classId).stream()
+        List<EntityModel<GradebookOutput>> entityModels = gradebookService.findBySubjectId(subjectId).stream()
                 .map(gradebookModelAssembler::toModel)
                 .collect(Collectors.toList());
 
-        log.info("Returned list of all gradebook entries related to class {}", classId);
+        log.info("Returned list of all gradebook entries related to subject {}", subjectId);
 
         return ResponseEntity
                 .ok(CollectionModel.of(entityModels,
-                        linkTo(methodOn(GradebookController.class).getGradesOfClass(classId)).withRel("class_gradebook")));
+                        linkTo(methodOn(GradebookController.class).getGradesOfSubject(subjectId)).withRel("subject_gradebook")));
     }
 
     @PostMapping("/gradebook")
@@ -119,21 +119,21 @@ public class GradebookController {
             @ApiResponse(responseCode = "201", description = "Created gradebook entry"),
             @ApiResponse(responseCode = "400", description =
                     "Could not create gradebook entry due to invalid/missing parameters " +
-                            "or because student is not enrolled in given class"),
-            @ApiResponse(responseCode = "404", description = "Could not find student/class/assignment with given ID"),
+                            "or because student is not enrolled in given subject"),
+            @ApiResponse(responseCode = "404", description = "Could not find student/subject/assignment with given ID"),
             @ApiResponse(responseCode = "409", description =
                     "Could not create gradebook entry because an entry already exists with the same IDs")
     })
     public ResponseEntity<EntityModel<GradebookOutput>> gradeAssignment(@RequestBody @Valid GradebookInput gradebookInput) {
         Long studentId = gradebookInput.getStudentId();
-        Long classId = gradebookInput.getCourseId();
+        Long subjectId = gradebookInput.getSubjectId();
         Long assignmentId = gradebookInput.getAssignmentId();
 
         studentService.findById(studentId).orElseThrow(() -> new StudentNotFoundException(studentId));
-        courseService.findById(classId).orElseThrow(() -> new CourseNotFoundException(classId));
+        subjectService.findById(subjectId).orElseThrow(() -> new SubjectNotFoundException(subjectId));
         assignmentService.findById(assignmentId).orElseThrow(() -> new AssignmentNotFoundException(assignmentId));
-        if (!courseService.isStudentInCourse(studentId, classId))
-            throw new StudentNotInCourseException(studentId, classId);
+        if (!subjectService.isStudentAddedToSubject(studentId, subjectId))
+            throw new RelationNotFoundException(studentId, subjectId);
         if (gradebookService.isDuplicateEntry(gradebookInput)) throw new DuplicateEntryException(gradebookInput);
 
         GradebookOutput entryCreated = gradebookService.save(gradebookInput);
@@ -150,16 +150,16 @@ public class GradebookController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Returned list of all gradebook entries related to current user as student"),
             @ApiResponse(responseCode = "404", description = "Could not find student with given ID"),
-            @ApiResponse(responseCode = "404", description = "Could not find course with given ID")
+            @ApiResponse(responseCode = "404", description = "Could not find subject with given ID")
     })
     public ResponseEntity<CollectionModel<EntityModel<GradebookOutput>>> getGradesOfCurrentUserAsStudent(
-            @RequestParam(name = "courseId", required = false) Long courseId) {
+            @RequestParam(name = "subjectId", required = false) Long subjectId) {
         Long studentId = userService.getStudentIdOfCurrentUser();
         studentService.findById(studentId).orElseThrow(() -> new StudentNotFoundException(studentId));
-        if (courseId == null)
+        if (subjectId == null)
             return getGradebookEntriesByStudentId(studentId);
         else
-            return getGradebookEntriesByStudentIdAndCourseId(courseId, studentId);
+            return getGradebookEntriesByStudentIdAndSubjectId(subjectId, studentId);
     }
 
     private ResponseEntity<CollectionModel<EntityModel<GradebookOutput>>> getGradebookEntriesByStudentId(Long studentId) {
@@ -175,20 +175,20 @@ public class GradebookController {
                                 .withRel("gradebook-entries-of-student").expand()));
     }
 
-    private ResponseEntity<CollectionModel<EntityModel<GradebookOutput>>> getGradebookEntriesByStudentIdAndCourseId(Long courseId, Long studentId) {
-        courseService.findById(courseId).orElseThrow(() -> new CourseNotFoundException(courseId));
-        if (!courseService.isStudentInCourse(studentId, courseId))
-            throw new StudentNotInCourseException(studentId, courseId);
+    private ResponseEntity<CollectionModel<EntityModel<GradebookOutput>>> getGradebookEntriesByStudentIdAndSubjectId(Long subjectId, Long studentId) {
+        subjectService.findById(subjectId).orElseThrow(() -> new SubjectNotFoundException(subjectId));
+        if (!subjectService.isStudentAddedToSubject(studentId, subjectId))
+            throw new RelationNotFoundException(studentId, subjectId);
 
-        List<EntityModel<GradebookOutput>> entityModels = gradebookService.findByStudentIdAndCourseId(studentId, courseId).stream()
+        List<EntityModel<GradebookOutput>> entityModels = gradebookService.findByStudentIdAndSubjectId(studentId, subjectId).stream()
                 .map(gradebookModelAssembler::toModel)
                 .collect(Collectors.toList());
 
-        log.info("Returned list of all gradebook entries related to student {} and course {}", studentId, courseId);
+        log.info("Returned list of all gradebook entries related to student {} and subject {}", studentId, subjectId);
 
         return ResponseEntity
                 .ok(CollectionModel.of(entityModels,
-                        linkTo(methodOn(GradebookController.class).getGradesOfCurrentUserAsStudent(courseId))
+                        linkTo(methodOn(GradebookController.class).getGradesOfCurrentUserAsStudent(subjectId))
                                 .withRel("gradebook-entries-of-student")));
     }
 
@@ -200,23 +200,23 @@ public class GradebookController {
     })
     public ResponseEntity<CollectionModel<EntityModel<GradebookOutput>>> getGradebookEntriesOfCurrentUserAsTeacher(
             @RequestParam(name = "gradeLevel", required = false) Integer gradeLevel,
-            @RequestParam(name = "courseId", required = false) Long courseId) {
+            @RequestParam(name = "subjectId", required = false) Long subjectId) {
         Long teacherId = userService.getTeacherIdOfCurrentUser();
         TeacherDto teacher = teacherService.findById(teacherId).orElseThrow(() -> new TeacherNotFoundException(teacherId));
 
         List<GradebookOutput> gradebookEntries = new ArrayList<>();
-        if (courseId == null) {
-            // every gradebook entry of every course taught by the teacher
-            List<CourseOutput> coursesOfTeacher = courseService.findCoursesOfTeacher(teacher);
-            for (CourseOutput course : coursesOfTeacher) {
-                gradebookEntries.addAll(gradebookService.findByClassId(course.getId()));
+        if (subjectId == null) {
+            // every gradebook entry of every subject taught by the teacher
+            List<SubjectOutput> subjectsOfTeacher = subjectService.findSubjectsOfTeacher(teacher);
+            for (SubjectOutput subject : subjectsOfTeacher) {
+                gradebookEntries.addAll(gradebookService.findBySubjectId(subject.getId()));
             }
         } else {
-            // every gradebook entry of the specific course
-            CourseOutput course = courseService.findById(courseId).orElseThrow(() -> new CourseNotFoundException(courseId));
-            if (!course.getTeacher().getId().equals(teacherId))
-                throw new RuntimeException(String.format("Teacher %d is not teaching course %d", teacherId, courseId));
-            gradebookEntries.addAll(gradebookService.findByClassId(courseId));
+            // every gradebook entry of the specific subject
+            SubjectOutput subject = subjectService.findById(subjectId).orElseThrow(() -> new SubjectNotFoundException(subjectId));
+            if (!subject.getTeacher().getId().equals(teacherId))
+                throw new RuntimeException(String.format("Teacher %d is not teaching subject %d", teacherId, subjectId));
+            gradebookEntries.addAll(gradebookService.findBySubjectId(subjectId));
         }
 
         if (gradeLevel != null)
@@ -228,7 +228,7 @@ public class GradebookController {
 
         return ResponseEntity
                 .ok(CollectionModel.of(gradebookModelAssembler.toCollectionModel(gradebookEntries),
-                        linkTo(methodOn(GradebookController.class).getGradebookEntriesOfCurrentUserAsTeacher(gradeLevel, courseId))
+                        linkTo(methodOn(GradebookController.class).getGradebookEntriesOfCurrentUserAsTeacher(gradeLevel, subjectId))
                                 .withRel("gradebook-entries-of-teacher")));
 
     }

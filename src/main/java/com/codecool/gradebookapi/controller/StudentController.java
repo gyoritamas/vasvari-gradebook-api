@@ -1,11 +1,11 @@
 package com.codecool.gradebookapi.controller;
 
-import com.codecool.gradebookapi.dto.CourseOutput;
+import com.codecool.gradebookapi.dto.SubjectOutput;
 import com.codecool.gradebookapi.dto.StudentDto;
 import com.codecool.gradebookapi.dto.TeacherDto;
-import com.codecool.gradebookapi.dto.assembler.CourseModelAssembler;
+import com.codecool.gradebookapi.dto.assembler.SubjectModelAssembler;
 import com.codecool.gradebookapi.dto.assembler.StudentModelAssembler;
-import com.codecool.gradebookapi.exception.CourseNotFoundException;
+import com.codecool.gradebookapi.exception.SubjectNotFoundException;
 import com.codecool.gradebookapi.exception.StudentInUseException;
 import com.codecool.gradebookapi.exception.StudentNotFoundException;
 import com.codecool.gradebookapi.exception.TeacherNotFoundException;
@@ -41,10 +41,10 @@ public class StudentController {
     private final UserService userService;
     private final StudentService studentService;
     private final TeacherService teacherService;
-    private final CourseService courseService;
+    private final SubjectService subjectService;
     private final GradebookService gradebookService;
     private final StudentModelAssembler studentModelAssembler;
-    private final CourseModelAssembler courseModelAssembler;
+    private final SubjectModelAssembler subjectModelAssembler;
 
     @GetMapping("/students")
     @Operation(summary = "Lists all students")
@@ -119,18 +119,18 @@ public class StudentController {
         return ResponseEntity.noContent().build();
     }
 
-    @GetMapping("/students/{id}/classes")
-    @Operation(summary = "Lists all classes of the student given by ID")
+    @GetMapping("/students/{id}/subjects")
+    @Operation(summary = "Lists all subjects of the student given by ID")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Returned list of all classes related to student given by ID"),
+            @ApiResponse(responseCode = "200", description = "Returned list of all subjects related to student given by ID"),
             @ApiResponse(responseCode = "404", description = "Could not find student with given ID")
     })
-    public ResponseEntity<CollectionModel<EntityModel<CourseOutput>>> getClassesOfStudent(@PathVariable("id") Long id) {
+    public ResponseEntity<CollectionModel<EntityModel<SubjectOutput>>> getSubjectsOfStudent(@PathVariable("id") Long id) {
         StudentDto student = studentService.findById(id).orElseThrow(() -> new StudentNotFoundException(id));
-        log.info("Returned list of all classes related to student {}", id);
+        log.info("Returned list of all subjects related to student {}", id);
 
         return ResponseEntity.
-                ok(courseModelAssembler.toCollectionModel(studentService.findCoursesOfStudent(student)));
+                ok(subjectModelAssembler.toCollectionModel(studentService.findSubjectsOfStudent(student)));
     }
 
     @GetMapping("/teacher-user/students")
@@ -141,19 +141,19 @@ public class StudentController {
     })
     public ResponseEntity<CollectionModel<EntityModel<StudentDto>>> getStudentsOfCurrentUserAsTeacher(
             @RequestParam(name = "gradeLevel", required = false) Integer gradeLevel,
-            @RequestParam(name = "courseId", required = false) Long courseId) {
+            @RequestParam(name = "subjectId", required = false) Long subjectId) {
         Long teacherId = userService.getTeacherIdOfCurrentUser();
         TeacherDto teacher = teacherService.findById(teacherId).orElseThrow(() -> new TeacherNotFoundException(teacherId));
 
         List<StudentDto> students;
-        if (courseId == null) {
-            students = courseService.findStudentsOfTeacher(teacher);
+        if (subjectId == null) {
+            students = subjectService.findStudentsOfTeacher(teacher);
         } else {
-            // check if this teacher is teaching the course
-            CourseOutput course = courseService.findById(courseId).orElseThrow(() -> new CourseNotFoundException(courseId));
-            if (!course.getTeacher().getId().equals(teacherId))
-                throw new RuntimeException(String.format("Teacher %d is not teaching course %d", teacherId, courseId));
-            students = courseService.getStudentsOfCourse(courseId);
+            // check if this teacher is teaching the subject
+            SubjectOutput subject = subjectService.findById(subjectId).orElseThrow(() -> new SubjectNotFoundException(subjectId));
+            if (!subject.getTeacher().getId().equals(teacherId))
+                throw new RuntimeException(String.format("Teacher %d is not teaching subject %d", teacherId, subjectId));
+            students = subjectService.getStudentsOfSubject(subjectId);
         }
 
         if (gradeLevel != null)
@@ -165,7 +165,7 @@ public class StudentController {
 
         return ResponseEntity
                 .ok(CollectionModel.of(studentModelAssembler.toCollectionModel(students),
-                        linkTo(methodOn(StudentController.class).getStudentsOfCurrentUserAsTeacher(gradeLevel, courseId))
+                        linkTo(methodOn(StudentController.class).getStudentsOfCurrentUserAsTeacher(gradeLevel, subjectId))
                                 .withRel("students-of-teacher")));
     }
 }

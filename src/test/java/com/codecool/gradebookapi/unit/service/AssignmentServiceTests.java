@@ -2,11 +2,11 @@ package com.codecool.gradebookapi.unit.service;
 
 import com.codecool.gradebookapi.dto.AssignmentInput;
 import com.codecool.gradebookapi.dto.AssignmentOutput;
-import com.codecool.gradebookapi.dto.CourseInput;
+import com.codecool.gradebookapi.dto.SubjectInput;
 import com.codecool.gradebookapi.dto.TeacherDto;
 import com.codecool.gradebookapi.model.AssignmentType;
 import com.codecool.gradebookapi.service.AssignmentService;
-import com.codecool.gradebookapi.service.CourseService;
+import com.codecool.gradebookapi.service.SubjectService;
 import com.codecool.gradebookapi.service.TeacherService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -33,7 +33,7 @@ public class AssignmentServiceTests {
     private TeacherService teacherService;
 
     @Autowired
-    private CourseService courseService;
+    private SubjectService subjectService;
 
     private AssignmentInput assignmentInput1;
     private AssignmentInput assignmentInput2;
@@ -51,26 +51,26 @@ public class AssignmentServiceTests {
 
         long teacherId = teacherService.save(teacher).getId();
 
-        CourseInput course = CourseInput.builder()
+        SubjectInput subject = SubjectInput.builder()
                 .name("Algebra")
                 .teacherId(teacherId)
                 .build();
 
-        long courseId = courseService.save(course).getId();
+        long subjectId = subjectService.save(subject).getId();
 
         assignmentInput1 = AssignmentInput.builder()
                 .name("Homework 1")
                 .type(AssignmentType.HOMEWORK)
                 .description("Read chapters 1 to 5")
                 .deadline(LocalDate.of(2051, 1, 1))
-                .courseId(courseId)
+                .subjectId(subjectId)
                 .build();
         assignmentInput2 = AssignmentInput.builder()
                 .name("Homework 2")
                 .type(AssignmentType.HOMEWORK)
                 .description("Read chapters 6 to 9")
                 .deadline(LocalDate.of(2052, 1, 1))
-                .courseId(courseId)
+                .subjectId(subjectId)
                 .build();
     }
 

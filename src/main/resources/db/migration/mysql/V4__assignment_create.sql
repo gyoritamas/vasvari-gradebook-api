@@ -7,11 +7,11 @@ create table assignment
     type        varchar(255),
     description varchar(255),
     deadline    date,
-    course_id   bigint,
+    subject_id   bigint,
     primary key (id)
 );
 
 alter table assignment
-    add constraint FKbt7x8mvmfgjbjbtxpv65go0ab
-        foreign key (course_id)
-            references course (id);
+    add constraint subject_constraint
+        foreign key (subject_id)
+            references subject (id);

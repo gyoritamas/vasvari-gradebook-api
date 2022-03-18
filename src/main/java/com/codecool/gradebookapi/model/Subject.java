@@ -11,7 +11,7 @@ import java.util.Set;
 @AllArgsConstructor
 @Getter
 @Setter
-public class Course {
+public class Subject {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;

@@ -1,7 +1,7 @@
 package com.codecool.gradebookapi.controller.advice;
 
-import com.codecool.gradebookapi.exception.CourseInUseException;
-import com.codecool.gradebookapi.exception.CourseNotFoundException;
+import com.codecool.gradebookapi.exception.SubjectInUseException;
+import com.codecool.gradebookapi.exception.SubjectNotFoundException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -15,9 +15,9 @@ import java.net.URI;
 
 @ControllerAdvice
 @Slf4j
-public class CourseControllerAdvice {
-    @ExceptionHandler(CourseNotFoundException.class)
-    ResponseEntity<Problem> handleCannotFindClass(CourseNotFoundException ex) {
+public class SubjectControllerAdvice {
+    @ExceptionHandler(SubjectNotFoundException.class)
+    ResponseEntity<Problem> handleCannotFindClass(SubjectNotFoundException ex) {
         Problem problem = Problem.builder()
                 .withType(URI.create("classes/not-found"))
                 .withTitle("Class not found")
@@ -33,8 +33,8 @@ public class CourseControllerAdvice {
                 .body(problem);
     }
 
-    @ExceptionHandler(CourseInUseException.class)
-    ResponseEntity<Problem> handleAssignmentInUse(CourseInUseException ex) {
+    @ExceptionHandler(SubjectInUseException.class)
+    ResponseEntity<Problem> handleAssignmentInUse(SubjectInUseException ex) {
         Problem problem = Problem.builder()
                 .withType(URI.create("classes/method-not-allowed"))
                 .withTitle("Class in use")

@@ -13,8 +13,8 @@ import java.util.List;
 @Setter
 @Builder
 @EqualsAndHashCode
-@Relation(collectionRelation = "courses", itemRelation = "course")
-public class CourseOutput {
+@Relation(collectionRelation = "subjects", itemRelation = "subject")
+public class SubjectOutput {
 
     private Long id;
 

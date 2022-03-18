@@ -19,7 +19,7 @@ public class GradebookOutput {
 
     private SimpleData student;
 
-    private SimpleData course;
+    private SimpleData subject;
 
     private SimpleData assignment;
 

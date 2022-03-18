@@ -14,6 +14,6 @@ import javax.validation.constraints.NotBlank;
 @Setter
 public class UsernameInput {
     @NotBlank(message = "Username field cannot be empty")
-    @Schema(example = "johndoe72")
+    @Schema(example = "johndoe91")
     private String username;
 }

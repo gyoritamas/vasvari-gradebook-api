@@ -12,7 +12,7 @@ import javax.validation.constraints.NotNull;
 @Setter
 @Builder
 @EqualsAndHashCode
-public class CourseInput {
+public class SubjectInput {
 
     @NotBlank(message = "Name field cannot be empty")
     @Schema(example = "Algebra")

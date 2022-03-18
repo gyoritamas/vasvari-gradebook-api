@@ -1,7 +1,7 @@
 package com.codecool.gradebookapi.dto.assembler;
 
 import com.codecool.gradebookapi.controller.AssignmentController;
-import com.codecool.gradebookapi.controller.CourseController;
+import com.codecool.gradebookapi.controller.SubjectController;
 import com.codecool.gradebookapi.controller.GradebookController;
 import com.codecool.gradebookapi.controller.StudentController;
 import com.codecool.gradebookapi.dto.GradebookOutput;
@@ -21,7 +21,7 @@ public class GradebookModelAssembler implements RepresentationModelAssembler<Gra
         return EntityModel.of(entry,
                 linkTo(methodOn(GradebookController.class).getById(entry.getId())).withSelfRel(),
                 linkTo(methodOn(StudentController.class).getById(entry.getStudent().getId())).withRel("student"),
-                linkTo(methodOn(CourseController.class).getById(entry.getCourse().getId())).withRel("class"),
+                linkTo(methodOn(SubjectController.class).getById(entry.getSubject().getId())).withRel("subject"),
                 linkTo(methodOn(AssignmentController.class).getById(entry.getAssignment().getId())).withRel("assignment"),
                 linkTo(methodOn(GradebookController.class).getAll()).withRel("entries"));
     }

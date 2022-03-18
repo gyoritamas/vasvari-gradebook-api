@@ -207,68 +207,68 @@ public class StudentIntegrationTests {
         }
 
         @Test
-        @DisplayName("when Student exists with given ID, getClassesOfStudent should return list of Classes")
-        public void whenStudentExistsWithGivenId_getClassesOfStudentShouldReturnListOfClasses() {
+        @DisplayName("when Student exists with given ID, getSubjectsOfStudent should return list of Subjects")
+        public void whenStudentExistsWithGivenId_getSubjectsOfStudentShouldReturnListOfSubjects() {
             student1 = postStudent(student1);
             student2 = postStudent(student2);
             long teacherId = postTeacher(teacher).getId();
 
-            CourseInput courseInput1 = CourseInput.builder().name("Algebra").teacherId(teacherId).build();
-            CourseInput courseInput2 = CourseInput.builder().name("Biology").teacherId(teacherId).build();
-            CourseOutput courseOutput1 = postCourse(courseInput1);
-            CourseOutput courseOutput2 = postCourse(courseInput2);
+            SubjectInput subjectInput1 = SubjectInput.builder().name("Algebra").teacherId(teacherId).build();
+            SubjectInput subjectInput2 = SubjectInput.builder().name("Biology").teacherId(teacherId).build();
+            SubjectOutput subjectOutput1 = postSubject(subjectInput1);
+            SubjectOutput subjectOutput2 = postSubject(subjectInput2);
 
-            Link linkToClassEnrollment1 = linkTo(methodOn(CourseController.class)
-                    .addStudentToClass(courseOutput1.getId(), student1.getId()))
+            Link linkToAddStudent1ToSubject = linkTo(methodOn(SubjectController.class)
+                    .addStudentToSubject(subjectOutput1.getId(), student1.getId()))
                     .withSelfRel();
-            Link linkToClassEnrollment2 = linkTo(methodOn(CourseController.class)
-                    .addStudentToClass(courseOutput2.getId(), student1.getId()))
+            Link linkToAddStudent2ToSubject = linkTo(methodOn(SubjectController.class)
+                    .addStudentToSubject(subjectOutput2.getId(), student1.getId()))
                     .withSelfRel();
 
-            ResponseEntity<CourseOutput> course1Student1AddedPostResponse = template.exchange(
-                    linkToClassEnrollment1.getHref(),
+            ResponseEntity<SubjectOutput> subject1Student1AddedPostResponse = template.exchange(
+                    linkToAddStudent1ToSubject.getHref(),
                     HttpMethod.POST,
                     auth.createHttpEntityWithAuthorization(null),
-                    CourseOutput.class
+                    SubjectOutput.class
             );
-            ResponseEntity<CourseOutput> course2Student1AddedPostResponse = template.exchange(
-                    linkToClassEnrollment2.getHref(),
+            ResponseEntity<SubjectOutput> subject2Student1AddedPostResponse = template.exchange(
+                    linkToAddStudent2ToSubject.getHref(),
                     HttpMethod.POST,
                     auth.createHttpEntityWithAuthorization(null),
-                    CourseOutput.class
+                    SubjectOutput.class
             );
 
-            assertThat(course1Student1AddedPostResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
-            assertThat(course1Student1AddedPostResponse.getBody()).isNotNull();
-            assertThat(course2Student1AddedPostResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
-            assertThat(course2Student1AddedPostResponse.getBody()).isNotNull();
+            assertThat(subject1Student1AddedPostResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
+            assertThat(subject1Student1AddedPostResponse.getBody()).isNotNull();
+            assertThat(subject2Student1AddedPostResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
+            assertThat(subject2Student1AddedPostResponse.getBody()).isNotNull();
 
-            courseOutput1 = course1Student1AddedPostResponse.getBody();
-            courseOutput2 = course2Student1AddedPostResponse.getBody();
+            subjectOutput1 = subject1Student1AddedPostResponse.getBody();
+            subjectOutput2 = subject2Student1AddedPostResponse.getBody();
 
-            String urlToClassesOfStudent = String.format("http://localhost:%d/api/students/%d/classes", port, student1.getId());
-            Traverson traverson = new Traverson(URI.create(urlToClassesOfStudent), MediaTypes.HAL_JSON);
-            TypeReferences.CollectionModelType<CourseOutput> collectionModelType =
+            String urlToSubjectsOfStudent = String.format("http://localhost:%d/api/students/%d/subjects", port, student1.getId());
+            Traverson traverson = new Traverson(URI.create(urlToSubjectsOfStudent), MediaTypes.HAL_JSON);
+            TypeReferences.CollectionModelType<SubjectOutput> collectionModelType =
                     new TypeReferences.CollectionModelType<>() {
                     };
-            CollectionModel<CourseOutput> classResource = traverson
+            CollectionModel<SubjectOutput> classResource = traverson
                     .follow("$._links.self.href")
                     .withHeaders(auth.getHeadersWithAuthorization())
                     .toObject(collectionModelType);
 
             assertThat(classResource).isNotNull();
             assertThat(classResource.getContent()).isNotNull();
-            assertThat(classResource.getContent()).containsExactly(courseOutput1, courseOutput2);
+            assertThat(classResource.getContent()).containsExactly(subjectOutput1, subjectOutput2);
         }
 
         @Test
-        @DisplayName("when student does not exist with given ID, getClassesOfStudent should return response 'Not Found'")
-        public void whenStudentDoesNotExistWithGivenId_getClassesOfStudentShouldReturnResponseNotFound() {
-            Link linkToClassesOfStudent = linkTo(methodOn(StudentController.class)
-                    .getClassesOfStudent(99L))
+        @DisplayName("when student does not exist with given ID, getSubjectsOfStudent should return response 'Not Found'")
+        public void whenStudentDoesNotExistWithGivenId_getSubjectsOfStudentShouldReturnResponseNotFound() {
+            Link linkToSubjectsOfStudent = linkTo(methodOn(StudentController.class)
+                    .getSubjectsOfStudent(99L))
                     .withSelfRel();
             ResponseEntity<?> response = template.exchange(
-                    linkToClassesOfStudent.getHref(),
+                    linkToSubjectsOfStudent.getHref(),
                     HttpMethod.GET,
                     auth.createHttpEntityWithAuthorization(null),
                     String.class
@@ -431,13 +431,13 @@ public class StudentIntegrationTests {
         return postResponse.getBody();
     }
 
-    private CourseOutput postCourse(CourseInput course) {
-        Link linkToClasses = linkTo(methodOn(CourseController.class).add(course)).withSelfRel();
-        ResponseEntity<CourseOutput> postResponse = template.exchange(
-                linkToClasses.getHref(),
+    private SubjectOutput postSubject(SubjectInput subject) {
+        Link linkToSubjects = linkTo(methodOn(SubjectController.class).add(subject)).withSelfRel();
+        ResponseEntity<SubjectOutput> postResponse = template.exchange(
+                linkToSubjects.getHref(),
                 HttpMethod.POST,
-                auth.createHttpEntityWithAuthorization(course),
-                CourseOutput.class
+                auth.createHttpEntityWithAuthorization(subject),
+                SubjectOutput.class
         );
 
         assertThat(postResponse.getStatusCode()).isEqualTo(HttpStatus.CREATED);
@@ -450,16 +450,16 @@ public class StudentIntegrationTests {
         // post teacher
         long teacherId = postTeacher(teacher).getId();
 
-        // post course
-        CourseInput course = CourseInput.builder().name("Algebra").teacherId(teacherId).build();
-        CourseOutput coursePosted = postCourse(course);
+        // post subject
+        SubjectInput subject = SubjectInput.builder().name("Algebra").teacherId(teacherId).build();
+        SubjectOutput subjectPosted = postSubject(subject);
 
         // post assignment
         AssignmentInput assignment = AssignmentInput.builder()
                 .name("Homework 1")
                 .type(AssignmentType.HOMEWORK)
                 .deadline(LocalDate.of(2051, 1, 1))
-                .courseId(coursePosted.getId())
+                .subjectId(subjectPosted.getId())
                 .build();
         Link linkToAssignments = linkTo(AssignmentController.class).withSelfRel();
         ResponseEntity<AssignmentOutput> assignmentPostResponse = template.exchange(
@@ -472,21 +472,21 @@ public class StudentIntegrationTests {
         assertThat(assignmentPostResponse.getBody()).isNotNull();
         AssignmentOutput assignmentPosted = assignmentPostResponse.getBody();
 
-        // add student to course
-        Link linkToClassEnrollment = linkTo(methodOn(CourseController.class)
-                .addStudentToClass(coursePosted.getId(), student.getId()))
+        // add student to subject
+        Link linkToAddStudentToSubject = linkTo(methodOn(SubjectController.class)
+                .addStudentToSubject(subjectPosted.getId(), student.getId()))
                 .withSelfRel();
         template.exchange(
-                linkToClassEnrollment.getHref(),
+                linkToAddStudentToSubject.getHref(),
                 HttpMethod.POST,
                 auth.createHttpEntityWithAuthorization(null),
-                CourseOutput.class
+                SubjectOutput.class
         );
 
         // post gradebook entry
         GradebookInput gradebookInput = GradebookInput.builder()
                 .studentId(student.getId())
-                .courseId(coursePosted.getId())
+                .subjectId(subjectPosted.getId())
                 .assignmentId(assignmentPosted.getId())
                 .grade(5)
                 .build();

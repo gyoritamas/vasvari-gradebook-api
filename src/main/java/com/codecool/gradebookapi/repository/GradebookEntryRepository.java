@@ -9,11 +9,11 @@ import java.util.Optional;
 public interface GradebookEntryRepository extends JpaRepositoryImplementation<GradebookEntry, Long> {
     List<GradebookEntry> findAllByStudent_Id(long id);
 
-    List<GradebookEntry> findAllByCourse_Id(long id);
+    List<GradebookEntry> findAllBySubject_Id(long id);
 
     List<GradebookEntry> findAllByAssignment_Id(long id);
 
-    List<GradebookEntry> findAllByStudent_IdAndCourse_Id(long studentId, long courseId);
+    List<GradebookEntry> findAllByStudent_IdAndSubject_Id(long studentId, long subjectId);
 
-    Optional<GradebookEntry> findByStudent_IdAndCourse_IdAndAssignment_Id(long studentId, long courseId, long assignmentId);
+    Optional<GradebookEntry> findByStudent_IdAndSubject_IdAndAssignment_Id(long studentId, long subjectId, long assignmentId);
 }

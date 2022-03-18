@@ -6,7 +6,7 @@ import com.codecool.gradebookapi.dto.assembler.AssignmentModelAssembler;
 import com.codecool.gradebookapi.exception.AssignmentInUseException;
 import com.codecool.gradebookapi.exception.AssignmentNotFoundException;
 import com.codecool.gradebookapi.service.AssignmentService;
-import com.codecool.gradebookapi.service.CourseService;
+import com.codecool.gradebookapi.service.SubjectService;
 import com.codecool.gradebookapi.service.GradebookService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -32,7 +32,7 @@ import javax.validation.Valid;
 public class AssignmentController {
 
     private final AssignmentService assignmentService;
-    private final CourseService courseService;
+    private final SubjectService subjectService;
     private final GradebookService gradebookService;
     private final AssignmentModelAssembler assembler;
 
@@ -68,9 +68,9 @@ public class AssignmentController {
             @ApiResponse(responseCode = "400", description = "Could not create assignment due to invalid parameters")
     })
     public ResponseEntity<EntityModel<AssignmentOutput>> add(@RequestBody @Valid AssignmentInput assignment) {
-        long courseId = assignment.getCourseId();
+        long subjectId = assignment.getSubjectId();
         // TODO: return proper response with Problem
-        if (courseService.findById(courseId).isEmpty())
+        if (subjectService.findById(subjectId).isEmpty())
             return ResponseEntity.badRequest().build();
 
         AssignmentOutput assignmentCreated = assignmentService.save(assignment);
@@ -91,8 +91,8 @@ public class AssignmentController {
     })
     public ResponseEntity<EntityModel<AssignmentOutput>> update(@RequestBody @Valid AssignmentInput assignment,
                                                                 @PathVariable("id") Long id) {
-        long courseId = assignment.getCourseId();
-        if (courseService.findById(courseId).isEmpty())
+        long subjectId = assignment.getSubjectId();
+        if (subjectService.findById(subjectId).isEmpty())
             return ResponseEntity.badRequest().build();
 
         assignmentService.findById(id).orElseThrow(() -> new AssignmentNotFoundException(id));

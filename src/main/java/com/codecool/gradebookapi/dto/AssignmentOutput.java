@@ -34,6 +34,6 @@ public class AssignmentOutput {
     @JsonDeserialize(using = LocalDateDeserializer.class)
     private LocalDate deadline;
 
-    private SimpleData course;
+    private SimpleData subject;
 
 }

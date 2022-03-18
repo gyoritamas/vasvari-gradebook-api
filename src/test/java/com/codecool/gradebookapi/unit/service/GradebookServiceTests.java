@@ -26,7 +26,7 @@ public class GradebookServiceTests {
     @Autowired
     private StudentService studentService;
     @Autowired
-    private CourseService courseService;
+    private SubjectService subjectService;
     @Autowired
     private TeacherService teacherService;
     @Autowired
@@ -68,35 +68,35 @@ public class GradebookServiceTests {
                 .birthdate("1984-02-01")
                 .build();
         long teacherId = teacherService.save(teacher).getId();
-        CourseInput course1 = CourseInput.builder()
+        SubjectInput subject1 = SubjectInput.builder()
                 .name("Algebra")
                 .teacherId(teacherId)
                 .build();
-        long course1Id = courseService.save(course1).getId();
+        long subject1Id = subjectService.save(subject1).getId();
 
-        CourseInput course2 = CourseInput.builder()
+        SubjectInput subject2 = SubjectInput.builder()
                 .name("Biology")
                 .teacherId(teacherId)
                 .build();
-        long course2Id = courseService.save(course2).getId();
+        long subject2Id = subjectService.save(subject2).getId();
 
         AssignmentInput assignment = AssignmentInput.builder()
                 .name("Homework 1")
                 .type(AssignmentType.HOMEWORK)
                 .deadline(LocalDate.of(2051, 1, 1))
-                .courseId(course1Id)
+                .subjectId(subject1Id)
                 .build();
         long assignmentId = assignmentService.save(assignment).getId();
 
         entry1 = GradebookInput.builder()
                 .studentId(student1Id)
-                .courseId(course1Id)
+                .subjectId(subject1Id)
                 .assignmentId(assignmentId)
                 .grade(4)
                 .build();
         entry2 = GradebookInput.builder()
                 .studentId(student2Id)
-                .courseId(course2Id)
+                .subjectId(subject2Id)
                 .assignmentId(assignmentId)
                 .grade(5)
                 .build();
@@ -109,7 +109,7 @@ public class GradebookServiceTests {
         GradebookOutput entrySaved = gradebookService.save(entry1);
 
         assertThat(entrySaved.getStudent().getId()).isEqualTo(entry1.getStudentId());
-        assertThat(entrySaved.getCourse().getId()).isEqualTo(entry1.getCourseId());
+        assertThat(entrySaved.getSubject().getId()).isEqualTo(entry1.getSubjectId());
         assertThat(entrySaved.getAssignment().getId()).isEqualTo(entry1.getAssignmentId());
         assertThat(entrySaved.getGrade()).isEqualTo(entry1.getGrade());
     }
@@ -186,23 +186,23 @@ public class GradebookServiceTests {
 
     @Test
     @Transactional
-    @DisplayName("when entries related to given Class exist, findByClass should return list of GradebookEntries")
-    public void whenEntriesRelatedToGivenClassExist_findByClassShouldReturnListOfEntries() {
+    @DisplayName("when entries related to given Subject exist, findBySubject should return list of GradebookEntries")
+    public void whenEntriesRelatedToGivenSubjectExist_findBySubjectShouldReturnListOfEntries() {
         GradebookOutput entrySaved = gradebookService.save(entry1);
 
-        List<GradebookOutput> entriesOfClass1 = gradebookService.findByClassId(entry1.getCourseId());
+        List<GradebookOutput> entriesOfSubject1 = gradebookService.findBySubjectId(entry1.getSubjectId());
 
-        assertThat(entriesOfClass1).containsExactly(entrySaved);
+        assertThat(entriesOfSubject1).containsExactly(entrySaved);
     }
 
     @Test
     @Transactional
-    @DisplayName("when no entries related to given Class exist, findByClass should return empty list")
-    public void whenNoEntriesRelatedToGivenClassExist_findByClassShouldReturnEmptyList() {
+    @DisplayName("when no entries related to given Subject exist, findBySubject should return empty list")
+    public void whenNoEntriesRelatedToGivenSubjectExist_findBySubjectShouldReturnEmptyList() {
         gradebookService.save(entry1);
         gradebookService.save(entry2);
 
-        List<GradebookOutput> entries = gradebookService.findByClassId(99L);
+        List<GradebookOutput> entries = gradebookService.findBySubjectId(99L);
 
         assertThat(entries).isEmpty();
     }

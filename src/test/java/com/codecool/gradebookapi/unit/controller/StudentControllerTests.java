@@ -1,10 +1,11 @@
 package com.codecool.gradebookapi.unit.controller;
 
 import com.codecool.gradebookapi.controller.StudentController;
-import com.codecool.gradebookapi.dto.CourseOutput;
+import com.codecool.gradebookapi.dto.SubjectOutput;
 import com.codecool.gradebookapi.dto.GradebookOutput;
 import com.codecool.gradebookapi.dto.StudentDto;
-import com.codecool.gradebookapi.dto.assembler.CourseModelAssembler;
+import com.codecool.gradebookapi.dto.TeacherDto;
+import com.codecool.gradebookapi.dto.assembler.SubjectModelAssembler;
 import com.codecool.gradebookapi.dto.assembler.StudentModelAssembler;
 import com.codecool.gradebookapi.dto.dataTypes.SimpleData;
 import com.codecool.gradebookapi.jwt.JwtAuthenticationEntryPoint;
@@ -43,7 +44,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(StudentController.class)
-@Import({StudentModelAssembler.class, CourseModelAssembler.class, PasswordConfig.class, JwtAuthenticationEntryPoint.class})
+@Import({StudentModelAssembler.class, SubjectModelAssembler.class, PasswordConfig.class, JwtAuthenticationEntryPoint.class})
 public class StudentControllerTests {
 
     @Autowired
@@ -53,7 +54,7 @@ public class StudentControllerTests {
     private StudentService studentService;
 
     @MockBean
-    private CourseService courseService;
+    private SubjectService subjectService;
 
     @MockBean
     private TeacherService teacherService;
@@ -277,12 +278,12 @@ public class StudentControllerTests {
 
     @Test
     @WithMockUser(username = "admin", password = "admin", roles = "ADMIN")
-    @DisplayName("when Student does not exist with given ID, getClassesOfStudent should return response 'Not Found'")
-    public void whenStudentDoesNotExistWithGivenId_getClassesOfStudentShouldReturnResponseNotFound() throws Exception {
+    @DisplayName("when Student does not exist with given ID, getSubjectsOfStudent should return response 'Not Found'")
+    public void whenStudentDoesNotExistWithGivenId_getSubjectsOfStudentShouldReturnResponseNotFound() throws Exception {
         when(studentService.findById(99L)).thenReturn(Optional.empty());
 
         this.mockMvc
-                .perform(get("/api/students/99/classes"))
+                .perform(get("/api/students/99/subjects"))
                 .andDo(print())
                 .andExpect(status().isNotFound());
     }
@@ -305,30 +306,35 @@ public class StudentControllerTests {
 
     @Test
     @WithMockUser(username = "admin", password = "admin", roles = "ADMIN")
-    @DisplayName("when Student exists with given ID, getClassesOfStudent should return list of Classes")
-    public void whenStudentExistsWithGivenId_getClassesOfStudentShouldReturnListOfClasses() throws Exception {
+    @DisplayName("when Student exists with given ID, getSubjectsOfStudent should return list of Subjects")
+    public void whenStudentExistsWithGivenId_getSubjectsOfStudentShouldReturnListOfSubjects() throws Exception {
         SimpleData simpleStudent1 = new SimpleData(student1.getId(), student1.getName());
         SimpleData simpleStudent2 = new SimpleData(student2.getId(), student2.getName());
-        CourseOutput class1 = CourseOutput.builder()
+        TeacherDto teacher = TeacherDto.builder().id(1L).firstname("Darrell").lastname("Bowen").build();
+        SimpleData simpleTeacher = new SimpleData(1L, "Darrell Bowen");
+        SubjectOutput subject1 = SubjectOutput.builder()
                 .name("Biology")
+                .teacher(simpleTeacher)
                 .students(List.of(simpleStudent1))
                 .build();
-        CourseOutput class2 = CourseOutput.builder()
+        SubjectOutput subject2 = SubjectOutput.builder()
                 .name("Social science")
+                .teacher(simpleTeacher)
                 .students(List.of(simpleStudent1, simpleStudent2))
                 .build();
-        List<CourseOutput> classesOfStudent1 = List.of(class1, class2);
+        List<SubjectOutput> subjectsOfStudent1 = List.of(subject1, subject2);
 
         when(studentService.findById(1L)).thenReturn(Optional.of(student1));
-        when(studentService.findCoursesOfStudent(student1)).thenReturn(classesOfStudent1);
+        when(teacherService.findById(1L)).thenReturn(Optional.of(teacher));
+        when(studentService.findSubjectsOfStudent(student1)).thenReturn(subjectsOfStudent1);
 
         this.mockMvc
-                .perform(get("/api/students/1/classes"))
+                .perform(get("/api/students/1/subjects"))
                 .andDo(print())
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$._embedded.courses", hasSize(2)))
-                .andExpect(jsonPath("$._embedded.courses[0].name", is("Biology")))
-                .andExpect(jsonPath("$._embedded.courses[1].name", is("Social science")));
+                .andExpect(jsonPath("$._embedded.subjects", hasSize(2)))
+                .andExpect(jsonPath("$._embedded.subjects[0].name", is("Biology")))
+                .andExpect(jsonPath("$._embedded.subjects[1].name", is("Social science")));
     }
 
     private static class StudentAggregator implements ArgumentsAggregator {

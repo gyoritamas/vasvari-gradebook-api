@@ -22,7 +22,7 @@ public class GradebookEntry {
     private Assignment assignment;
 
     @ManyToOne
-    private Course course;
+    private Subject subject;
 
     private Integer grade;
 }

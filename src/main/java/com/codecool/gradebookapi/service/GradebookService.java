@@ -6,7 +6,6 @@ import com.codecool.gradebookapi.dto.mapper.GradebookEntryMapper;
 import com.codecool.gradebookapi.model.GradebookEntry;
 import com.codecool.gradebookapi.repository.GradebookEntryRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -24,7 +23,7 @@ public class GradebookService {
     }
 
     public Optional<GradebookOutput> findById(Long id) {
-        return repository.findById(id).map(entry -> mapper.map(entry));
+        return repository.findById(id).map(mapper::map);
     }
 
     public List<GradebookOutput> findByStudentId(Long studentId) {
@@ -33,14 +32,14 @@ public class GradebookService {
         return mapper.mapAll(entries);
     }
 
-    public List<GradebookOutput> findByClassId(Long classId) {
-        List<GradebookEntry> entriesFound = repository.findAllByCourse_Id(classId);
+    public List<GradebookOutput> findBySubjectId(Long subjectId) {
+        List<GradebookEntry> entriesFound = repository.findAllBySubject_Id(subjectId);
 
         return mapper.mapAll(entriesFound);
     }
 
-    public List<GradebookOutput> findByStudentIdAndCourseId(Long studentId, Long courseId) {
-        List<GradebookEntry> entriesFound = repository.findAllByStudent_IdAndCourse_Id(studentId, courseId);
+    public List<GradebookOutput> findByStudentIdAndSubjectId(Long studentId, Long subjectId) {
+        List<GradebookEntry> entriesFound = repository.findAllByStudent_IdAndSubject_Id(studentId, subjectId);
 
         return mapper.mapAll(entriesFound);
     }
@@ -64,7 +63,7 @@ public class GradebookService {
 
     public boolean isDuplicateEntry(GradebookInput entry) {
         return repository
-                .findByStudent_IdAndCourse_IdAndAssignment_Id(entry.getStudentId(), entry.getCourseId(), entry.getAssignmentId())
+                .findByStudent_IdAndSubject_IdAndAssignment_Id(entry.getStudentId(), entry.getSubjectId(), entry.getAssignmentId())
                 .isPresent();
     }
 }

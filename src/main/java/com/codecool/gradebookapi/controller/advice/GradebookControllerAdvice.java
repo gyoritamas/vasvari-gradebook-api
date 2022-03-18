@@ -2,7 +2,7 @@ package com.codecool.gradebookapi.controller.advice;
 
 import com.codecool.gradebookapi.exception.DuplicateEntryException;
 import com.codecool.gradebookapi.exception.GradebookEntryNotFoundException;
-import com.codecool.gradebookapi.exception.StudentNotInCourseException;
+import com.codecool.gradebookapi.exception.RelationNotFoundException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -51,11 +51,11 @@ public class GradebookControllerAdvice {
                 .body(problem);
     }
 
-    @ExceptionHandler(StudentNotInCourseException.class)
-    ResponseEntity<Problem> handleStudentNotInClass(StudentNotInCourseException ex) {
+    @ExceptionHandler(RelationNotFoundException.class)
+    ResponseEntity<Problem> handleUnrelatedStudentAndSubject(RelationNotFoundException ex) {
         Problem problem = Problem.builder()
                 .withType(URI.create("gradebook/bad-request"))
-                .withTitle("Student not in class")
+                .withTitle("Student has no relation to the subject")
                 .withStatus(Status.BAD_REQUEST)
                 .withDetail(ex.getMessage())
                 .build();

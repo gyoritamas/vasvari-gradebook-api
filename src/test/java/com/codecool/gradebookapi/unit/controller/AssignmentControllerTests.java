@@ -42,19 +42,14 @@ public class AssignmentControllerTests {
 
     @MockBean
     private AssignmentService assignmentService;
-
     @MockBean
     private GradebookService gradebookService;
-
     @MockBean
-    private CourseService courseService;
-
+    private SubjectService subjectService;
     @MockBean
     private TeacherService teacherService;
-
     @MockBean
     private UserService userService;
-
     @MockBean
     private JwtTokenUtil jwtTokenUtil;
 
@@ -68,28 +63,28 @@ public class AssignmentControllerTests {
 
     @BeforeEach
     public void setUp() {
-        CourseOutput course = CourseOutput.builder()
+        SubjectOutput subject = SubjectOutput.builder()
                 .id(1L)
                 .name("Algebra")
                 .teacher(new SimpleData(1L, "Darrell Bowen"))
                 .students(new ArrayList<>())
                 .build();
 
-        when(courseService.findById(1L)).thenReturn(Optional.of(course));
+        when(subjectService.findById(1L)).thenReturn(Optional.of(subject));
 
         assignmentInput1 = AssignmentInput.builder()
                 .name("Homework 1")
                 .type(AssignmentType.HOMEWORK)
                 .description("Read chapters 1 to 5")
                 .deadline(LocalDate.of(2051, 1, 1))
-                .courseId(1L)
+                .subjectId(1L)
                 .build();
         assignmentInput2 = AssignmentInput.builder()
                 .name("Homework 2")
                 .type(AssignmentType.HOMEWORK)
                 .description("Read chapters 6 to 9")
                 .deadline(LocalDate.of(2052, 1, 1))
-                .courseId(1L)
+                .subjectId(1L)
                 .build();
 
         assignmentOutput1 = AssignmentOutput.builder()
@@ -166,7 +161,7 @@ public class AssignmentControllerTests {
     @Test
     @WithMockUser(username = "admin", password = "admin", roles = "ADMIN")
     @DisplayName("given AssignmentInput parameters are valid, add should return created assignment")
-    public void givenClassInputParametersAreValid_addShouldReturnCreatedClass() throws Exception {
+    public void givenAssignmentInputParametersAreValid_addShouldReturnCreatedAssignment() throws Exception {
         when(assignmentService.save(assignmentInput1)).thenReturn(assignmentOutput1);
 
         String inputAsString = mapper.writeValueAsString(assignmentInput1);
@@ -196,7 +191,7 @@ public class AssignmentControllerTests {
                 .name(" ")
                 .type(AssignmentType.TEST)
                 .deadline(LocalDate.of(2051, 1, 1))
-                .courseId(1L)
+                .subjectId(1L)
                 .build();
         String inputAsString = mapper.writeValueAsString(inputWithEmptyName);
 
@@ -215,7 +210,7 @@ public class AssignmentControllerTests {
                 .name("Test II")
                 .type(AssignmentType.valueOf("TEST"))
                 .deadline(LocalDate.of(2051, 1, 1))
-                .courseId(1L)
+                .subjectId(1L)
                 .build();
         String inputAsString = mapper.writeValueAsString(inputWithWrongType)
                 .replaceAll("\"type\":\"(\\w+)\"", "\"type\":\"WRONG_TYPE\"");
@@ -284,7 +279,7 @@ public class AssignmentControllerTests {
                 .name(" ")
                 .type(AssignmentType.TEST)
                 .deadline(LocalDate.of(2051, 1, 1))
-                .courseId(1L)
+                .subjectId(1L)
                 .build();
         String inputAsString = mapper.writeValueAsString(inputWithEmptyName);
 
@@ -303,7 +298,7 @@ public class AssignmentControllerTests {
                 .name("Final test")
                 .type(AssignmentType.HOMEWORK)
                 .deadline(LocalDate.of(2051, 1, 1))
-                .courseId(1L)
+                .subjectId(1L)
                 .build();
         String inputAsString = mapper.writeValueAsString(inputWithWrongType)
                 .replaceAll("\"type\":\"(\\w+)\"", "\"type\":\"WRONG_TYPE\"");

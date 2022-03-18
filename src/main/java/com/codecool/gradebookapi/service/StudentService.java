@@ -1,12 +1,12 @@
 package com.codecool.gradebookapi.service;
 
-import com.codecool.gradebookapi.dto.CourseOutput;
+import com.codecool.gradebookapi.dto.SubjectOutput;
 import com.codecool.gradebookapi.dto.StudentDto;
-import com.codecool.gradebookapi.dto.mapper.CourseMapper;
+import com.codecool.gradebookapi.dto.mapper.SubjectMapper;
 import com.codecool.gradebookapi.dto.mapper.StudentMapper;
-import com.codecool.gradebookapi.model.Course;
+import com.codecool.gradebookapi.model.Subject;
 import com.codecool.gradebookapi.model.Student;
-import com.codecool.gradebookapi.repository.CourseRepository;
+import com.codecool.gradebookapi.repository.SubjectRepository;
 import com.codecool.gradebookapi.repository.StudentRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -19,9 +19,9 @@ import java.util.Optional;
 public class StudentService {
 
     private final StudentRepository studentRepository;
-    private final CourseRepository courseRepository;
+    private final SubjectRepository subjectRepository;
     private final StudentMapper studentMapper;
-    private final CourseMapper courseMapper;
+    private final SubjectMapper subjectMapper;
 
     public List<StudentDto> findAll() {
         return studentMapper.mapAll(studentRepository.findAll());
@@ -42,11 +42,11 @@ public class StudentService {
         studentRepository.deleteById(id);
     }
 
-    public List<CourseOutput> findCoursesOfStudent(StudentDto studentDto) {
+    public List<SubjectOutput> findSubjectsOfStudent(StudentDto studentDto) {
         Student student = studentMapper.map(studentDto);
-        List<Course> courses = courseRepository.findCoursesByStudentsContaining(student);
+        List<Subject> subjects = subjectRepository.findSubjectsByStudentsContaining(student);
 
-        return courseMapper.mapAll(courses);
+        return subjectMapper.mapAll(subjects);
     }
 
 }

@@ -28,7 +28,7 @@ public class Assignment {
     private LocalDate deadline;
 
     @ManyToOne
-    private Course course;
+    private Subject subject;
 
     public Boolean isExpired(){
         return LocalDate.now().isAfter(deadline);
