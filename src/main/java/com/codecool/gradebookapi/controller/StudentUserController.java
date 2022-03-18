@@ -62,7 +62,9 @@ public class StudentUserController {
         log.info("Returned list of all courses related to student {}", studentId);
 
         return ResponseEntity
-                .ok(courseModelAssembler.toCollectionModel(coursesOfStudent));
+                .ok(CollectionModel.of(courseModelAssembler.toCollectionModel(coursesOfStudent),
+                        linkTo(methodOn(StudentUserController.class).getCoursesOfCurrentUserAsStudent())
+                                .withRel("courses-of-student")));
     }
 
     @GetMapping("/gradebook-entries")
@@ -72,7 +74,8 @@ public class StudentUserController {
             @ApiResponse(responseCode = "404", description = "Could not find student with given ID"),
             @ApiResponse(responseCode = "404", description = "Could not find course with given ID")
     })
-    public ResponseEntity<CollectionModel<EntityModel<GradebookOutput>>> getGradesOfCurrentUserAsStudent(@RequestParam(name = "courseId", required = false) Long courseId) {
+    public ResponseEntity<CollectionModel<EntityModel<GradebookOutput>>> getGradesOfCurrentUserAsStudent(
+            @RequestParam(name = "courseId", required = false) Long courseId) {
         Long studentId = userService.getStudentIdOfCurrentUser();
         studentService.findById(studentId).orElseThrow(() -> new StudentNotFoundException(studentId));
         if (courseId == null)
@@ -90,8 +93,8 @@ public class StudentUserController {
 
         return ResponseEntity
                 .ok(CollectionModel.of(entityModels,
-                        linkTo(methodOn(GradebookController.class).getGradesOfStudent(studentId))
-                                .withRel("gradebook-entries")));
+                        linkTo(methodOn(StudentUserController.class).getGradesOfCurrentUserAsStudent(null))
+                                .withRel("gradebook-entries-of-student").expand()));
     }
 
     private ResponseEntity<CollectionModel<EntityModel<GradebookOutput>>> getGradebookEntriesByStudentIdAndCourseId(Long courseId, Long studentId) {
@@ -108,6 +111,6 @@ public class StudentUserController {
         return ResponseEntity
                 .ok(CollectionModel.of(entityModels,
                         linkTo(methodOn(StudentUserController.class).getGradesOfCurrentUserAsStudent(courseId))
-                                .withRel("gradebook-entries")));
+                                .withRel("gradebook-entries-of-student")));
     }
 }
