@@ -2,13 +2,14 @@ package com.codecool.gradebookapi.controller;
 
 import com.codecool.gradebookapi.dto.CourseOutput;
 import com.codecool.gradebookapi.dto.StudentDto;
+import com.codecool.gradebookapi.dto.TeacherDto;
 import com.codecool.gradebookapi.dto.assembler.CourseModelAssembler;
 import com.codecool.gradebookapi.dto.assembler.StudentModelAssembler;
+import com.codecool.gradebookapi.exception.CourseNotFoundException;
 import com.codecool.gradebookapi.exception.StudentInUseException;
 import com.codecool.gradebookapi.exception.StudentNotFoundException;
-import com.codecool.gradebookapi.service.CourseService;
-import com.codecool.gradebookapi.service.GradebookService;
-import com.codecool.gradebookapi.service.StudentService;
+import com.codecool.gradebookapi.exception.TeacherNotFoundException;
+import com.codecool.gradebookapi.service.*;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -16,7 +17,6 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.CollectionModel;
 import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.IanaLinkRelations;
@@ -24,21 +24,29 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
 @RestController
-@RequestMapping("/api/students")
+@RequestMapping("/api")
 @Slf4j
 @Tag(name = "student-controller", description = "Operations on students")
 @SecurityRequirement(name = "gradebookapi")
 @RequiredArgsConstructor
 public class StudentController {
 
+    private final UserService userService;
     private final StudentService studentService;
+    private final TeacherService teacherService;
+    private final CourseService courseService;
     private final GradebookService gradebookService;
     private final StudentModelAssembler studentModelAssembler;
     private final CourseModelAssembler courseModelAssembler;
 
-    @GetMapping
+    @GetMapping("/students")
     @Operation(summary = "Lists all students")
     @ApiResponse(responseCode = "200", description = "Returned list of all students")
     public ResponseEntity<CollectionModel<EntityModel<StudentDto>>> getAll() {
@@ -48,7 +56,7 @@ public class StudentController {
                 .ok(studentModelAssembler.toCollectionModel(studentService.findAll()));
     }
 
-    @GetMapping("/{id}")
+    @GetMapping("/students/{id}")
     @Operation(summary = "Finds a student by its ID")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Returned student with given ID"),
@@ -62,7 +70,7 @@ public class StudentController {
                 .ok(studentModelAssembler.toModel(studentFound));
     }
 
-    @PostMapping
+    @PostMapping("/students")
     @Operation(summary = "Creates a new student")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "201", description = "Created new student"),
@@ -78,7 +86,7 @@ public class StudentController {
                 .body(entityModel);
     }
 
-    @PutMapping("/{id}")
+    @PutMapping("/students/{id}")
     @Operation(summary = "Updates the student given by ID")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Updated student with given ID"),
@@ -95,7 +103,7 @@ public class StudentController {
                 .ok(studentModelAssembler.toModel(studentService.save(student)));
     }
 
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/students/{id}")
     @Operation(summary = "Deletes the student given by ID")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "204", description = "Deleted student with given ID"),
@@ -111,7 +119,7 @@ public class StudentController {
         return ResponseEntity.noContent().build();
     }
 
-    @GetMapping("/{id}/classes")
+    @GetMapping("/students/{id}/classes")
     @Operation(summary = "Lists all classes of the student given by ID")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Returned list of all classes related to student given by ID"),
@@ -123,5 +131,41 @@ public class StudentController {
 
         return ResponseEntity.
                 ok(courseModelAssembler.toCollectionModel(studentService.findCoursesOfStudent(student)));
+    }
+
+    @GetMapping("/teacher-user/students")
+    @Operation(summary = "Find all students the current user as teacher is teacher of")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Returned list of students related to current user as teacher"),
+            @ApiResponse(responseCode = "404", description = "Could not find teacher with given ID")
+    })
+    public ResponseEntity<CollectionModel<EntityModel<StudentDto>>> getStudentsOfCurrentUserAsTeacher(
+            @RequestParam(name = "gradeLevel", required = false) Integer gradeLevel,
+            @RequestParam(name = "courseId", required = false) Long courseId) {
+        Long teacherId = userService.getTeacherIdOfCurrentUser();
+        TeacherDto teacher = teacherService.findById(teacherId).orElseThrow(() -> new TeacherNotFoundException(teacherId));
+
+        List<StudentDto> students;
+        if (courseId == null) {
+            students = courseService.findStudentsOfTeacher(teacher);
+        } else {
+            // check if this teacher is teaching the course
+            CourseOutput course = courseService.findById(courseId).orElseThrow(() -> new CourseNotFoundException(courseId));
+            if (!course.getTeacher().getId().equals(teacherId))
+                throw new RuntimeException(String.format("Teacher %d is not teaching course %d", teacherId, courseId));
+            students = courseService.getStudentsOfCourse(courseId);
+        }
+
+        if (gradeLevel != null)
+            students = students.stream()
+                    .filter(student -> student.getGradeLevel().equals(gradeLevel))
+                    .collect(Collectors.toList());
+
+        log.info("Returned list of all students related to teacher {}", teacherId);
+
+        return ResponseEntity
+                .ok(CollectionModel.of(studentModelAssembler.toCollectionModel(students),
+                        linkTo(methodOn(StudentController.class).getStudentsOfCurrentUserAsTeacher(gradeLevel, courseId))
+                                .withRel("students-of-teacher")));
     }
 }

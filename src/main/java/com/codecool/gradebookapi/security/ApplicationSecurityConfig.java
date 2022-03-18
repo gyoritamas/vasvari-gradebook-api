@@ -41,22 +41,24 @@ public class ApplicationSecurityConfig extends WebSecurityConfigurerAdapter {
                 .authorizeRequests()
                 .antMatchers(
                         "/api/classes/**",
-                        "/api/students/**",
                         "/api/assignments/**",
                         "/api/gradebook/**",
                         "/api/student_gradebook/**",
                         "/api/class_gradebook/**"
+                ).hasAnyRole(ADMIN.name(), TEACHER.name(), STUDENT.name())
+                .antMatchers(
+                        "/api/students/**"
                 ).hasAnyRole(ADMIN.name(), TEACHER.name())
                 .antMatchers(
                         "/api/teachers/**",
                         "/api/users/**"
                 ).hasAnyRole(ADMIN.name())
-                .antMatchers(
-                        "/student/api/**"
-                ).hasRole(STUDENT.name())
-                .antMatchers(
-                        "/teacher/api/**"
-                ).hasRole(TEACHER.name())
+//                .antMatchers(
+//                        "/student/api/**"
+//                ).hasRole(STUDENT.name())
+//                .antMatchers(
+//                        "/teacher/api/**"
+//                ).hasRole(TEACHER.name())
                 .antMatchers("/api/authenticate/**").permitAll()
                 // Reject every unauthenticated request and send error code 401.
                 .and().exceptionHandling().authenticationEntryPoint(entryPoint)

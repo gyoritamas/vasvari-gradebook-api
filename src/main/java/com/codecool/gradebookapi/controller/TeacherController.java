@@ -16,6 +16,7 @@ import org.springframework.hateoas.CollectionModel;
 import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.IanaLinkRelations;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
@@ -61,6 +62,7 @@ public class TeacherController {
             @ApiResponse(responseCode = "201", description = "Created new teacher"),
             @ApiResponse(responseCode = "400", description = "Could not create teacher due to invalid parameters")
     })
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<EntityModel<TeacherDto>> add(@RequestBody @Valid TeacherDto teacher) {
         TeacherDto teacherCreated = service.save(teacher);
         EntityModel<TeacherDto> entityModel = assembler.toModel(teacherCreated);
@@ -78,6 +80,7 @@ public class TeacherController {
             @ApiResponse(responseCode = "400", description = "Could not update teacher due to invalid parameters"),
             @ApiResponse(responseCode = "404", description = "Could not find teacher with given ID")
     })
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<EntityModel<TeacherDto>> update(@RequestBody @Valid TeacherDto teacher,
                                                           @PathVariable("id") Long id) {
         service.findById(id).orElseThrow(() -> new TeacherNotFoundException(id));
@@ -95,6 +98,7 @@ public class TeacherController {
             @ApiResponse(responseCode = "404", description = "Could not find teacher with given ID"),
             @ApiResponse(responseCode = "405", description = "Could not delete teacher with given ID")
     })
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> delete(@PathVariable("id") Long id) {
         service.findById(id).orElseThrow(() -> new TeacherNotFoundException(id));
         service.deleteById(id);
