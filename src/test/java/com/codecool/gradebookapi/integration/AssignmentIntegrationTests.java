@@ -76,7 +76,7 @@ public class AssignmentIntegrationTests {
                 .email("johndoe@email.com")
                 .address("666 Armstrong St., Mesa, AZ 85203")
                 .phone("202-555-0198")
-                .birthdate("2005-12-01")
+                .birthdate(LocalDate.of(2005,12,1))
                 .build();
         teacher = TeacherDto.builder()
                 .firstname("Darrell")
@@ -84,7 +84,7 @@ public class AssignmentIntegrationTests {
                 .email("darrellbowen@email.com")
                 .address("3982 Turnpike Drive, Birmingham, AL 35203")
                 .phone("619-446-8496")
-                .birthdate("1984-02-01")
+                .birthdate(LocalDate.of(1984,12,1))
                 .build();
         subjectInput = SubjectInput.builder()
                 .name("Algebra")

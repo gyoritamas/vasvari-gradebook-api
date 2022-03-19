@@ -27,6 +27,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.test.annotation.DirtiesContext;
 
 import java.net.URI;
+import java.time.LocalDate;
 
 import static com.codecool.gradebookapi.security.ApplicationUserRole.ADMIN;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -66,7 +67,7 @@ public class TeacherIntegrationTests {
                 .email("darrellbowen@email.com")
                 .address("3982 Turnpike Drive, Birmingham, AL 35203")
                 .phone("619-446-8496")
-                .birthdate("1984-02-01")
+                .birthdate(LocalDate.of(1984,2,1))
                 .build();
         teacher2 = TeacherDto.builder()
                 .firstname("Lilian")
@@ -74,7 +75,7 @@ public class TeacherIntegrationTests {
                 .email("lilianstafford@email.com")
                 .address("4498 Sugar Camp Road, Vernon Center, MN 56090")
                 .phone("507-549-1665")
-                .birthdate("1985-04-13")
+                .birthdate(LocalDate.of(1985,4,13))
                 .build();
     }
 
@@ -328,7 +329,7 @@ public class TeacherIntegrationTests {
                     .email(accessor.getString(2))
                     .address(accessor.getString(3))
                     .phone(accessor.getString(4))
-                    .birthdate(accessor.getString(5))
+                    .birthdate(LocalDate.parse(accessor.getString(5)))
                     .build();
         }
     }

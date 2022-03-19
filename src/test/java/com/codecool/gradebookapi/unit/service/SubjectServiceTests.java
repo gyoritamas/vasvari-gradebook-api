@@ -17,6 +17,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.annotation.DirtiesContext;
 
 import javax.transaction.Transactional;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
@@ -59,7 +60,7 @@ public class SubjectServiceTests {
                 .email("johndoe@email.com")
                 .address("666 Armstrong St., Mesa, AZ 85203")
                 .phone("202-555-0198")
-                .birthdate("2004-02-01")
+                .birthdate(LocalDate.of(2004, 2, 1))
                 .build();
         teacher1 = TeacherDto.builder()
                 .firstname("Darrell")
@@ -67,7 +68,7 @@ public class SubjectServiceTests {
                 .email("darrellbowen@email.com")
                 .address("3982 Turnpike Drive, Birmingham, AL 35203")
                 .phone("619-446-8496")
-                .birthdate("1984-02-01")
+                .birthdate(LocalDate.of(1984, 2, 1))
                 .build();
         teacher2 = TeacherDto.builder()
                 .firstname("Lilian")
@@ -75,7 +76,7 @@ public class SubjectServiceTests {
                 .email("lilianstafford@email.com")
                 .address("4498 Sugar Camp Road, Vernon Center, MN 56090")
                 .phone("507-549-1665")
-                .birthdate("1985-04-13")
+                .birthdate(LocalDate.of(1985, 4, 13))
                 .build();
     }
 
@@ -276,10 +277,36 @@ public class SubjectServiceTests {
     @DisplayName("findStudentsOfTeacher")
     public void findStudentsOfTeacher() {
         // save students
-        StudentDto johnDoe = StudentDto.builder().firstname("John").lastname("Doe").gradeLevel(11).email("johndoe@gmail.com").address("").phone("").birthdate("2005-01-01").build();
-        StudentDto janeDoe = StudentDto.builder().firstname("Jane").lastname("Doe").gradeLevel(11).email("janedoe@gmail.com").address("").phone("").birthdate("2004-11-21").build();
-        StudentDto jimDoe = StudentDto.builder().firstname("Jim").lastname("Doe").gradeLevel(11).email("jimdoe@gmail.com").address("").phone("").birthdate("2005-03-09").build();
-        StudentDto jackDoe = StudentDto.builder().firstname("Jack").lastname("Doe").gradeLevel(11).email("jackdoe@gmail.com").address("").phone("").birthdate("2005-02-27").build();
+        StudentDto johnDoe = StudentDto.builder()
+                .firstname("John").lastname("Doe")
+                .gradeLevel(11)
+                .email("johndoe@gmail.com")
+                .address("").phone("")
+                .birthdate(LocalDate.of(2005, 1, 1))
+                .build();
+        StudentDto janeDoe = StudentDto.builder()
+                .firstname("Jane").lastname("Doe")
+                .gradeLevel(11)
+                .email("janedoe@gmail.com")
+                .address("").phone("")
+                .birthdate(LocalDate.of(2004, 11, 21))
+                .build();
+        StudentDto jimDoe = StudentDto.builder()
+                .firstname("Jim")
+                .lastname("Doe")
+                .gradeLevel(11)
+                .email("jimdoe@gmail.com")
+                .address("").phone("")
+                .birthdate(LocalDate.of(2005, 3, 9))
+                .build();
+        StudentDto jackDoe = StudentDto.builder()
+                .firstname("Jack")
+                .lastname("Doe")
+                .gradeLevel(11)
+                .email("jackdoe@gmail.com")
+                .address("").phone("")
+                .birthdate(LocalDate.of(2005, 2, 27))
+                .build();
         johnDoe = studentService.save(johnDoe);
         janeDoe = studentService.save(janeDoe);
         jimDoe = studentService.save(jimDoe);

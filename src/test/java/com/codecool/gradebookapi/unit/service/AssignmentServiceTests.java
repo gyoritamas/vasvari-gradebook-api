@@ -46,7 +46,7 @@ public class AssignmentServiceTests {
                 .email("darrellbowen@email.com")
                 .address("3982 Turnpike Drive, Birmingham, AL 35203")
                 .phone("619-446-8496")
-                .birthdate("1984-02-01")
+                .birthdate(LocalDate.of(1984,2,1))
                 .build();
 
         long teacherId = teacherService.save(teacher).getId();

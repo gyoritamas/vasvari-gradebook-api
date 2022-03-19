@@ -8,6 +8,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
@@ -31,7 +32,7 @@ public class StudentServiceTests {
                 .email("johndoe@email.com")
                 .address("666 Armstrong St., Mesa, AZ 85203")
                 .phone("202-555-0198")
-                .birthdate("1990-12-01")
+                .birthdate(LocalDate.of(1990, 12, 1))
                 .build();
 
         student2 = StudentDto.builder()
@@ -41,7 +42,7 @@ public class StudentServiceTests {
                 .email("janedoe@email.com")
                 .address("9351 Morris St., Reisterstown, MD 21136")
                 .phone("202-555-0198")
-                .birthdate("1990-04-13")
+                .birthdate(LocalDate.of(1990, 4, 13))
                 .build();
     }
 

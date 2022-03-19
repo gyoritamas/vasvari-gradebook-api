@@ -30,6 +30,7 @@ import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
@@ -77,7 +78,7 @@ public class TeacherControllerTests {
                 .email("darrellbowen@email.com")
                 .address("3982 Turnpike Drive, Birmingham, AL 35203")
                 .phone("619-446-8496")
-                .birthdate("1984-02-01")
+                .birthdate(LocalDate.of(1984, 2, 1))
                 .build();
 
         teacher2 = TeacherDto.builder()
@@ -87,7 +88,7 @@ public class TeacherControllerTests {
                 .email("lilianstafford@email.com")
                 .address("4498 Sugar Camp Road, Vernon Center, MN 56090")
                 .phone("507-549-1665")
-                .birthdate("1985-04-13")
+                .birthdate(LocalDate.of(1985, 4, 13))
                 .build();
     }
 
@@ -273,7 +274,7 @@ public class TeacherControllerTests {
                     .email(accessor.getString(2))
                     .address(accessor.getString(3))
                     .phone(accessor.getString(4))
-                    .birthdate(accessor.getString(5))
+                    .birthdate(LocalDate.parse(accessor.getString(5)))
                     .build();
         }
     }

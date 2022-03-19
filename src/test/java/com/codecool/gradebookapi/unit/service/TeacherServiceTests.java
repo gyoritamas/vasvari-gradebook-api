@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.annotation.DirtiesContext;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
@@ -33,7 +34,7 @@ public class TeacherServiceTests {
                 .email("darrellbowen@email.com")
                 .address("3982 Turnpike Drive, Birmingham, AL 35203")
                 .phone("619-446-8496")
-                .birthdate("1984-02-01")
+                .birthdate(LocalDate.of(1984, 2, 1))
                 .build();
 
         teacher2 = TeacherDto.builder()
@@ -42,7 +43,7 @@ public class TeacherServiceTests {
                 .email("lilianstafford@email.com")
                 .address("4498 Sugar Camp Road, Vernon Center, MN 56090")
                 .phone("507-549-1665")
-                .birthdate("1985-04-13")
+                .birthdate(LocalDate.of(1985, 4, 13))
                 .build();
     }
 

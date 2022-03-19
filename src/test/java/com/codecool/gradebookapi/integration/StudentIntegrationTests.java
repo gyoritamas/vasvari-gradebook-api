@@ -69,7 +69,7 @@ public class StudentIntegrationTests {
                 .email("johndoe@email.com")
                 .address("666 Armstrong St., Mesa, AZ 85203")
                 .phone("202-555-0198")
-                .birthdate("1990-12-01")
+                .birthdate(LocalDate.of(1990, 12, 1))
                 .build();
         student2 = StudentDto.builder()
                 .firstname("Jane")
@@ -78,7 +78,7 @@ public class StudentIntegrationTests {
                 .email("janedoe@email.com")
                 .address("9351 Morris St., Reisterstown, MD 21136")
                 .phone("202-555-9810")
-                .birthdate("1990-04-13")
+                .birthdate(LocalDate.of(1990, 4, 13))
                 .build();
         teacher = TeacherDto.builder()
                 .firstname("Darrell")
@@ -86,7 +86,7 @@ public class StudentIntegrationTests {
                 .email("darrellbowen@email.com")
                 .address("3982 Turnpike Drive, Birmingham, AL 35203")
                 .phone("619-446-8496")
-                .birthdate("1984-02-01")
+                .birthdate(LocalDate.of(1984, 2, 1))
                 .build();
     }
 
@@ -515,7 +515,7 @@ public class StudentIntegrationTests {
                     .email(accessor.getString(3))
                     .address(accessor.getString(4))
                     .phone(accessor.getString(5))
-                    .birthdate(accessor.getString(6))
+                    .birthdate(LocalDate.parse(accessor.getString(6)))
                     .build();
         }
     }
