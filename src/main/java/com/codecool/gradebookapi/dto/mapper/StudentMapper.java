@@ -4,7 +4,6 @@ import com.codecool.gradebookapi.dto.StudentDto;
 import com.codecool.gradebookapi.model.Student;
 import org.springframework.stereotype.Component;
 
-import java.time.LocalDate;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
