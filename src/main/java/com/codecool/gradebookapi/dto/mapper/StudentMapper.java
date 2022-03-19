@@ -21,7 +21,7 @@ public class StudentMapper {
                 .email(studentDto.getEmail())
                 .address(studentDto.getAddress())
                 .phone(studentDto.getPhone())
-                .birthdate(LocalDate.parse(studentDto.getBirthdate()))
+                .birthdate(studentDto.getBirthdate())
                 .build();
     }
 
@@ -34,7 +34,7 @@ public class StudentMapper {
                 .email(student.getEmail())
                 .address(student.getAddress())
                 .phone(student.getPhone())
-                .birthdate(student.getBirthdate().toString())
+                .birthdate(student.getBirthdate())
                 .build();
     }
 

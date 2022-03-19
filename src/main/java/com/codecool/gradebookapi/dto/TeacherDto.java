@@ -1,12 +1,14 @@
 package com.codecool.gradebookapi.dto;
 
-import com.codecool.gradebookapi.validation.Birthdate;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateDeserializer;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.*;
 import org.springframework.hateoas.server.core.Relation;
 
 import javax.validation.constraints.*;
+import java.time.LocalDate;
 
 @NoArgsConstructor
 @AllArgsConstructor
@@ -43,9 +45,11 @@ public class TeacherDto {
     @Schema(example = "619-446-8496")
     private String phone;
 
-    @Birthdate(message = "Birthdate cannot be empty and must be a valid date of birth")
+    @NotNull(message = "Birthdate field cannot be empty")
+    @Past(message = "Birthdate must be a past date")
     @Schema(example = "1984-02-01")
-    private String birthdate;
+    @JsonDeserialize(using = LocalDateDeserializer.class)
+    private LocalDate birthdate;
 
     @JsonIgnore
     public String getName() {

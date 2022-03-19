@@ -18,7 +18,7 @@ public class TeacherMapper {
                 .email(teacherDto.getEmail())
                 .address(teacherDto.getAddress())
                 .phone(teacherDto.getPhone())
-                .birthdate(LocalDate.parse(teacherDto.getBirthdate()))
+                .birthdate(teacherDto.getBirthdate())
                 .build();
     }
 
@@ -30,7 +30,7 @@ public class TeacherMapper {
                 .email(teacher.getEmail())
                 .address(teacher.getAddress())
                 .phone(teacher.getPhone())
-                .birthdate(teacher.getBirthdate().toString())
+                .birthdate(teacher.getBirthdate())
                 .build();
     }
 
