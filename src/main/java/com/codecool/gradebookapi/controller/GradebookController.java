@@ -69,6 +69,20 @@ public class GradebookController {
                 .ok(gradebookModelAssembler.toModel(entryFound));
     }
 
+    @DeleteMapping("/gradebook/{id}")
+    @Operation(summary = "Deletes a gradebook entry specified by ID")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Deleted gradebook entry with given ID"),
+            @ApiResponse(responseCode = "404", description = "Could not find gradebook entry with given ID")
+    })
+    public ResponseEntity<EntityModel<GradebookOutput>> delete(@PathVariable("id") Long id) {
+        gradebookService.findById(id).orElseThrow(() -> new GradebookEntryNotFoundException(id));
+        gradebookService.deleteById(id);
+        log.info("Deleted gradebook entry {}", id);
+
+        return ResponseEntity.noContent().build();
+    }
+
     @GetMapping("/student_gradebook/{studentId}")
     @Operation(summary = "Finds all gradebook entries related to student given by ID")
     @ApiResponses(value = {

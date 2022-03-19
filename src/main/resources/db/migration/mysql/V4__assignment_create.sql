@@ -12,6 +12,6 @@ create table assignment
 );
 
 alter table assignment
-    add constraint subject_constraint
+    add constraint assignment_subject_constraint
         foreign key (subject_id)
             references subject (id);

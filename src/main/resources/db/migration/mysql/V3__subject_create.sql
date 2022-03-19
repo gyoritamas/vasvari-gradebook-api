@@ -17,17 +17,17 @@ create table subject_students
 );
 
 alter table subject
-    add constraint teacher_constraint
+    add constraint subject_teacher_constraint
         foreign key (teacher_id)
             references teacher (id);
 
 alter table subject_students
-    add constraint students_constraint
+    add constraint subject_students_students_constraint
         foreign key (students_id)
             references student (id);
 
 alter table subject_students
-    add constraint subject_constraint
+    add constraint subject_students_subject_constraint
         foreign key (subject_id)
             references subject (id);
 
