@@ -5,9 +5,7 @@ import com.codecool.gradebookapi.dto.AssignmentOutput;
 import com.codecool.gradebookapi.dto.assembler.AssignmentModelAssembler;
 import com.codecool.gradebookapi.exception.AssignmentInUseException;
 import com.codecool.gradebookapi.exception.AssignmentNotFoundException;
-import com.codecool.gradebookapi.service.AssignmentService;
-import com.codecool.gradebookapi.service.SubjectService;
-import com.codecool.gradebookapi.service.GradebookService;
+import com.codecool.gradebookapi.service.*;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -19,24 +17,30 @@ import org.springframework.hateoas.CollectionModel;
 import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.IanaLinkRelations;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import java.util.List;
+
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
 @RestController
-@RequestMapping("/api/assignments")
+@RequestMapping("/api")
 @Slf4j
 @Tag(name = "assignment-controller", description = "Operations on assignments")
 @SecurityRequirement(name = "gradebookapi")
 @RequiredArgsConstructor
 public class AssignmentController {
 
+    private final UserService userService;
     private final AssignmentService assignmentService;
     private final SubjectService subjectService;
     private final GradebookService gradebookService;
     private final AssignmentModelAssembler assembler;
 
-    @GetMapping
+    @GetMapping("/assignments")
     @Operation(summary = "Lists all assignments")
     @ApiResponse(responseCode = "200", description = "Returned list of all assignments")
     public ResponseEntity<CollectionModel<EntityModel<AssignmentOutput>>> getAll() {
@@ -46,7 +50,7 @@ public class AssignmentController {
                 .ok(assembler.toCollectionModel(assignmentService.findAll()));
     }
 
-    @GetMapping("/{id}")
+    @GetMapping("/assignments/{id}")
     @Operation(summary = "Finds an assignment by its ID")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Returned assignment with given ID"),
@@ -61,7 +65,7 @@ public class AssignmentController {
                 .ok(assembler.toModel(assignmentFound));
     }
 
-    @PostMapping
+    @PostMapping("/assignments")
     @Operation(summary = "Creates a new assignment")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "201", description = "Created new assignment"),
@@ -82,7 +86,7 @@ public class AssignmentController {
                 .body(entityModel);
     }
 
-    @PutMapping("/{id}")
+    @PutMapping("/assignments/{id}")
     @Operation(summary = "Updates the assignment given by ID")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Updated assignment with given ID"),
@@ -102,7 +106,7 @@ public class AssignmentController {
                 .ok(assembler.toModel(assignmentService.update(id, assignment)));
     }
 
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/assignments/{id}")
     @Operation(summary = "Deletes the assignment given by ID")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "204", description = "Deleted assignment with given ID"),
@@ -116,5 +120,44 @@ public class AssignmentController {
         log.info("Deleted assignment {}", id);
 
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/teacher-user/assignments")
+    @Operation(summary = "Finds all assignments the current user as teacher has created")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Returned list of assignments related to current user as teacher"),
+            @ApiResponse(responseCode = "404", description = "Could not find teacher with given ID")
+    })
+    @PreAuthorize("hasRole('TEACHER')")
+    public ResponseEntity<CollectionModel<EntityModel<AssignmentOutput>>> getAssignmentsOfCurrentUserAsTeacher() {
+        Long teacherId = userService.getTeacherIdOfCurrentUser();
+        List<AssignmentOutput> assignmentsOfTeacher = assignmentService.findAssignmentsOfTeacher(teacherId);
+
+        log.info("Returned list of all assignments created by teacher {}", teacherId);
+
+        return ResponseEntity
+                .ok(CollectionModel.of(assembler.toCollectionModel(assignmentsOfTeacher),
+                        linkTo(methodOn(AssignmentController.class).getAssignmentsOfCurrentUserAsTeacher())
+                                .withRel("assignments-of-teacher")));
+    }
+
+    @GetMapping("/student-user/assignments")
+    @Operation(summary = "Find all assignments the current user as student has")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Returned list of assignments related to subjects of current user as student"),
+            @ApiResponse(responseCode = "404", description = "Could not find student with given ID")
+    })
+    @PreAuthorize("hasRole('STUDENT')")
+    public ResponseEntity<CollectionModel<EntityModel<AssignmentOutput>>> getAssignmentsOfCurrentUserAsStudent() {
+        Long studentId = userService.getStudentIdOfCurrentUser();
+
+        List<AssignmentOutput> assignmentsOfStudent = assignmentService.findAssignmentsOfStudent(studentId);
+
+        log.info("Returned list of all assignments of student {}", studentId);
+
+        return ResponseEntity
+                .ok(CollectionModel.of(assembler.toCollectionModel(assignmentsOfStudent),
+                        linkTo(methodOn(AssignmentController.class).getAssignmentsOfCurrentUserAsStudent())
+                                .withRel("assignments-of-student")));
     }
 }
