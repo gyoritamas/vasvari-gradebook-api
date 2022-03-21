@@ -67,7 +67,7 @@ public class SubjectIntegrationTests {
                 .email("johndoe@email.com")
                 .address("666 Armstrong St., Mesa, AZ 85203")
                 .phone("202-555-0198")
-                .birthdate(LocalDate.of(2004,2,1))
+                .birthdate(LocalDate.of(2004, 2, 1))
                 .build();
 
         teacher = TeacherDto.builder()
@@ -76,7 +76,7 @@ public class SubjectIntegrationTests {
                 .email("darrellbowen@email.com")
                 .address("3982 Turnpike Drive, Birmingham, AL 35203")
                 .phone("619-446-8496")
-                .birthdate(LocalDate.of(1984,2,1))
+                .birthdate(LocalDate.of(1984, 2, 1))
                 .build();
     }
 
@@ -451,7 +451,7 @@ public class SubjectIntegrationTests {
                 .deadline(LocalDate.of(2051, 1, 1))
                 .subjectId(subject.getId())
                 .build();
-        Link linkToAssignments = linkTo(AssignmentController.class).withSelfRel();
+        Link linkToAssignments = linkTo(methodOn(AssignmentController.class).add(assignmentInput)).withSelfRel();
         ResponseEntity<AssignmentOutput> assignmentPostResponse = template.exchange(
                 linkToAssignments.getHref(),
                 HttpMethod.POST,

@@ -43,8 +43,6 @@ public class AssignmentIntegrationTests {
     @LocalServerPort
     private int port;
 
-    private Link linkToAssignments;
-
     private AssignmentInput assignmentInput1;
     private AssignmentInput assignmentInput2;
     private StudentDto student;
@@ -53,8 +51,6 @@ public class AssignmentIntegrationTests {
 
     @BeforeEach
     public void setUp() {
-        linkToAssignments = linkTo(AssignmentController.class).withSelfRel();
-
         auth.setRole(ADMIN);
 
         assignmentInput1 = AssignmentInput.builder()
@@ -76,7 +72,7 @@ public class AssignmentIntegrationTests {
                 .email("johndoe@email.com")
                 .address("666 Armstrong St., Mesa, AZ 85203")
                 .phone("202-555-0198")
-                .birthdate(LocalDate.of(2005,12,1))
+                .birthdate(LocalDate.of(2005, 12, 1))
                 .build();
         teacher = TeacherDto.builder()
                 .firstname("Darrell")
@@ -84,7 +80,7 @@ public class AssignmentIntegrationTests {
                 .email("darrellbowen@email.com")
                 .address("3982 Turnpike Drive, Birmingham, AL 35203")
                 .phone("619-446-8496")
-                .birthdate(LocalDate.of(1984,12,1))
+                .birthdate(LocalDate.of(1984, 12, 1))
                 .build();
         subjectInput = SubjectInput.builder()
                 .name("Algebra")
@@ -101,6 +97,7 @@ public class AssignmentIntegrationTests {
             subjectInput.setTeacherId(teacherId);
             long subjectId = postSubject(subjectInput).getId();
             assignmentInput1.setSubjectId(subjectId);
+            Link linkToAssignments = linkTo(methodOn(AssignmentController.class).add(assignmentInput1)).withSelfRel();
             ResponseEntity<AssignmentOutput> response = template.exchange(
                     linkToAssignments.getHref(),
                     HttpMethod.POST,
@@ -133,7 +130,7 @@ public class AssignmentIntegrationTests {
         private void givenAssignmentWithEmptyName_postAssignment_shouldReturnWithBadRequest() {
             long teacherId = postTeacher(teacher).getId();
             subjectInput.setTeacherId(teacherId);
-            long subjectId= postSubject(subjectInput).getId();
+            long subjectId = postSubject(subjectInput).getId();
 
             AssignmentInput inputWithBlankName = AssignmentInput.builder()
                     .name(" ")
@@ -141,6 +138,7 @@ public class AssignmentIntegrationTests {
                     .deadline(LocalDate.of(2051, 1, 1))
                     .subjectId(subjectId)
                     .build();
+            Link linkToAssignments = linkTo(methodOn(AssignmentController.class).add(inputWithBlankName)).withSelfRel();
             ResponseEntity<?> response = template.exchange(
                     linkToAssignments.getHref(),
                     HttpMethod.POST,
@@ -161,6 +159,7 @@ public class AssignmentIntegrationTests {
                     .deadline(LocalDate.of(1991, 1, 1))
                     .subjectId(subjectId)
                     .build();
+            Link linkToAssignments = linkTo(methodOn(AssignmentController.class).add(inputWithWrongType)).withSelfRel();
             ResponseEntity<?> response = template.exchange(
                     linkToAssignments.getHref(),
                     HttpMethod.POST,
@@ -178,6 +177,7 @@ public class AssignmentIntegrationTests {
                     .deadline(LocalDate.of(2051, 1, 1))
                     .subjectId(99L)
                     .build();
+            Link linkToAssignments = linkTo(methodOn(AssignmentController.class).add(inputWithWrongType)).withSelfRel();
             ResponseEntity<?> response = template.exchange(
                     linkToAssignments.getHref(),
                     HttpMethod.POST,
@@ -517,6 +517,7 @@ public class AssignmentIntegrationTests {
     }
 
     private AssignmentOutput postAssignment(AssignmentInput assignment) {
+        Link linkToAssignments = linkTo(methodOn(AssignmentController.class).add(assignment)).withSelfRel();
         ResponseEntity<AssignmentOutput> assignmentPostResponse = template.exchange(
                 linkToAssignments.getHref(),
                 HttpMethod.POST,

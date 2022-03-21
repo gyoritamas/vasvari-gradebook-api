@@ -461,7 +461,7 @@ public class StudentIntegrationTests {
                 .deadline(LocalDate.of(2051, 1, 1))
                 .subjectId(subjectPosted.getId())
                 .build();
-        Link linkToAssignments = linkTo(AssignmentController.class).withSelfRel();
+        Link linkToAssignments = linkTo(methodOn(AssignmentController.class).add(assignment)).withSelfRel();
         ResponseEntity<AssignmentOutput> assignmentPostResponse = template.exchange(
                 linkToAssignments.getHref(),
                 HttpMethod.POST,

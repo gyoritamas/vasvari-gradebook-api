@@ -1,7 +1,10 @@
 package com.codecool.gradebookapi.unit.controller;
 
 import com.codecool.gradebookapi.controller.AssignmentController;
-import com.codecool.gradebookapi.dto.*;
+import com.codecool.gradebookapi.dto.AssignmentInput;
+import com.codecool.gradebookapi.dto.AssignmentOutput;
+import com.codecool.gradebookapi.dto.GradebookOutput;
+import com.codecool.gradebookapi.dto.SubjectOutput;
 import com.codecool.gradebookapi.dto.assembler.AssignmentModelAssembler;
 import com.codecool.gradebookapi.dto.dataTypes.SimpleData;
 import com.codecool.gradebookapi.jwt.JwtAuthenticationEntryPoint;
@@ -48,6 +51,8 @@ public class AssignmentControllerTests {
     private SubjectService subjectService;
     @MockBean
     private TeacherService teacherService;
+    @MockBean
+    private StudentService studentService;
     @MockBean
     private UserService userService;
     @MockBean

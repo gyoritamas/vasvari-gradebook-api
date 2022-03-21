@@ -72,7 +72,7 @@ public class GradebookIntegrationTests {
                 .email("johndoe@email.com")
                 .address("666 Armstrong St., Mesa, AZ 85203")
                 .phone("202-555-0198")
-                .birthdate(LocalDate.of(2005,12,1))
+                .birthdate(LocalDate.of(2005, 12, 1))
                 .build();
         student2 = StudentDto.builder()
                 .firstname("Jane")
@@ -81,7 +81,7 @@ public class GradebookIntegrationTests {
                 .email("janedoe@email.com")
                 .address("9351 Morris St., Reisterstown, MD 21136")
                 .phone("202-555-0198")
-                .birthdate(LocalDate.of(1990,4,13))
+                .birthdate(LocalDate.of(1990, 4, 13))
                 .build();
 
         teacher = TeacherDto.builder()
@@ -90,7 +90,7 @@ public class GradebookIntegrationTests {
                 .email("darrellbowen@email.com")
                 .address("3982 Turnpike Drive, Birmingham, AL 35203")
                 .phone("619-446-8496")
-                .birthdate(LocalDate.of(1984,2,1))
+                .birthdate(LocalDate.of(1984, 2, 1))
                 .build();
 
         subject = SubjectInput.builder()
@@ -541,7 +541,7 @@ public class GradebookIntegrationTests {
     }
 
     private AssignmentOutput postAssignment(AssignmentInput assignment) {
-        Link linkToAssignments = linkTo(AssignmentController.class).withSelfRel();
+        Link linkToAssignments = linkTo(methodOn(AssignmentController.class).add(assignment)).withSelfRel();
         ResponseEntity<AssignmentOutput> assignmentPostResponse = template.exchange(
                 linkToAssignments.getHref(),
                 HttpMethod.POST,
