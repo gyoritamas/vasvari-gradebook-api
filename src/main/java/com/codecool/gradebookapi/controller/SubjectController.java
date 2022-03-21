@@ -139,6 +139,23 @@ public class SubjectController {
                 .ok(subjectModelAssembler.toModel(subjectService.addStudentToSubject(studentId, subjectId)));
     }
 
+    @PostMapping("/subjects/{subjectId}/remove_student/{studentId}")
+    @Operation(summary = "Remove a student from a subject")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Removed student from subject"),
+            @ApiResponse(responseCode = "404", description = "Could not find subject/student with given ID")
+    })
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<EntityModel<SubjectOutput>> removeStudentFromSubject(@PathVariable("subjectId") Long subjectId,
+                                                                               @PathVariable("studentId") Long studentId) {
+        subjectService.findById(subjectId).orElseThrow(() -> new SubjectNotFoundException(subjectId));
+        studentService.findById(studentId).orElseThrow(() -> new StudentNotFoundException(studentId));
+        log.info("Removed student {} from subject {}", studentId, subjectId);
+
+        return ResponseEntity
+                .ok(subjectModelAssembler.toModel(subjectService.removeStudentFromSubject(studentId, subjectId)));
+    }
+
     @GetMapping("/subjects/{subjectId}/students")
     @Operation(summary = "Finds all students of the subject specified by ID")
     @ApiResponses(value = {
@@ -196,6 +213,5 @@ public class SubjectController {
                         linkTo(methodOn(SubjectController.class).getSubjectsOfCurrentUserAsStudent())
                                 .withRel("subjects-of-student")));
     }
-
 
 }

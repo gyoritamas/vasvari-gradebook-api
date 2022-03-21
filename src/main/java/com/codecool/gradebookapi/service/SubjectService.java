@@ -80,6 +80,14 @@ public class SubjectService {
         return subjectMapper.map(subjectRepository.save(subject));
     }
 
+    public SubjectOutput removeStudentFromSubject(Long studentId, Long subjectId) {
+        Student student = studentRepository.getById(studentId);
+        Subject subject = subjectRepository.getById(subjectId);
+        subject.getStudents().remove(student);
+
+        return subjectMapper.map(subjectRepository.save(subject));
+    }
+
     public boolean isStudentAddedToSubject(Long studentId, Long subjectId) {
         Student student = studentRepository.getById(studentId);
 
