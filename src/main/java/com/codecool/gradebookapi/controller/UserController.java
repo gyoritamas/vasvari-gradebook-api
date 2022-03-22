@@ -7,9 +7,7 @@ import com.codecool.gradebookapi.dto.assembler.InitialCredentialsModelAssembler;
 import com.codecool.gradebookapi.dto.assembler.UserModelAssembler;
 import com.codecool.gradebookapi.dto.dataTypes.InitialCredentials;
 import com.codecool.gradebookapi.dto.dataTypes.UsernameInput;
-import com.codecool.gradebookapi.exception.StudentNotFoundException;
-import com.codecool.gradebookapi.exception.TeacherNotFoundException;
-import com.codecool.gradebookapi.exception.UserNotFoundException;
+import com.codecool.gradebookapi.exception.*;
 import com.codecool.gradebookapi.service.StudentService;
 import com.codecool.gradebookapi.service.TeacherService;
 import com.codecool.gradebookapi.service.UserService;
@@ -27,6 +25,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+
+import static com.codecool.gradebookapi.security.ApplicationUserRole.STUDENT;
+import static com.codecool.gradebookapi.security.ApplicationUserRole.TEACHER;
 
 @RestController
 @RequestMapping("/api/users")
@@ -135,6 +136,41 @@ public class UserController {
         return ResponseEntity
                 .created(entityModel.getRequiredLink(IanaLinkRelations.SELF).toUri())
                 .body(entityModel);
+    }
+
+    @GetMapping("/students/{id}")
+    @Operation(summary = "Finds a student-user related to a student entity with the given ID")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Returned user related to student"),
+            @ApiResponse(responseCode = "404", description = "Could not find user with the given ID"),
+            @ApiResponse(responseCode = "404", description = "Could not find user related to student")
+    })
+    public ResponseEntity<EntityModel<UserDto>> findUserRelatedToStudent(@PathVariable("id") Long studentId) {
+        if (studentService.findById(studentId).isEmpty()) throw new StudentNotFoundException(studentId);
+        UserDto user = userService.getUserRelatedToSchoolActor(STUDENT, studentId)
+                .orElseThrow(() -> new StudentUserNotFoundException(studentId));
+
+        EntityModel<UserDto> entityModel = userModelAssembler.toModel(user);
+        log.info("Returned user related to student {}", studentId);
+
+        return ResponseEntity.ok(entityModel);
+    }
+
+    @GetMapping("/teachers/{id}")
+    @Operation(summary = "Finds a teacher-user related to a teacher entity with the given ID")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Returned user related to teacher"),
+            @ApiResponse(responseCode = "404", description = "Could not find user related to teacher")
+    })
+    public ResponseEntity<EntityModel<UserDto>> findUserRelatedToTeacher(@PathVariable("id") Long teacherId) {
+        if (teacherService.findById(teacherId).isEmpty()) throw new TeacherNotFoundException(teacherId);
+        UserDto user = userService.getUserRelatedToSchoolActor(TEACHER, teacherId)
+                .orElseThrow(() -> new TeacherUserNotFoundException(teacherId));
+
+        EntityModel<UserDto> entityModel = userModelAssembler.toModel(user);
+        log.info("Returned user related to teacher {}", teacherId);
+
+        return ResponseEntity.ok(entityModel);
     }
 
     @PutMapping("/{id}")

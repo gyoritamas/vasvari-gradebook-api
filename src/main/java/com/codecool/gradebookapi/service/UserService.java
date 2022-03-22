@@ -20,8 +20,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
-import java.util.Optional;
+import java.text.Normalizer;
+import java.util.*;
 
 import static com.codecool.gradebookapi.security.ApplicationUserRole.*;
 
@@ -107,10 +107,16 @@ public class UserService implements UserDetailsService {
     private String generateUsername(String name) {
         String generatedUsername;
         do {
-            generatedUsername = name.toLowerCase().replaceAll(" ", "") + RandomStringUtils.randomNumeric(2);
+            generatedUsername = removeAccents(name.toLowerCase().replaceAll("[ .\\-']", "")) + RandomStringUtils.randomNumeric(2);
         } while (isUsernameAlreadyTaken(generatedUsername));
 
         return generatedUsername;
+    }
+
+    private String removeAccents(String name) {
+        name = Normalizer.normalize(name, Normalizer.Form.NFD);
+
+        return name.replaceAll("\\p{M}", "");
     }
 
     private boolean isUsernameAlreadyTaken(String username) {
@@ -130,7 +136,20 @@ public class UserService implements UserDetailsService {
     }
 
     public void deleteById(Long id) {
+        //TODO: instead of delete, should set user inactive
         userRepository.deleteById(id);
+    }
+
+    public Optional<UserDto> getUserRelatedToSchoolActor(ApplicationUserRole role, Long schoolActorId) {
+        if (role.equals(ADMIN)) return Optional.empty();
+
+        Optional<SchoolActorApplicationUserRelation> relation =
+                relationRepository.getByUserRoleAndSchoolActorId(role, schoolActorId);
+        if (relation.isEmpty()) return Optional.empty();
+
+        ApplicationUser user = userRepository.getById(relation.get().getAppUserId());
+
+        return Optional.of(mapper.map(user));
     }
 
     public Long findStudentIdByUserId(Long userId) {

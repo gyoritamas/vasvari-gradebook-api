@@ -8,5 +8,8 @@ import java.util.Optional;
 
 public interface SchoolActorApplicationUserRelationRepository extends JpaRepositoryImplementation<SchoolActorApplicationUserRelation, Long> {
     boolean existsSchoolActorApplicationUserRelationByUserRoleAndSchoolActorId(ApplicationUserRole role, Long schoolActorId);
+
+    Optional<SchoolActorApplicationUserRelation> getByUserRoleAndSchoolActorId(ApplicationUserRole role, Long schoolActorId);
+
     Optional<SchoolActorApplicationUserRelation> findFirstByAppUserId(Long userId);
 }

@@ -147,7 +147,7 @@ public class GradebookController {
         subjectService.findById(subjectId).orElseThrow(() -> new SubjectNotFoundException(subjectId));
         assignmentService.findById(assignmentId).orElseThrow(() -> new AssignmentNotFoundException(assignmentId));
         if (!subjectService.isStudentAddedToSubject(studentId, subjectId))
-            throw new RelationNotFoundException(studentId, subjectId);
+            throw new SubjectRelationNotFoundException(studentId, subjectId);
         if (gradebookService.isDuplicateEntry(gradebookInput)) throw new DuplicateEntryException(gradebookInput);
 
         GradebookOutput entryCreated = gradebookService.save(gradebookInput);
@@ -192,7 +192,7 @@ public class GradebookController {
     private ResponseEntity<CollectionModel<EntityModel<GradebookOutput>>> getGradebookEntriesByStudentIdAndSubjectId(Long subjectId, Long studentId) {
         subjectService.findById(subjectId).orElseThrow(() -> new SubjectNotFoundException(subjectId));
         if (!subjectService.isStudentAddedToSubject(studentId, subjectId))
-            throw new RelationNotFoundException(studentId, subjectId);
+            throw new SubjectRelationNotFoundException(studentId, subjectId);
 
         List<EntityModel<GradebookOutput>> entityModels = gradebookService.findByStudentIdAndSubjectId(studentId, subjectId).stream()
                 .map(gradebookModelAssembler::toModel)
