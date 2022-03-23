@@ -4,8 +4,10 @@ import com.codecool.gradebookapi.dto.SubjectOutput;
 import com.codecool.gradebookapi.dto.StudentDto;
 import com.codecool.gradebookapi.dto.mapper.SubjectMapper;
 import com.codecool.gradebookapi.dto.mapper.StudentMapper;
+import com.codecool.gradebookapi.model.StudentSpecification;
 import com.codecool.gradebookapi.model.Subject;
 import com.codecool.gradebookapi.model.Student;
+import com.codecool.gradebookapi.model.request.StudentRequest;
 import com.codecool.gradebookapi.repository.SubjectRepository;
 import com.codecool.gradebookapi.repository.StudentRepository;
 import lombok.RequiredArgsConstructor;
@@ -22,9 +24,14 @@ public class StudentService {
     private final SubjectRepository subjectRepository;
     private final StudentMapper studentMapper;
     private final SubjectMapper subjectMapper;
+    private final StudentSpecification specification;
 
     public List<StudentDto> findAll() {
         return studentMapper.mapAll(studentRepository.findAll());
+    }
+
+    public List<StudentDto> findAll(StudentRequest request) {
+        return studentMapper.mapAll(studentRepository.findAll(specification.getStudents(request)));
     }
 
     public StudentDto save(StudentDto studentDto) {

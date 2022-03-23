@@ -9,6 +9,7 @@ import com.codecool.gradebookapi.exception.SubjectNotFoundException;
 import com.codecool.gradebookapi.exception.StudentInUseException;
 import com.codecool.gradebookapi.exception.StudentNotFoundException;
 import com.codecool.gradebookapi.exception.TeacherNotFoundException;
+import com.codecool.gradebookapi.model.request.StudentRequest;
 import com.codecool.gradebookapi.service.*;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -49,11 +50,16 @@ public class StudentController {
     @GetMapping("/students")
     @Operation(summary = "Lists all students")
     @ApiResponse(responseCode = "200", description = "Returned list of all students")
-    public ResponseEntity<CollectionModel<EntityModel<StudentDto>>> getAll() {
+    public ResponseEntity<CollectionModel<EntityModel<StudentDto>>> getAll(@RequestParam(value = "name", required = false) String name,
+                                                                           @RequestParam(value = "gradeLevel", required = false) Integer gradeLevel) {
+        StudentRequest request = new StudentRequest();
+        request.setName(name);
+        request.setGradeLevel(gradeLevel);
+        List<StudentDto> studentList = studentService.findAll(request);
         log.info("Returned list of all students");
 
         return ResponseEntity
-                .ok(studentModelAssembler.toCollectionModel(studentService.findAll()));
+                .ok(studentModelAssembler.toCollectionModel(studentList));
     }
 
     @GetMapping("/students/{id}")

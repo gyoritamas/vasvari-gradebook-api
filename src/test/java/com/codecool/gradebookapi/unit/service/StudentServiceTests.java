@@ -1,6 +1,7 @@
 package com.codecool.gradebookapi.unit.service;
 
 import com.codecool.gradebookapi.dto.StudentDto;
+import com.codecool.gradebookapi.model.request.StudentRequest;
 import com.codecool.gradebookapi.service.StudentService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -38,7 +39,7 @@ public class StudentServiceTests {
         student2 = StudentDto.builder()
                 .firstname("Jane")
                 .lastname("Doe")
-                .gradeLevel(2)
+                .gradeLevel(3)
                 .email("janedoe@email.com")
                 .address("9351 Morris St., Reisterstown, MD 21136")
                 .phone("202-555-0198")
@@ -114,4 +115,117 @@ public class StudentServiceTests {
         assertThat(updatedStudent).isPresent();
         assertThat(updatedStudent.get().getFirstname()).isEqualTo("Johnathan");
     }
+
+    @Test
+    @DisplayName("when Student exists with given name, findAll should return list of Students")
+    public void whenStudentExistsWithGivenName_findAllShouldReturnListOfStudents() {
+        student1 = service.save(student1);
+        student2 = service.save(student2);
+
+        StudentRequest request1 = new StudentRequest();
+        request1.setName("john");
+        List<StudentDto> studentsWithJohnInName = service.findAll(request1);
+
+        assertThat(studentsWithJohnInName).containsExactly(student1);
+
+        StudentRequest request2 = new StudentRequest();
+        request2.setName("doe");
+        List<StudentDto> studentsWithDoeInName = service.findAll(request2);
+
+        assertThat(studentsWithDoeInName).containsExactly(student1, student2);
+
+        StudentRequest request3 = new StudentRequest();
+        request3.setName("john doe");
+        List<StudentDto> studentsWithJohnDoeInName = service.findAll(request3);
+
+        assertThat(studentsWithJohnDoeInName).containsExactly(student1);
+    }
+
+    @Test
+    @DisplayName("when Student does not exist with given name, findAll should return empty list")
+    public void whenStudentDoesNotExistWithGivenName_findAllShouldReturnEmtpyList() {
+        student1 = service.save(student1);
+        student2 = service.save(student2);
+
+        StudentRequest request = new StudentRequest();
+        request.setName("jim");
+        List<StudentDto> studentsWithJimInName = service.findAll(request);
+
+        assertThat(studentsWithJimInName).isEmpty();
+    }
+
+    @Test
+    @DisplayName("when Student exists with given gradeLevel, findAll should return list of Students")
+    public void whenStudentExistsWithGivenGradeLevel_findAllShouldReturnListOfStudents() {
+        student1 = service.save(student1);
+        student2 = service.save(student2);
+
+        StudentRequest request1 = new StudentRequest();
+        request1.setGradeLevel(2);
+        List<StudentDto> studentsFromSecondGrade = service.findAll(request1);
+
+        assertThat(studentsFromSecondGrade).containsExactly(student1);
+
+        StudentRequest request2 = new StudentRequest();
+        request2.setGradeLevel(3);
+        List<StudentDto> studentsFromThirdGrade = service.findAll(request2);
+
+        assertThat(studentsFromThirdGrade).containsExactly(student2);
+    }
+
+    @Test
+    @DisplayName("when Student does not exist with given gradeLevel, findAll should return empty list")
+    public void whenStudentDoesNotExistWithGivenGradeLevel_findAllShouldReturnEmptyList() {
+        student1 = service.save(student1);
+        student2 = service.save(student2);
+
+        StudentRequest request = new StudentRequest();
+        request.setGradeLevel(4);
+        List<StudentDto> studentsFromFourthGrade = service.findAll(request);
+
+        assertThat(studentsFromFourthGrade).isEmpty();
+    }
+
+    @Test
+    @DisplayName("when Student exists with given name and gradeLevel, findAll should return list of Students")
+    public void whenStudentExistsWithGivenNameAndGradeLevel_findAllShouldReturnListOfStudents() {
+        student1 = service.save(student1);
+        student2 = service.save(student2);
+
+        StudentRequest request1 = new StudentRequest();
+        request1.setName("doe");
+        request1.setGradeLevel(2);
+        List<StudentDto> studentsFromSecondGradeWithNameDoe = service.findAll(request1);
+
+        assertThat(studentsFromSecondGradeWithNameDoe).containsExactly(student1);
+
+        StudentRequest request2 = new StudentRequest();
+        request2.setName("doe");
+        request2.setGradeLevel(3);
+        List<StudentDto> studentsFromThirdGradeWithNameDoe = service.findAll(request2);
+
+        assertThat(studentsFromThirdGradeWithNameDoe).containsExactly(student2);
+    }
+
+    @Test
+    @DisplayName("when Student does not exist with given name and gradeLevel, findAll should return empty list")
+    public void whenStudentDoesNotExistWithGivenNameAndGradeLevel_findAllShouldReturnEmptyList() {
+        student1 = service.save(student1);
+        student2 = service.save(student2);
+
+        StudentRequest request2 = new StudentRequest();
+        request2.setName("jane");
+        request2.setGradeLevel(2);
+        List<StudentDto> studentsFromSecondGradeWithNameJane = service.findAll(request2);
+
+        assertThat(studentsFromSecondGradeWithNameJane).isEmpty();
+
+        StudentRequest request1 = new StudentRequest();
+        request1.setName("john");
+        request1.setGradeLevel(3);
+        List<StudentDto> studentsFromThirdGradeWithNameJohn = service.findAll(request1);
+
+        assertThat(studentsFromThirdGradeWithNameJohn).isEmpty();
+    }
+
 }
