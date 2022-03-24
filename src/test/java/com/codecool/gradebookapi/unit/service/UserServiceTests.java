@@ -208,15 +208,16 @@ public class UserServiceTests {
     }
 
     @Test
-    @DisplayName("given User exists with ID, deleteById should delete User")
+    @DisplayName("given User exists with ID, setUserDisabled should set User disabled")
     @DirtiesContext(methodMode = BEFORE_METHOD)
-    public void givenUserExistsWithId_deleteByIdShouldDeleteUser() {
+    public void givenUserExistsWithId_setUserDisabledShouldSetUserDisabled() {
         adminUser = userService.save(adminUser);
         long userId = adminUser.getId();
 
-        userService.deleteById(userId);
+        userService.setUserDisabled(userId);
 
-        assertThat(userService.findById(userId)).isEmpty();
+        assertThat(userService.findById(userId).isPresent()).isTrue();
+        assertThat(userService.findById(userId).get().isEnabled()).isFalse();
     }
 
     @Test

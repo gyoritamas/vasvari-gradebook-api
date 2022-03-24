@@ -205,5 +205,29 @@ public class UserController {
         return ResponseEntity.noContent().build();
     }
 
+    @PostMapping("/{id}/enable")
+    @Operation(summary = "Enables the user given by ID")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Enabled user with given ID"),
+            @ApiResponse(responseCode = "404", description = "Could not find user with given ID")
+    })
+    public ResponseEntity<?> enable(@PathVariable("id") Long id) {
+        userService.setUserEnabled(id);
+        log.info("User {} is enabled", id);
 
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/{id}/disable")
+    @Operation(summary = "Disables the user given by ID")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Disabled user with given ID"),
+            @ApiResponse(responseCode = "404", description = "Could not find user with given ID")
+    })
+    public ResponseEntity<?> disable(@PathVariable("id") Long id) {
+        userService.setUserDisabled(id);
+        log.info("User {} is disabled", id);
+
+        return ResponseEntity.ok().build();
+    }
 }

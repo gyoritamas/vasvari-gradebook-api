@@ -5,6 +5,7 @@ import com.codecool.gradebookapi.dto.TeacherDto;
 import com.codecool.gradebookapi.dto.UserDto;
 import com.codecool.gradebookapi.dto.dataTypes.InitialCredentials;
 import com.codecool.gradebookapi.dto.mapper.UserMapper;
+import com.codecool.gradebookapi.exception.UserNotFoundException;
 import com.codecool.gradebookapi.model.ApplicationUser;
 import com.codecool.gradebookapi.model.SchoolActorApplicationUserRelation;
 import com.codecool.gradebookapi.repository.SchoolActorApplicationUserRelationRepository;
@@ -42,9 +43,9 @@ public class UserService implements UserDetailsService {
         this.passwordEncoder = passwordEncoder;
         this.mapper = mapper;
         // TODO: remove
-//        userRepository.save(new ApplicationUser(1L, "admin", this.passwordEncoder.encode("admin"), ApplicationUserRole.ADMIN));
-//        userRepository.save(new ApplicationUser(2L, "teacher", this.passwordEncoder.encode("teacher"), ApplicationUserRole.TEACHER));
-//        userRepository.save(new ApplicationUser(3L, "student", this.passwordEncoder.encode("student"), STUDENT));
+//        userRepository.save(new ApplicationUser("admin", this.passwordEncoder.encode("admin"), ApplicationUserRole.ADMIN));
+//        userRepository.save(new ApplicationUser("teacher", this.passwordEncoder.encode("teacher"), ApplicationUserRole.TEACHER));
+//        userRepository.save(new ApplicationUser("student", this.passwordEncoder.encode("student"), STUDENT));
     }
 
     public List<UserDto> findAll() {
@@ -136,8 +137,19 @@ public class UserService implements UserDetailsService {
     }
 
     public void deleteById(Long id) {
-        //TODO: instead of delete, should set user inactive
         userRepository.deleteById(id);
+    }
+
+    public void setUserDisabled(Long id) {
+        ApplicationUser user = userRepository.findById(id).orElseThrow(() -> new UserNotFoundException(id));
+        user.setEnabled(false);
+        userRepository.save(user);
+    }
+
+    public void setUserEnabled(Long id) {
+        ApplicationUser user = userRepository.findById(id).orElseThrow(() -> new UserNotFoundException(id));
+        user.setEnabled(true);
+        userRepository.save(user);
     }
 
     public Optional<UserDto> getUserRelatedToSchoolActor(ApplicationUserRole role, Long schoolActorId) {
@@ -196,10 +208,8 @@ public class UserService implements UserDetailsService {
     @Override
     @Transactional
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        ApplicationUser user = userRepository.findByUsername(username)
+        return userRepository.findByUsername(username)
                 .orElseThrow(() -> new UsernameNotFoundException(String.format("User not found with username \"%s\"", username)));
-
-        return new org.springframework.security.core.userdetails.User(user.getUsername(), user.getPassword(), user.getRole().getGrantedAuthorities());
     }
 
 }

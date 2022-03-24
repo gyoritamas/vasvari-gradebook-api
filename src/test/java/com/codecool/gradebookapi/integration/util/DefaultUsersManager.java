@@ -25,16 +25,19 @@ public class DefaultUsersManager {
                 .username("admin")
                 .password(passwordEncoder.encode("admin"))
                 .role(ADMIN)
+                .enabled(true)
                 .build();
         TEACHER_USER = UserDto.builder()
                 .username("teacher")
                 .password(passwordEncoder.encode("teacher"))
                 .role(TEACHER)
+                .enabled(true)
                 .build();
         STUDENT_USER = UserDto.builder()
                 .username("student")
                 .password(passwordEncoder.encode("student"))
                 .role(STUDENT)
+                .enabled(true)
                 .build();
 
         addDefaultUsers();

@@ -15,6 +15,7 @@ public class UserMapper {
                 .username(userDto.getUsername())
                 .password(userDto.getPassword())
                 .role(userDto.getRole())
+                .enabled(userDto.isEnabled())
                 .build();
     }
 
@@ -24,6 +25,7 @@ public class UserMapper {
                 .username(user.getUsername())
                 .password(user.getPassword())
                 .role(user.getRole())
+                .enabled(user.isEnabled())
                 .build();
     }
 

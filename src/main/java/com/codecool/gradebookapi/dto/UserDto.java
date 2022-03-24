@@ -32,9 +32,12 @@ public class UserDto {
     @Enumerated(EnumType.STRING)
     private ApplicationUserRole role;
 
+    private boolean enabled;
+
     public UserDto(String username, String password, ApplicationUserRole role) {
         this.username = username;
         this.password = password;
         this.role = role;
+        this.enabled = true;
     }
 }
