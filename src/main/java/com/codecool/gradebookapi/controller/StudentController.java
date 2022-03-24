@@ -1,13 +1,13 @@
 package com.codecool.gradebookapi.controller;
 
-import com.codecool.gradebookapi.dto.SubjectOutput;
 import com.codecool.gradebookapi.dto.StudentDto;
+import com.codecool.gradebookapi.dto.SubjectOutput;
 import com.codecool.gradebookapi.dto.TeacherDto;
-import com.codecool.gradebookapi.dto.assembler.SubjectModelAssembler;
 import com.codecool.gradebookapi.dto.assembler.StudentModelAssembler;
-import com.codecool.gradebookapi.exception.SubjectNotFoundException;
+import com.codecool.gradebookapi.dto.assembler.SubjectModelAssembler;
 import com.codecool.gradebookapi.exception.StudentInUseException;
 import com.codecool.gradebookapi.exception.StudentNotFoundException;
+import com.codecool.gradebookapi.exception.SubjectNotFoundException;
 import com.codecool.gradebookapi.exception.TeacherNotFoundException;
 import com.codecool.gradebookapi.model.request.StudentRequest;
 import com.codecool.gradebookapi.service.*;
@@ -26,7 +26,6 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
@@ -50,16 +49,29 @@ public class StudentController {
     @GetMapping("/students")
     @Operation(summary = "Lists all students")
     @ApiResponse(responseCode = "200", description = "Returned list of all students")
-    public ResponseEntity<CollectionModel<EntityModel<StudentDto>>> getAll(@RequestParam(value = "name", required = false) String name,
-                                                                           @RequestParam(value = "gradeLevel", required = false) Integer gradeLevel) {
-        StudentRequest request = new StudentRequest();
-        request.setName(name);
-        request.setGradeLevel(gradeLevel);
-        List<StudentDto> studentList = studentService.findAll(request);
+    public ResponseEntity<CollectionModel<EntityModel<StudentDto>>> getAll() {
+        List<StudentDto> studentList = studentService.findAll();
         log.info("Returned list of all students");
 
         return ResponseEntity
                 .ok(studentModelAssembler.toCollectionModel(studentList));
+    }
+
+    @GetMapping("/students/search")
+    @Operation(summary = "Lists all students, filtered by name and grade level")
+    @ApiResponse(responseCode = "200", description = "Returned list of all students")
+    public ResponseEntity<CollectionModel<EntityModel<StudentDto>>> searchStudents(@RequestParam(value = "studentName", required = false) String studentName,
+                                                                                   @RequestParam(value = "gradeLevel", required = false) Integer gradeLevel,
+                                                                                   @RequestParam(name = "subjectId", required = false) Long subjectId) {
+
+        List<StudentDto> studentList = getStudentsFilteredByNameGradeLevelAndSubject(studentName, gradeLevel, subjectId);
+
+        log.info("Returned list of students with the following filters: studentName={}, gradeLevel={}, subjectId={}", studentName, gradeLevel, subjectId);
+
+        return ResponseEntity
+                .ok(CollectionModel.of(studentModelAssembler.toCollectionModel(studentList),
+                        linkTo(methodOn(StudentController.class).searchStudents(studentName, gradeLevel, subjectId))
+                                .withRel("students-filtered")));
     }
 
     @GetMapping("/students/{id}")
@@ -146,11 +158,17 @@ public class StudentController {
             @ApiResponse(responseCode = "404", description = "Could not find teacher with given ID")
     })
     public ResponseEntity<CollectionModel<EntityModel<StudentDto>>> getStudentsOfCurrentUserAsTeacher(
+            @RequestParam(name = "studentName", required = false) String studentName,
             @RequestParam(name = "gradeLevel", required = false) Integer gradeLevel,
             @RequestParam(name = "subjectId", required = false) Long subjectId) {
         Long teacherId = userService.getTeacherIdOfCurrentUser();
         TeacherDto teacher = teacherService.findById(teacherId).orElseThrow(() -> new TeacherNotFoundException(teacherId));
 
+        // filter by studentName and gradeLevel
+        List<StudentDto> studentsFilteredByNameAndGradeLevel =
+                getStudentsFilteredByNameGradeLevelAndSubject(studentName, gradeLevel, subjectId);
+
+        // filter by teacher and/or subject
         List<StudentDto> students;
         if (subjectId == null) {
             students = subjectService.findStudentsOfTeacher(teacher);
@@ -162,16 +180,26 @@ public class StudentController {
             students = subjectService.getStudentsOfSubject(subjectId);
         }
 
-        if (gradeLevel != null)
-            students = students.stream()
-                    .filter(student -> student.getGradeLevel().equals(gradeLevel))
-                    .collect(Collectors.toList());
+        students.retainAll(studentsFilteredByNameAndGradeLevel);
 
         log.info("Returned list of all students related to teacher {}", teacherId);
 
         return ResponseEntity
                 .ok(CollectionModel.of(studentModelAssembler.toCollectionModel(students),
-                        linkTo(methodOn(StudentController.class).getStudentsOfCurrentUserAsTeacher(gradeLevel, subjectId))
+                        linkTo(methodOn(StudentController.class).getStudentsOfCurrentUserAsTeacher(studentName, gradeLevel, subjectId))
                                 .withRel("students-of-teacher")));
+    }
+
+    private List<StudentDto> getStudentsFilteredByNameGradeLevelAndSubject(String studentName, Integer gradeLevel, Long subjectId) {
+        StudentRequest request = new StudentRequest();
+        request.setName(studentName);
+        request.setGradeLevel(gradeLevel);
+        List<StudentDto> studentList = studentService.findStudents(request);
+        if (subjectId != null) {
+            List<StudentDto> studentsOfSubject = subjectService.getStudentsOfSubject(subjectId);
+            studentList.retainAll(studentsOfSubject);
+        }
+
+        return studentList;
     }
 }

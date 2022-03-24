@@ -30,7 +30,7 @@ public class StudentService {
         return studentMapper.mapAll(studentRepository.findAll());
     }
 
-    public List<StudentDto> findAll(StudentRequest request) {
+    public List<StudentDto> findStudents(StudentRequest request) {
         return studentMapper.mapAll(studentRepository.findAll(specification.getStudents(request)));
     }
 

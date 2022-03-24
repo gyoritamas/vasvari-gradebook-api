@@ -5,7 +5,10 @@ import com.codecool.gradebookapi.dto.AssignmentOutput;
 import com.codecool.gradebookapi.dto.assembler.AssignmentModelAssembler;
 import com.codecool.gradebookapi.exception.AssignmentInUseException;
 import com.codecool.gradebookapi.exception.AssignmentNotFoundException;
-import com.codecool.gradebookapi.service.*;
+import com.codecool.gradebookapi.service.AssignmentService;
+import com.codecool.gradebookapi.service.GradebookService;
+import com.codecool.gradebookapi.service.SubjectService;
+import com.codecool.gradebookapi.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -34,10 +37,10 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 @RequiredArgsConstructor
 public class AssignmentController {
 
-    private final UserService userService;
     private final AssignmentService assignmentService;
-    private final SubjectService subjectService;
     private final GradebookService gradebookService;
+    private final SubjectService subjectService;
+    private final UserService userService;
     private final AssignmentModelAssembler assembler;
 
     @GetMapping("/assignments")

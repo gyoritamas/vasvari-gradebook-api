@@ -1,18 +1,19 @@
 package com.codecool.gradebookapi.unit.service;
 
+import com.codecool.gradebookapi.dto.StudentDto;
 import com.codecool.gradebookapi.dto.SubjectInput;
 import com.codecool.gradebookapi.dto.SubjectOutput;
-import com.codecool.gradebookapi.dto.StudentDto;
 import com.codecool.gradebookapi.dto.TeacherDto;
 import com.codecool.gradebookapi.dto.dataTypes.SimpleData;
 import com.codecool.gradebookapi.exception.SubjectNotFoundException;
-import com.codecool.gradebookapi.service.SubjectService;
 import com.codecool.gradebookapi.service.StudentService;
+import com.codecool.gradebookapi.service.SubjectService;
 import com.codecool.gradebookapi.service.TeacherService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.annotation.DirtiesContext;
 

@@ -2,8 +2,6 @@ package com.codecool.gradebookapi.service;
 
 import com.codecool.gradebookapi.dto.AssignmentInput;
 import com.codecool.gradebookapi.dto.AssignmentOutput;
-import com.codecool.gradebookapi.dto.StudentDto;
-import com.codecool.gradebookapi.dto.TeacherDto;
 import com.codecool.gradebookapi.dto.mapper.AssignmentMapper;
 import com.codecool.gradebookapi.exception.StudentNotFoundException;
 import com.codecool.gradebookapi.exception.TeacherNotFoundException;
