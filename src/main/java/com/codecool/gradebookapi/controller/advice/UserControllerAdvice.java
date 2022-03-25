@@ -1,5 +1,6 @@
 package com.codecool.gradebookapi.controller.advice;
 
+import com.codecool.gradebookapi.exception.IncorrectPasswordException;
 import com.codecool.gradebookapi.exception.TeacherUserNotFoundException;
 import com.codecool.gradebookapi.exception.UserNotFoundException;
 import com.codecool.gradebookapi.exception.StudentUserNotFoundException;
@@ -67,4 +68,22 @@ public class UserControllerAdvice {
                 .contentType(MediaType.APPLICATION_PROBLEM_JSON)
                 .body(problem);
     }
+
+    @ExceptionHandler(IncorrectPasswordException.class)
+    ResponseEntity<Problem> handleIncorrectPassword(IncorrectPasswordException ex) {
+        Problem problem = Problem.builder()
+                .withType(URI.create("users/incorrect-password"))
+                .withTitle("Given password is incorrect")
+                .withStatus(Status.BAD_REQUEST)
+                .withDetail(ex.getMessage())
+                .build();
+
+        log.warn(ex.getMessage());
+
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .contentType(MediaType.APPLICATION_PROBLEM_JSON)
+                .body(problem);
+    }
+
 }

@@ -5,9 +5,11 @@ import com.codecool.gradebookapi.dto.TeacherDto;
 import com.codecool.gradebookapi.dto.UserDto;
 import com.codecool.gradebookapi.dto.dataTypes.InitialCredentials;
 import com.codecool.gradebookapi.dto.mapper.UserMapper;
+import com.codecool.gradebookapi.exception.IncorrectPasswordException;
 import com.codecool.gradebookapi.exception.UserNotFoundException;
 import com.codecool.gradebookapi.model.ApplicationUser;
 import com.codecool.gradebookapi.model.SchoolActorApplicationUserRelation;
+import com.codecool.gradebookapi.model.request.PasswordChangeRequest;
 import com.codecool.gradebookapi.repository.SchoolActorApplicationUserRelationRepository;
 import com.codecool.gradebookapi.repository.UserRepository;
 import com.codecool.gradebookapi.security.ApplicationUserRole;
@@ -136,6 +138,16 @@ public class UserService implements UserDetailsService {
         return userRepository.findByUsername(username).map(mapper::map);
     }
 
+    public void changePassword(Long userId, PasswordChangeRequest request) {
+        ApplicationUser user = userRepository.getById(userId);
+        if (passwordEncoder.matches(request.getOldPassword(), user.getPassword())) {
+            user.setPassword(passwordEncoder.encode(request.getNewPassword()));
+            userRepository.save(user);
+        } else {
+            throw new IncorrectPasswordException();
+        }
+    }
+
     public void deleteById(Long id) {
         userRepository.deleteById(id);
     }
@@ -211,5 +223,4 @@ public class UserService implements UserDetailsService {
         return userRepository.findByUsername(username)
                 .orElseThrow(() -> new UsernameNotFoundException(String.format("User not found with username \"%s\"", username)));
     }
-
 }

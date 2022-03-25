@@ -4,6 +4,7 @@ import com.codecool.gradebookapi.dto.StudentDto;
 import com.codecool.gradebookapi.dto.TeacherDto;
 import com.codecool.gradebookapi.dto.UserDto;
 import com.codecool.gradebookapi.dto.dataTypes.InitialCredentials;
+import com.codecool.gradebookapi.model.request.PasswordChangeRequest;
 import com.codecool.gradebookapi.security.ApplicationUserRole;
 import com.codecool.gradebookapi.service.UserService;
 import org.junit.jupiter.api.BeforeEach;
@@ -15,6 +16,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.annotation.DirtiesContext;
 
 import javax.transaction.Transactional;
@@ -31,6 +33,9 @@ import static org.springframework.test.annotation.DirtiesContext.MethodMode.BEFO
 public class UserServiceTests {
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
     private UserDto adminUser;
     private UserDto teacherUser;
@@ -506,6 +511,24 @@ public class UserServiceTests {
         Optional<UserDto> userFound = userService.getUserRelatedToSchoolActor(TEACHER, 99L);
 
         assertThat(userFound).isEqualTo(Optional.empty());
+    }
+
+    @Test
+    @Transactional
+    @DisplayName("given correct oldPassword and valid newPassword, changePassword should change the user's password")
+    public void givenCorrectOldPasswordAndValidNewPassword_changePasswordShouldChangeTheUsersPassword() {
+        InitialCredentials credentials = userService.createAdminUser("testuser");
+        String oldPassword = credentials.getPassword();
+        Optional<UserDto> userMaybe = userService.findByUsername("testuser");
+        assertThat(userMaybe.isPresent()).isTrue();
+
+        long userId = userMaybe.get().getId();
+
+        PasswordChangeRequest request = new PasswordChangeRequest(oldPassword, "THiSiSMyNeWPaSSWoRD1234");
+        userService.changePassword(userId, request);
+        UserDto updatedUser = userService.findByUsername("testuser").get();
+
+        assertThat(passwordEncoder.matches("THiSiSMyNeWPaSSWoRD1234", updatedUser.getPassword())).isTrue();
     }
 
 }

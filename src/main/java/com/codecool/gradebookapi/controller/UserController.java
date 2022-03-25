@@ -8,6 +8,7 @@ import com.codecool.gradebookapi.dto.assembler.UserModelAssembler;
 import com.codecool.gradebookapi.dto.dataTypes.InitialCredentials;
 import com.codecool.gradebookapi.dto.dataTypes.UsernameInput;
 import com.codecool.gradebookapi.exception.*;
+import com.codecool.gradebookapi.model.request.PasswordChangeRequest;
 import com.codecool.gradebookapi.service.StudentService;
 import com.codecool.gradebookapi.service.TeacherService;
 import com.codecool.gradebookapi.service.UserService;
@@ -188,6 +189,19 @@ public class UserController {
 
         return ResponseEntity
                 .ok(userModelAssembler.toModel(userService.save(user)));
+    }
+
+    @PostMapping("/{id}")
+    @Operation(summary = "Changes the user's password")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Updated user with given ID"),
+            @ApiResponse(responseCode = "400", description = "Could not change password due to incorrect old password")
+    })
+    public ResponseEntity<?> changePassword(@PathVariable("id") Long userId, @RequestBody @Valid PasswordChangeRequest request) {
+        userService.findById(userId).orElseThrow(() -> new UserNotFoundException(userId));
+        userService.changePassword(userId, request);
+
+        return ResponseEntity.ok().build();
     }
 
     @DeleteMapping("/{id}")
