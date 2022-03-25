@@ -3,6 +3,9 @@ package com.codecool.gradebookapi.service;
 import com.codecool.gradebookapi.dto.TeacherDto;
 import com.codecool.gradebookapi.dto.mapper.TeacherMapper;
 import com.codecool.gradebookapi.model.Teacher;
+import com.codecool.gradebookapi.model.TeacherSpecification;
+import com.codecool.gradebookapi.model.request.StudentRequest;
+import com.codecool.gradebookapi.model.request.TeacherRequest;
 import com.codecool.gradebookapi.repository.TeacherRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -16,9 +19,14 @@ public class TeacherService {
 
     private final TeacherRepository teacherRepository;
     private final TeacherMapper teacherMapper;
+    private final TeacherSpecification specification;
 
     public List<TeacherDto> findAll() {
         return teacherMapper.mapAll(teacherRepository.findAll());
+    }
+
+    public List<TeacherDto> findTeachers(TeacherRequest request) {
+        return teacherMapper.mapAll(teacherRepository.findAll(specification.getTeachers(request)));
     }
 
     public TeacherDto save(TeacherDto teacherDto) {

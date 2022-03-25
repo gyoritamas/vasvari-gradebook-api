@@ -1,8 +1,11 @@
 package com.codecool.gradebookapi.controller;
 
+import com.codecool.gradebookapi.dto.StudentDto;
 import com.codecool.gradebookapi.dto.TeacherDto;
 import com.codecool.gradebookapi.dto.assembler.TeacherModelAssembler;
 import com.codecool.gradebookapi.exception.TeacherNotFoundException;
+import com.codecool.gradebookapi.model.request.StudentRequest;
+import com.codecool.gradebookapi.model.request.TeacherRequest;
 import com.codecool.gradebookapi.service.TeacherService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -19,6 +22,10 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import java.util.List;
+
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
 @RestController
 @RequestMapping("/api/teachers")
@@ -39,6 +46,23 @@ public class TeacherController {
 
         return ResponseEntity
                 .ok(assembler.toCollectionModel(service.findAll()));
+    }
+
+    @GetMapping("/search")
+    @Operation(summary = "Lists all teachers, filtered by name")
+    @ApiResponse(responseCode = "200", description = "Returned list of teachers")
+    public ResponseEntity<CollectionModel<EntityModel<TeacherDto>>> searchTeachers(
+            @RequestParam(value = "teacherName", required = false) String teacherName) {
+        TeacherRequest request = new TeacherRequest();
+        request.setName(teacherName);
+        List<TeacherDto> teacherList = service.findTeachers(request);
+
+        log.info("Returned list of teachers with the following filters: teacherName={}", teacherName);
+
+        return ResponseEntity
+                .ok(CollectionModel.of(assembler.toCollectionModel(teacherList),
+                        linkTo(methodOn(TeacherController.class).searchTeachers(teacherName))
+                                .withRel("teachers-filtered")));
     }
 
     @GetMapping("/{id}")

@@ -8,6 +8,7 @@ import com.codecool.gradebookapi.dto.assembler.UserModelAssembler;
 import com.codecool.gradebookapi.dto.dataTypes.InitialCredentials;
 import com.codecool.gradebookapi.dto.dataTypes.UsernameInput;
 import com.codecool.gradebookapi.exception.*;
+import com.codecool.gradebookapi.model.ApplicationUser;
 import com.codecool.gradebookapi.model.request.PasswordChangeRequest;
 import com.codecool.gradebookapi.service.StudentService;
 import com.codecool.gradebookapi.service.TeacherService;
@@ -198,8 +199,9 @@ public class UserController {
             @ApiResponse(responseCode = "400", description = "Could not change password due to incorrect old password")
     })
     public ResponseEntity<?> changePassword(@PathVariable("id") Long userId, @RequestBody @Valid PasswordChangeRequest request) {
-        userService.findById(userId).orElseThrow(() -> new UserNotFoundException(userId));
+        UserDto user = userService.findById(userId).orElseThrow(() -> new UserNotFoundException(userId));
         userService.changePassword(userId, request);
+        log.info("Password of user {} has changed", user.getUsername());
 
         return ResponseEntity.ok().build();
     }
