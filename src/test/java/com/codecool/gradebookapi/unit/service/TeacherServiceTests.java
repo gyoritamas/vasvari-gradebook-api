@@ -1,6 +1,7 @@
 package com.codecool.gradebookapi.unit.service;
 
 import com.codecool.gradebookapi.dto.TeacherDto;
+import com.codecool.gradebookapi.model.request.TeacherRequest;
 import com.codecool.gradebookapi.service.TeacherService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -114,6 +115,35 @@ public class TeacherServiceTests {
 
         assertThat(updatedTeacher).isPresent();
         assertThat(updatedTeacher.get().getLastname()).isEqualTo("Bowen");
+    }
+
+    @Test
+    @DirtiesContext(methodMode = BEFORE_METHOD)
+    @DisplayName("when Teacher exists with given criteria, findTeachers should return list of Teachers")
+    public void whenTeacherExistsWithGivenCriteria_findTeachersShouldReturnListOfTeachers() {
+        TeacherDto darrelBowen = service.save(teacher1);
+        TeacherDto lilianStafford = service.save(teacher2);
+
+        TeacherRequest findLilian = new TeacherRequest();
+        findLilian.setName("lilian");
+
+        List<TeacherDto> teachersWithNameLilian = service.findTeachers(findLilian);
+
+        assertThat(teachersWithNameLilian).containsExactly(lilianStafford);
+    }
+
+    @Test
+    @DirtiesContext(methodMode = BEFORE_METHOD)
+    @DisplayName("when Teacher does not exist with given criteria, findTeachers should return empty list")
+    public void whenTeacherDoesNotExistWithGivenCriteria_findTeachersShouldReturnEmptyList() {
+        TeacherDto darrelBowen = service.save(teacher1);
+
+        TeacherRequest findLilian = new TeacherRequest();
+        findLilian.setName("lilian");
+
+        List<TeacherDto> teachersWithNameLilian = service.findTeachers(findLilian);
+
+        assertThat(teachersWithNameLilian).isEmpty();
     }
 }
 
