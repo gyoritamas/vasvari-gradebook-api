@@ -1,11 +1,11 @@
 package com.codecool.gradebookapi.unit.service;
 
-import com.codecool.gradebookapi.dto.AssignmentInput;
-import com.codecool.gradebookapi.dto.AssignmentOutput;
-import com.codecool.gradebookapi.dto.SubjectInput;
-import com.codecool.gradebookapi.dto.TeacherDto;
+import com.codecool.gradebookapi.dto.*;
+import com.codecool.gradebookapi.exception.StudentNotFoundException;
+import com.codecool.gradebookapi.exception.TeacherNotFoundException;
 import com.codecool.gradebookapi.model.AssignmentType;
 import com.codecool.gradebookapi.service.AssignmentService;
+import com.codecool.gradebookapi.service.StudentService;
 import com.codecool.gradebookapi.service.SubjectService;
 import com.codecool.gradebookapi.service.TeacherService;
 import org.junit.jupiter.api.BeforeEach;
@@ -21,6 +21,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.springframework.test.annotation.DirtiesContext.MethodMode.BEFORE_METHOD;
 
 @SpringBootTest
@@ -35,8 +36,14 @@ public class AssignmentServiceTests {
     @Autowired
     private SubjectService subjectService;
 
+    @Autowired
+    private StudentService studentService;
+
     private AssignmentInput assignmentInput1;
     private AssignmentInput assignmentInput2;
+
+    private Long teacherId;
+    private Long studentId;
 
     @BeforeEach
     public void setUp() {
@@ -46,10 +53,22 @@ public class AssignmentServiceTests {
                 .email("darrellbowen@email.com")
                 .address("3982 Turnpike Drive, Birmingham, AL 35203")
                 .phone("619-446-8496")
-                .birthdate(LocalDate.of(1984,2,1))
+                .birthdate(LocalDate.of(1984, 2, 1))
                 .build();
 
-        long teacherId = teacherService.save(teacher).getId();
+        teacherId = teacherService.save(teacher).getId();
+
+        StudentDto student = StudentDto.builder()
+                .firstname("John")
+                .lastname("Doe")
+                .gradeLevel(2)
+                .email("johndoe@email.com")
+                .address("666 Armstrong St., Mesa, AZ 85203")
+                .phone("202-555-0198")
+                .birthdate(LocalDate.of(1990, 12, 1))
+                .build();
+
+        studentId = studentService.save(student).getId();
 
         SubjectInput subject = SubjectInput.builder()
                 .name("Algebra")
@@ -57,6 +76,8 @@ public class AssignmentServiceTests {
                 .build();
 
         long subjectId = subjectService.save(subject).getId();
+
+        subjectService.addStudentToSubject(studentId, subjectId);
 
         assignmentInput1 = AssignmentInput.builder()
                 .name("Homework 1")
@@ -150,6 +171,67 @@ public class AssignmentServiceTests {
 
         assertThat(updatedAssignment).isNotNull();
         assertThat(updatedAssignment.getName()).isEqualTo("Updated name");
+    }
+
+    @Test
+    @Transactional
+    @DisplayName("when Assignments exist with Subject which given Teacher is teaching, findAssignmentsOfTeacher should return list of Assignments")
+    public void whenAssignmentsExistWithSubjectWhichGivenTeacherIsTeaching_findAssignmentsOfTeacher_shouldReturnListOfAssignments() {
+        AssignmentOutput assignment1 = assignmentService.save(assignmentInput1);
+        AssignmentOutput assignment2 = assignmentService.save(assignmentInput2);
+
+        List<AssignmentOutput> assignmentsOfTeacher = assignmentService.findAssignmentsOfTeacher(teacherId);
+
+        assertThat(assignmentsOfTeacher).containsExactly(assignment1, assignment2);
+    }
+
+    @Test
+    @Transactional
+    @DisplayName("when Assignment does not exist with Subject which given Teacher is teaching, findAssignmentsOfTeacher should return empty list")
+    public void whenAssignmentDoesNotExistWithSubjectWhichGivenTeacherIsTeaching_findAssignmentsOfTeacher_shouldReturnEmptyList() {
+        List<AssignmentOutput> assignmentsOfTeacher = assignmentService.findAssignmentsOfTeacher(teacherId);
+
+        assertThat(assignmentsOfTeacher).isEmpty();
+    }
+
+    @Test
+    @Transactional
+    @DisplayName("when Teacher does not exist with given ID, findAssignmentsOfTeacher should throw exception")
+    public void whenTeacherDoesNotExistWithGivenId_findAssignmentsOfTeacher_shouldThrowException() {
+        assertThatThrownBy(() -> assignmentService.findAssignmentsOfTeacher(teacherId + 1))
+                .isInstanceOf(TeacherNotFoundException.class)
+                .hasMessage(String.format(TeacherNotFoundException.ERROR_MESSAGE, teacherId + 1));
+    }
+
+    @Test
+    @Transactional
+    @DisplayName("when Assignments exist with Subject which given Student is learning, findAssignmentsOfStudent should return list of Assignments")
+    public void whenAssignmentsExistWithSubjectWhichGivenStudentIsLearning_findAssignmentsOfStudent_shouldReturnListOfAssignments() {
+        AssignmentOutput assignment1 = assignmentService.save(assignmentInput1);
+        AssignmentOutput assignment2 = assignmentService.save(assignmentInput2);
+
+        List<AssignmentOutput> assignmentsOfStudent = assignmentService.findAssignmentsOfStudent(studentId);
+
+        assertThat(assignmentsOfStudent).containsExactly(assignment1, assignment2);
+    }
+
+    @Test
+    @Transactional
+    @DisplayName("when Assignment does not exist with Subject which given Student is learning, findAssignmentsOfStudent should return empty list")
+    public void whenAssignmentDoesNotExistWithSubjectWhichGivenStudentIsLearning_findAssignmentsOfStudent_shouldReturnEmptyList() {
+        List<AssignmentOutput> assignmentsOfStudent = assignmentService.findAssignmentsOfStudent(studentId);
+
+        assertThat(assignmentsOfStudent).isEmpty();
+    }
+
+    @Test
+    @Transactional
+    @DisplayName("when Student with given ID does not exist, findAssignmentsOfStudent should throw exception")
+    public void whenStudentWithGivenIdDoesNotExist_findAssignmentsOfStudent_shouldThrowException() {
+        assertThatThrownBy(() -> assignmentService.findAssignmentsOfStudent(studentId + 1))
+                .isInstanceOf(StudentNotFoundException.class)
+                .hasMessage(String.format(StudentNotFoundException.ERROR_MESSAGE, studentId + 1));
+
     }
 
 }
