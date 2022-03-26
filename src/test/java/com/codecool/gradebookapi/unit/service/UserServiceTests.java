@@ -4,6 +4,8 @@ import com.codecool.gradebookapi.dto.StudentDto;
 import com.codecool.gradebookapi.dto.TeacherDto;
 import com.codecool.gradebookapi.dto.UserDto;
 import com.codecool.gradebookapi.dto.dataTypes.InitialCredentials;
+import com.codecool.gradebookapi.exception.IncorrectPasswordException;
+import com.codecool.gradebookapi.exception.UserNotFoundException;
 import com.codecool.gradebookapi.model.request.PasswordChangeRequest;
 import com.codecool.gradebookapi.security.ApplicationUserRole;
 import com.codecool.gradebookapi.service.UserService;
@@ -223,6 +225,38 @@ public class UserServiceTests {
 
         assertThat(userService.findById(userId).isPresent()).isTrue();
         assertThat(userService.findById(userId).get().isEnabled()).isFalse();
+    }
+
+    @Test
+    @DisplayName("given User does not exist with ID, setUserDisabled should throw exception")
+    @DirtiesContext(methodMode = BEFORE_METHOD)
+    public void givenUserDoesNotExistWithId_setUserDisabledShouldThrowException() {
+        assertThatThrownBy(() -> userService.setUserDisabled(99L))
+                .isInstanceOf(UserNotFoundException.class)
+                .hasMessage(String.format(UserNotFoundException.ERROR_MESSAGE, 99L));
+    }
+
+    @Test
+    @DisplayName("given User exists with ID, setUserEnabled should set User enabled")
+    @DirtiesContext(methodMode = BEFORE_METHOD)
+    public void givenUserExistsWithId_setUserEnabledShouldSetUserEnabled() {
+        adminUser.setEnabled(false);
+        adminUser = userService.save(adminUser);
+        long userId = adminUser.getId();
+
+        userService.setUserEnabled(userId);
+
+        assertThat(userService.findById(userId).isPresent()).isTrue();
+        assertThat(userService.findById(userId).get().isEnabled()).isTrue();
+    }
+
+    @Test
+    @DisplayName("given User does not exist with ID, setUserEnabled should throw exception")
+    @DirtiesContext(methodMode = BEFORE_METHOD)
+    public void givenUserDoesNotExistWithId_setUserEnabledShouldThrowException() {
+        assertThatThrownBy(() -> userService.setUserEnabled(99L))
+                .isInstanceOf(UserNotFoundException.class)
+                .hasMessage(String.format(UserNotFoundException.ERROR_MESSAGE, 99L));
     }
 
     @Test
@@ -529,6 +563,36 @@ public class UserServiceTests {
         UserDto updatedUser = userService.findByUsername("testuser").get();
 
         assertThat(passwordEncoder.matches("THiSiSMyNeWPaSSWoRD1234", updatedUser.getPassword())).isTrue();
+    }
+
+    @Test
+    @Transactional
+    @DisplayName("given incorrect oldPassword, changePassword should throw exception")
+    public void givenIncorrectOldPassword_changePasswordShouldThrowException() {
+        InitialCredentials credentials = userService.createAdminUser("testuser");
+        String oldPassword = credentials.getPassword();
+        Optional<UserDto> userMaybe = userService.findByUsername("testuser");
+        assertThat(userMaybe.isPresent()).isTrue();
+
+        long userId = userMaybe.get().getId();
+
+        PasswordChangeRequest request =
+                new PasswordChangeRequest(oldPassword + "foobar", "THiSiSMyNeWPaSSWoRD1234");
+
+        assertThatThrownBy(() -> userService.changePassword(userId, request))
+                .isInstanceOf(IncorrectPasswordException.class)
+                .hasMessage("Password is incorrect");
+    }
+
+    @Test
+    @DisplayName("given User exists with ID, deleteById should delete User")
+    @DirtiesContext(methodMode = BEFORE_METHOD)
+    public void givenUserExistsWithId_deleteByIdShouldDeleteUser() {
+        adminUser = userService.save(adminUser);
+        long userId = adminUser.getId();
+        userService.deleteById(userId);
+
+        assertThat(userService.findById(userId)).isEmpty();
     }
 
 }
