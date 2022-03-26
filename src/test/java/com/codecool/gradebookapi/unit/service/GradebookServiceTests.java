@@ -44,7 +44,7 @@ public class GradebookServiceTests {
                 .email("johndoe@email.com")
                 .address("666 Armstrong St., Mesa, AZ 85203")
                 .phone("202-555-0198")
-                .birthdate(LocalDate.of(1990,12,1))
+                .birthdate(LocalDate.of(1990, 12, 1))
                 .build();
         long student1Id = studentService.save(student1).getId();
 
@@ -55,7 +55,7 @@ public class GradebookServiceTests {
                 .email("janedoe@email.com")
                 .address("9351 Morris St., Reisterstown, MD 21136")
                 .phone("202-555-0198")
-                .birthdate(LocalDate.of(1990,4,13))
+                .birthdate(LocalDate.of(1990, 4, 13))
                 .build();
         long student2Id = studentService.save(student2).getId();
 
@@ -65,7 +65,7 @@ public class GradebookServiceTests {
                 .email("darrellbowen@email.com")
                 .address("3982 Turnpike Drive, Birmingham, AL 35203")
                 .phone("619-446-8496")
-                .birthdate(LocalDate.of(1984,2,1))
+                .birthdate(LocalDate.of(1984, 2, 1))
                 .build();
         long teacherId = teacherService.save(teacher).getId();
         SubjectInput subject1 = SubjectInput.builder()
@@ -227,6 +227,43 @@ public class GradebookServiceTests {
         boolean isDuplicate = gradebookService.isDuplicateEntry(entry2);
 
         assertFalse(isDuplicate);
+    }
+
+    @Test
+    @Transactional
+    @DisplayName("when entry exists with given Student ID and Subject ID, findByStudentIdAndSubjectId should return list of entries")
+    public void whenEntryExistsWithGivenStudentIdAndSubjectId_findByStudentIdAndSubjectId_shouldReturnListOfEntries() {
+        long student1Id = entry1.getStudentId();
+        long student2Id = entry2.getStudentId();
+        long subject1Id = entry1.getSubjectId();
+        long subject2Id = entry2.getSubjectId();
+        GradebookOutput entry1Saved = gradebookService.save(entry1);
+        GradebookOutput entry2Saved = gradebookService.save(entry2);
+
+        List<GradebookOutput> gradebookEntries = gradebookService.findByStudentIdAndSubjectId(student1Id, subject1Id);
+
+        assertThat(gradebookEntries).containsExactly(entry1Saved);
+
+        gradebookEntries = gradebookService.findByStudentIdAndSubjectId(student2Id, subject2Id);
+
+        assertThat(gradebookEntries).containsExactly(entry2Saved);
+    }
+
+    @Test
+    @Transactional
+    @DisplayName("when entry does not exist with given Student ID and Subject ID, findByStudentIdAndSubjectId should return empty list")
+    public void whenEntryDoesNotExistWithGivenStudentIdAndSubjectId_findByStudentIdAndSubjectId_shouldReturnEmptyList() {
+        long student1Id = entry1.getStudentId();
+        long student2Id = entry2.getStudentId();
+        long subject1Id = entry1.getSubjectId();
+        long subject2Id = entry2.getSubjectId();
+        gradebookService.save(entry1);
+        gradebookService.save(entry2);
+
+        List<GradebookOutput> gradebookEntries =
+                gradebookService.findByStudentIdAndSubjectId(student1Id + student2Id, subject1Id + subject2Id);
+
+        assertThat(gradebookEntries).isEmpty();
     }
 
 }
