@@ -185,6 +185,22 @@ public class SubjectServiceTests {
 
     @Test
     @Transactional
+    @DisplayName("removeStudentFromSubject should remove Student from list of students of Subject")
+    public void removeStudentFromSubject_shouldRemoveStudentFromListOfStudentsOfSubject() {
+        long teacherId = teacherService.save(teacher1).getId();
+        subject1.setTeacherId(teacherId);
+        student = studentService.save(student);
+        SubjectOutput subject = subjectService.save(subject1);
+        subject = subjectService.addStudentToSubject(student.getId(), subject.getId());
+
+        subject = subjectService.removeStudentFromSubject(student.getId(), subject.getId());
+        List<SimpleData> listOfStudents = subject.getStudents();
+
+        assertThat(listOfStudents).isEmpty();
+    }
+
+    @Test
+    @Transactional
     @DisplayName("when Student exists with given ID, findSubjectsOfStudent should return list of Subjects")
     public void whenStudentExistsWithGivenId_findSubjectsOfStudentShouldReturnListOfSubjects() {
         long teacherId = teacherService.save(teacher1).getId();
@@ -275,8 +291,8 @@ public class SubjectServiceTests {
 
     @Test
     @Transactional
-    @DisplayName("findStudentsOfTeacher")
-    public void findStudentsOfTeacher() {
+    @DisplayName("findStudentsOfTeacher should return Students of Subjects which the Teacher is teaching")
+    public void findStudentsOfTeacher_shouldReturnStudentsOfSubjectsWhichTheTeacherIsTeaching() {
         // save students
         StudentDto johnDoe = StudentDto.builder()
                 .firstname("John").lastname("Doe")
