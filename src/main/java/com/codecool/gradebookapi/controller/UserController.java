@@ -8,7 +8,6 @@ import com.codecool.gradebookapi.dto.assembler.UserModelAssembler;
 import com.codecool.gradebookapi.dto.dataTypes.InitialCredentials;
 import com.codecool.gradebookapi.dto.dataTypes.UsernameInput;
 import com.codecool.gradebookapi.exception.*;
-import com.codecool.gradebookapi.model.ApplicationUser;
 import com.codecool.gradebookapi.model.request.PasswordChangeRequest;
 import com.codecool.gradebookapi.service.StudentService;
 import com.codecool.gradebookapi.service.TeacherService;
@@ -75,6 +74,7 @@ public class UserController {
             @ApiResponse(responseCode = "201", description = "Created new user"),
             @ApiResponse(responseCode = "400", description = "Could not create user due to invalid parameters")
     })
+    @Deprecated
     public ResponseEntity<EntityModel<UserDto>> add(@RequestBody @Valid UserDto user) {
         UserDto userCreated = userService.save(user);
         EntityModel<UserDto> entityModel = userModelAssembler.toModel(userCreated);
@@ -182,6 +182,7 @@ public class UserController {
             @ApiResponse(responseCode = "400", description = "Could not update user due to invalid parameters"),
             @ApiResponse(responseCode = "404", description = "Could not find user with given ID")
     })
+    @Deprecated
     public ResponseEntity<EntityModel<UserDto>> update(@RequestBody @Valid UserDto user,
                                                        @PathVariable("id") Long id) {
         userService.findById(id).orElseThrow(() -> new UserNotFoundException(id));
@@ -196,13 +197,14 @@ public class UserController {
     @Operation(summary = "Changes the user's password")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Updated user with given ID"),
-            @ApiResponse(responseCode = "400", description = "Could not change password due to incorrect old password")
+            @ApiResponse(responseCode = "400", description = "Could not change password due to incorrect old password"),
+            @ApiResponse(responseCode = "404", description = "Could not find user with given ID")
     })
     public ResponseEntity<?> changePassword(@PathVariable("id") Long userId, @RequestBody @Valid PasswordChangeRequest request) {
         UserDto user = userService.findById(userId).orElseThrow(() -> new UserNotFoundException(userId));
         userService.changePassword(userId, request);
-        log.info("Password of user {} has changed", user.getUsername());
 
+        log.info("Password of user {} has changed", user.getUsername());
         return ResponseEntity.ok().build();
     }
 

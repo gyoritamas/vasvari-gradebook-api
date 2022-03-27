@@ -5,8 +5,10 @@ import com.codecool.gradebookapi.dto.TeacherDto;
 import com.codecool.gradebookapi.dto.UserDto;
 import com.codecool.gradebookapi.dto.dataTypes.InitialCredentials;
 import com.codecool.gradebookapi.dto.mapper.UserMapper;
+import com.codecool.gradebookapi.exception.DuplicateAccountException;
 import com.codecool.gradebookapi.exception.IncorrectPasswordException;
 import com.codecool.gradebookapi.exception.UserNotFoundException;
+import com.codecool.gradebookapi.exception.UsernameTakenException;
 import com.codecool.gradebookapi.model.ApplicationUser;
 import com.codecool.gradebookapi.model.SchoolActorApplicationUserRelation;
 import com.codecool.gradebookapi.model.request.PasswordChangeRequest;
@@ -71,8 +73,7 @@ public class UserService implements UserDetailsService {
 
     private InitialCredentials createNonAdminUser(Long id, String name, ApplicationUserRole role) {
         if (relationRepository.existsSchoolActorApplicationUserRelationByUserRoleAndSchoolActorId(role, id))
-            // TODO: create custom exception
-            throw new RuntimeException("Already has an account");
+            throw new DuplicateAccountException(role);
 
         String username = generateUsername(name);
         String password = generatePassword();
@@ -94,7 +95,7 @@ public class UserService implements UserDetailsService {
     }
 
     public InitialCredentials createAdminUser(String username) {
-        if (isUsernameAlreadyTaken(username)) throw new RuntimeException("Username already taken");
+        if (isUsernameAlreadyTaken(username)) throw new UsernameTakenException(username);
 
         String password = generatePassword();
         UserDto newUser = new UserDto(username, passwordEncoder.encode(password), ADMIN);
@@ -140,12 +141,11 @@ public class UserService implements UserDetailsService {
 
     public void changePassword(Long userId, PasswordChangeRequest request) {
         ApplicationUser user = userRepository.getById(userId);
-        if (passwordEncoder.matches(request.getOldPassword(), user.getPassword())) {
-            user.setPassword(passwordEncoder.encode(request.getNewPassword()));
-            userRepository.save(user);
-        } else {
+        if (!passwordEncoder.matches(request.getOldPassword(), user.getPassword()))
             throw new IncorrectPasswordException();
-        }
+
+        user.setPassword(passwordEncoder.encode(request.getNewPassword()));
+        userRepository.save(user);
     }
 
     public void deleteById(Long id) {

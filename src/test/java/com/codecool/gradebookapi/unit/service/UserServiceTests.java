@@ -4,8 +4,10 @@ import com.codecool.gradebookapi.dto.StudentDto;
 import com.codecool.gradebookapi.dto.TeacherDto;
 import com.codecool.gradebookapi.dto.UserDto;
 import com.codecool.gradebookapi.dto.dataTypes.InitialCredentials;
+import com.codecool.gradebookapi.exception.DuplicateAccountException;
 import com.codecool.gradebookapi.exception.IncorrectPasswordException;
 import com.codecool.gradebookapi.exception.UserNotFoundException;
+import com.codecool.gradebookapi.exception.UsernameTakenException;
 import com.codecool.gradebookapi.model.request.PasswordChangeRequest;
 import com.codecool.gradebookapi.security.ApplicationUserRole;
 import com.codecool.gradebookapi.service.UserService;
@@ -114,8 +116,8 @@ public class UserServiceTests {
         userService.createStudentUser(student);
 
         assertThatThrownBy(() -> userService.createStudentUser(student))
-                .isInstanceOf(RuntimeException.class)
-                .hasMessage("Already has an account");
+                .isInstanceOf(DuplicateAccountException.class)
+                .hasMessage(String.format(DuplicateAccountException.ERROR_MESSAGE, STUDENT));
     }
 
     @Test
@@ -146,8 +148,8 @@ public class UserServiceTests {
         userService.createTeacherUser(teacher);
 
         assertThatThrownBy(() -> userService.createTeacherUser(teacher))
-                .isInstanceOf(RuntimeException.class)
-                .hasMessage("Already has an account");
+                .isInstanceOf(DuplicateAccountException.class)
+                .hasMessage(String.format(DuplicateAccountException.ERROR_MESSAGE, TEACHER));
     }
 
     @Test
@@ -167,8 +169,8 @@ public class UserServiceTests {
         userService.createAdminUser("admin");
 
         assertThatThrownBy(() -> userService.createAdminUser("admin"))
-                .isInstanceOf(RuntimeException.class)
-                .hasMessage("Username already taken");
+                .isInstanceOf(UsernameTakenException.class)
+                .hasMessage(String.format(UsernameTakenException.ERROR_MESSAGE, "admin"));
     }
 
     @Test

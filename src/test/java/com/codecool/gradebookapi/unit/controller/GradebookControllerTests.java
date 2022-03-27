@@ -46,22 +46,16 @@ public class GradebookControllerTests {
 
     @MockBean
     private GradebookService gradebookService;
-
     @MockBean
     private StudentService studentService;
-
     @MockBean
     private SubjectService subjectService;
-
     @MockBean
     private TeacherService teacherService;
-
     @MockBean
     private AssignmentService assignmentService;
-
     @MockBean
     private UserService userService;
-
     @MockBean
     private JwtTokenUtil jwtTokenUtil;
 

@@ -1,9 +1,6 @@
 package com.codecool.gradebookapi.controller.advice;
 
-import com.codecool.gradebookapi.exception.IncorrectPasswordException;
-import com.codecool.gradebookapi.exception.TeacherUserNotFoundException;
-import com.codecool.gradebookapi.exception.UserNotFoundException;
-import com.codecool.gradebookapi.exception.StudentUserNotFoundException;
+import com.codecool.gradebookapi.exception.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -74,6 +71,40 @@ public class UserControllerAdvice {
         Problem problem = Problem.builder()
                 .withType(URI.create("users/incorrect-password"))
                 .withTitle("Given password is incorrect")
+                .withStatus(Status.BAD_REQUEST)
+                .withDetail(ex.getMessage())
+                .build();
+
+        log.warn(ex.getMessage());
+
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .contentType(MediaType.APPLICATION_PROBLEM_JSON)
+                .body(problem);
+    }
+
+    @ExceptionHandler(UsernameTakenException.class)
+    ResponseEntity<Problem> handleUsernameAlreadyTaken(UsernameTakenException ex) {
+        Problem problem = Problem.builder()
+                .withType(URI.create("users/username-taken"))
+                .withTitle("Username taken")
+                .withStatus(Status.BAD_REQUEST)
+                .withDetail(ex.getMessage())
+                .build();
+
+        log.warn(ex.getMessage());
+
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .contentType(MediaType.APPLICATION_PROBLEM_JSON)
+                .body(problem);
+    }
+
+    @ExceptionHandler(DuplicateAccountException.class)
+    ResponseEntity<Problem> handleDuplicateAccount(DuplicateAccountException ex) {
+        Problem problem = Problem.builder()
+                .withType(URI.create("users/duplicate-account"))
+                .withTitle("Already has an account")
                 .withStatus(Status.BAD_REQUEST)
                 .withDetail(ex.getMessage())
                 .build();
