@@ -23,6 +23,7 @@ import org.springframework.hateoas.CollectionModel;
 import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.IanaLinkRelations;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
@@ -60,6 +61,7 @@ public class UserController {
             @ApiResponse(responseCode = "200", description = "Returned user with given ID"),
             @ApiResponse(responseCode = "404", description = "Could not find user with given ID")
     })
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<EntityModel<UserDto>> getById(@PathVariable("id") Long id) {
         UserDto userFound = userService.findById(id).orElseThrow(() -> new UserNotFoundException(id));
         log.info("Returned user {}", id);
@@ -74,6 +76,7 @@ public class UserController {
             @ApiResponse(responseCode = "201", description = "Created new user"),
             @ApiResponse(responseCode = "400", description = "Could not create user due to invalid parameters")
     })
+    @PreAuthorize("hasRole('ADMIN')")
     @Deprecated
     public ResponseEntity<EntityModel<UserDto>> add(@RequestBody @Valid UserDto user) {
         UserDto userCreated = userService.save(user);
@@ -91,6 +94,7 @@ public class UserController {
             @ApiResponse(responseCode = "201", description = "Created new user"),
             @ApiResponse(responseCode = "400", description = "Could not create user due to invalid parameters")
     })
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<EntityModel<InitialCredentials>> createAccountForStudent(@RequestParam("studentId") Long studentId) {
         StudentDto student = studentService.findById(studentId)
                 .orElseThrow(() -> new StudentNotFoundException(studentId));
@@ -110,6 +114,7 @@ public class UserController {
             @ApiResponse(responseCode = "201", description = "Created new user"),
             @ApiResponse(responseCode = "400", description = "Could not create user due to invalid parameters")
     })
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<EntityModel<InitialCredentials>> createAccountForTeacher(@RequestParam("teacherId") Long teacherId) {
         TeacherDto teacher = teacherService.findById(teacherId)
                 .orElseThrow(() -> new TeacherNotFoundException(teacherId));
@@ -129,6 +134,7 @@ public class UserController {
             @ApiResponse(responseCode = "201", description = "Created new user"),
             @ApiResponse(responseCode = "400", description = "Could not create user due to invalid parameters")
     })
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<EntityModel<InitialCredentials>> createAccountForAdmin(@RequestBody @Valid UsernameInput usernameInput) {
         String username = usernameInput.getUsername();
         InitialCredentials credentials = userService.createAdminUser(username);
@@ -147,6 +153,7 @@ public class UserController {
             @ApiResponse(responseCode = "404", description = "Could not find user with the given ID"),
             @ApiResponse(responseCode = "404", description = "Could not find user related to student")
     })
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<EntityModel<UserDto>> findUserRelatedToStudent(@PathVariable("id") Long studentId) {
         if (studentService.findById(studentId).isEmpty()) throw new StudentNotFoundException(studentId);
         UserDto user = userService.getUserRelatedToSchoolActor(STUDENT, studentId)
@@ -164,6 +171,7 @@ public class UserController {
             @ApiResponse(responseCode = "200", description = "Returned user related to teacher"),
             @ApiResponse(responseCode = "404", description = "Could not find user related to teacher")
     })
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<EntityModel<UserDto>> findUserRelatedToTeacher(@PathVariable("id") Long teacherId) {
         if (teacherService.findById(teacherId).isEmpty()) throw new TeacherNotFoundException(teacherId);
         UserDto user = userService.getUserRelatedToSchoolActor(TEACHER, teacherId)
@@ -182,6 +190,7 @@ public class UserController {
             @ApiResponse(responseCode = "400", description = "Could not update user due to invalid parameters"),
             @ApiResponse(responseCode = "404", description = "Could not find user with given ID")
     })
+    @PreAuthorize("hasRole('ADMIN')")
     @Deprecated
     public ResponseEntity<EntityModel<UserDto>> update(@RequestBody @Valid UserDto user,
                                                        @PathVariable("id") Long id) {
@@ -215,6 +224,7 @@ public class UserController {
             @ApiResponse(responseCode = "404", description = "Could not find user with given ID"),
             @ApiResponse(responseCode = "405", description = "Could not delete user with given ID")
     })
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> delete(@PathVariable("id") Long id) {
         userService.findById(id).orElseThrow(() -> new UserNotFoundException(id));
         userService.deleteById(id);
@@ -229,6 +239,7 @@ public class UserController {
             @ApiResponse(responseCode = "200", description = "Enabled user with given ID"),
             @ApiResponse(responseCode = "404", description = "Could not find user with given ID")
     })
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> enable(@PathVariable("id") Long id) {
         userService.setUserEnabled(id);
         log.info("User {} is enabled", id);
@@ -242,6 +253,7 @@ public class UserController {
             @ApiResponse(responseCode = "200", description = "Disabled user with given ID"),
             @ApiResponse(responseCode = "404", description = "Could not find user with given ID")
     })
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> disable(@PathVariable("id") Long id) {
         userService.setUserDisabled(id);
         log.info("User {} is disabled", id);

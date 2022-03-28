@@ -4,7 +4,7 @@ import com.codecool.gradebookapi.dto.SubjectOutput;
 import com.codecool.gradebookapi.dto.StudentDto;
 import com.codecool.gradebookapi.dto.mapper.SubjectMapper;
 import com.codecool.gradebookapi.dto.mapper.StudentMapper;
-import com.codecool.gradebookapi.model.StudentSpecification;
+import com.codecool.gradebookapi.model.specification.StudentSpecification;
 import com.codecool.gradebookapi.model.Subject;
 import com.codecool.gradebookapi.model.Student;
 import com.codecool.gradebookapi.model.request.StudentRequest;

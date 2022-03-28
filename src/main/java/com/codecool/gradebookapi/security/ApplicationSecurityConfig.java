@@ -40,25 +40,23 @@ public class ApplicationSecurityConfig extends WebSecurityConfigurerAdapter {
         http.csrf().disable()
                 .authorizeRequests()
                 .antMatchers(
-                        "/api/classes/**",
+                        "/api/subjects/**",
                         "/api/assignments/**",
                         "/api/gradebook/**",
                         "/api/student_gradebook/**",
-                        "/api/class_gradebook/**"
+                        "/api/subject_gradebook/**",
+                        "/api/users/**"
                 ).hasAnyRole(ADMIN.name(), TEACHER.name(), STUDENT.name())
                 .antMatchers(
-                        "/api/students/**"
+                        "/api/students/**",
+                        "/api/teachers/**"
                 ).hasAnyRole(ADMIN.name(), TEACHER.name())
                 .antMatchers(
-                        "/api/teachers/**",
-                        "/api/users/**"
-                ).hasAnyRole(ADMIN.name())
-//                .antMatchers(
-//                        "/student/api/**"
-//                ).hasRole(STUDENT.name())
-//                .antMatchers(
-//                        "/teacher/api/**"
-//                ).hasRole(TEACHER.name())
+                        "/api/student-user/**"
+                ).hasRole(STUDENT.name())
+                .antMatchers(
+                        "/api/teacher-user/**"
+                ).hasRole(TEACHER.name())
                 .antMatchers("/api/authenticate/**").permitAll()
                 // Reject every unauthenticated request and send error code 401.
                 .and().exceptionHandling().authenticationEntryPoint(entryPoint)

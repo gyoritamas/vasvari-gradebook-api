@@ -31,9 +31,8 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.hamcrest.Matchers.*;
-import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.mockito.Mockito.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -387,6 +386,39 @@ public class GradebookControllerTests {
                 .andExpect(jsonPath("$.subject.id", is(1)))
                 .andExpect(jsonPath("$.assignment.id", is(1)))
                 .andExpect(jsonPath("$.grade", is(4)));
+    }
+
+    @Test
+    @WithMockUser(username = "admin", password = "admin", roles = "ADMIN")
+    @DisplayName("when User exists with given ID, delete should return response 'No Content'")
+    public void whenUserExistsWithGivenId_delete_shouldReturnResponseNoContent() throws Exception {
+        when(gradebookService.findById(1L)).thenReturn(Optional.of(savedEntry1));
+        doNothing().when(gradebookService).deleteById(1L);
+
+        this.mockMvc
+                .perform(
+                        delete("/api/gradebook/1")
+                )
+                .andDo(print())
+                .andExpect(status().isNoContent());
+
+        verify(gradebookService).deleteById(1L);
+    }
+
+    @Test
+    @WithMockUser(username = "admin", password = "admin", roles = "ADMIN")
+    @DisplayName("when User does not exist with given ID, delete should return response 'Not Found'")
+    public void whenUserDoesNotExistWithGivenId_delete_shouldReturnResponseNotFound() throws Exception {
+        when(gradebookService.findById(99L)).thenReturn(Optional.empty());
+
+        this.mockMvc
+                .perform(
+                        delete("/api/gradebook/99")
+                )
+                .andDo(print())
+                .andExpect(status().isNotFound());
+
+        verify(gradebookService, times(0)).deleteById(99L);
     }
 
     private static class GradebookInputAggregator implements ArgumentsAggregator {

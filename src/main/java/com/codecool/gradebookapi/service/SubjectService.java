@@ -10,7 +10,9 @@ import com.codecool.gradebookapi.dto.mapper.TeacherMapper;
 import com.codecool.gradebookapi.exception.SubjectNotFoundException;
 import com.codecool.gradebookapi.model.Subject;
 import com.codecool.gradebookapi.model.Student;
+import com.codecool.gradebookapi.model.specification.SubjectSpecification;
 import com.codecool.gradebookapi.model.Teacher;
+import com.codecool.gradebookapi.model.request.SubjectRequest;
 import com.codecool.gradebookapi.repository.SubjectRepository;
 import com.codecool.gradebookapi.repository.StudentRepository;
 import com.codecool.gradebookapi.repository.TeacherRepository;
@@ -30,9 +32,14 @@ public class SubjectService {
     private final StudentMapper studentMapper;
     private final TeacherMapper teacherMapper;
     private final SubjectMapper subjectMapper;
+    private final SubjectSpecification specification;
 
     public List<SubjectOutput> findAll() {
         return subjectMapper.mapAll(subjectRepository.findAll());
+    }
+
+    public List<SubjectOutput> findSubjects(SubjectRequest request) {
+        return subjectMapper.mapAll(subjectRepository.findAll(specification.getSubjects(request)));
     }
 
     public SubjectOutput save(SubjectInput subjectInput) {

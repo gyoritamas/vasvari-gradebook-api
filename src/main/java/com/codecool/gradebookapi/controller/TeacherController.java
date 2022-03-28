@@ -1,10 +1,8 @@
 package com.codecool.gradebookapi.controller;
 
-import com.codecool.gradebookapi.dto.StudentDto;
 import com.codecool.gradebookapi.dto.TeacherDto;
 import com.codecool.gradebookapi.dto.assembler.TeacherModelAssembler;
 import com.codecool.gradebookapi.exception.TeacherNotFoundException;
-import com.codecool.gradebookapi.model.request.StudentRequest;
 import com.codecool.gradebookapi.model.request.TeacherRequest;
 import com.codecool.gradebookapi.service.TeacherService;
 import io.swagger.v3.oas.annotations.Operation;

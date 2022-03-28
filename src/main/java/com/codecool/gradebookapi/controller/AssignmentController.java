@@ -74,6 +74,7 @@ public class AssignmentController {
             @ApiResponse(responseCode = "201", description = "Created new assignment"),
             @ApiResponse(responseCode = "400", description = "Could not create assignment due to invalid parameters")
     })
+    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
     public ResponseEntity<EntityModel<AssignmentOutput>> add(@RequestBody @Valid AssignmentInput assignment) {
         long subjectId = assignment.getSubjectId();
         // TODO: return proper response with Problem
@@ -96,6 +97,7 @@ public class AssignmentController {
             @ApiResponse(responseCode = "400", description = "Could not update assignment due to invalid parameters"),
             @ApiResponse(responseCode = "404", description = "Could not find assignment with given ID")
     })
+    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
     public ResponseEntity<EntityModel<AssignmentOutput>> update(@RequestBody @Valid AssignmentInput assignment,
                                                                 @PathVariable("id") Long id) {
         long subjectId = assignment.getSubjectId();
@@ -116,6 +118,7 @@ public class AssignmentController {
             @ApiResponse(responseCode = "404", description = "Could not find assignment with given ID"),
             @ApiResponse(responseCode = "405", description = "Could not delete assignment with given ID"),
     })
+    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
     public ResponseEntity<?> delete(@PathVariable("id") Long id) {
         assignmentService.findById(id).orElseThrow(() -> new AssignmentNotFoundException(id));
         if (!gradebookService.findByAssignmentId(id).isEmpty()) throw new AssignmentInUseException(id);

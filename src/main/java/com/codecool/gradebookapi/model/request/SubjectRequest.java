@@ -9,6 +9,6 @@ import lombok.Setter;
 @AllArgsConstructor
 @Getter
 @Setter
-public class TeacherRequest {
+public class SubjectRequest {
     private String name;
 }

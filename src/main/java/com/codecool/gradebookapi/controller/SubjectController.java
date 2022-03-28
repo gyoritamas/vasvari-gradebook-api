@@ -10,6 +10,7 @@ import com.codecool.gradebookapi.exception.SubjectInUseException;
 import com.codecool.gradebookapi.exception.SubjectNotFoundException;
 import com.codecool.gradebookapi.exception.StudentNotFoundException;
 import com.codecool.gradebookapi.exception.TeacherNotFoundException;
+import com.codecool.gradebookapi.model.request.SubjectRequest;
 import com.codecool.gradebookapi.service.*;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -55,6 +56,23 @@ public class SubjectController {
 
         return ResponseEntity
                 .ok(subjectModelAssembler.toCollectionModel(subjectService.findAll()));
+    }
+
+    @GetMapping("/subjects/search")
+    @Operation(summary = "Lists all subjects, filtered by name")
+    @ApiResponse(responseCode = "200", description = "Returned list of subjects")
+    public ResponseEntity<CollectionModel<EntityModel<SubjectOutput>>> searchSubjects(
+            @RequestParam(value = "subjectName", required = false) String subjectName) {
+        SubjectRequest request = new SubjectRequest();
+        request.setName(subjectName);
+        List<SubjectOutput> subjectList = subjectService.findSubjects(request);
+
+        log.info("Returned list of subjects with the following filters: subjectName={}", subjectName);
+
+        return ResponseEntity
+                .ok(CollectionModel.of(subjectModelAssembler.toCollectionModel(subjectList),
+                        linkTo(methodOn(SubjectController.class).searchSubjects(subjectName))
+                                .withRel("subjects-filtered")));
     }
 
     @GetMapping("/subjects/{id}")
@@ -128,7 +146,7 @@ public class SubjectController {
             @ApiResponse(responseCode = "200", description = "Added student to subject"),
             @ApiResponse(responseCode = "404", description = "Could not find subject/student with given ID")
     })
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
     public ResponseEntity<EntityModel<SubjectOutput>> addStudentToSubject(@PathVariable("subjectId") Long subjectId,
                                                                           @PathVariable("studentId") Long studentId) {
         subjectService.findById(subjectId).orElseThrow(() -> new SubjectNotFoundException(subjectId));
@@ -140,12 +158,12 @@ public class SubjectController {
     }
 
     @PostMapping("/subjects/{subjectId}/remove_student/{studentId}")
-    @Operation(summary = "Remove a student from a subject")
+    @Operation(summary = "Removes a student from a subject")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Removed student from subject"),
             @ApiResponse(responseCode = "404", description = "Could not find subject/student with given ID")
     })
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
     public ResponseEntity<EntityModel<SubjectOutput>> removeStudentFromSubject(@PathVariable("subjectId") Long subjectId,
                                                                                @PathVariable("studentId") Long studentId) {
         subjectService.findById(subjectId).orElseThrow(() -> new SubjectNotFoundException(subjectId));
@@ -162,7 +180,6 @@ public class SubjectController {
             @ApiResponse(responseCode = "200", description = "Returned list of students learning the subject"),
             @ApiResponse(responseCode = "404", description = "Could not find subject/student with given ID")
     })
-//    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
     public ResponseEntity<CollectionModel<EntityModel<StudentDto>>> getStudentsOfSubject(@PathVariable("subjectId") Long subjectId) {
         List<StudentDto> studentsOfSubject = subjectService.getStudentsOfSubject(subjectId);
         log.info("Returned list of all students learning subject {}", subjectId);
@@ -173,7 +190,6 @@ public class SubjectController {
                                 .withRel("students-of-subject")));
     }
 
-
     @GetMapping("/teacher-user/subjects")
     @Operation(summary = "Finds all subjects the current user as teacher is teaching")
     @ApiResponses(value = {
@@ -181,16 +197,26 @@ public class SubjectController {
             @ApiResponse(responseCode = "404", description = "Could not find teacher with given ID")
     })
     @PreAuthorize("hasRole('TEACHER')")
-    public ResponseEntity<CollectionModel<EntityModel<SubjectOutput>>> getSubjectsOfCurrentUserAsTeacher() {
+    public ResponseEntity<CollectionModel<EntityModel<SubjectOutput>>> getSubjectsOfCurrentUserAsTeacher(
+            @RequestParam(name = "subjectName", required = false) String subjectName) {
         Long teacherId = userService.getTeacherIdOfCurrentUser();
         TeacherDto teacher = teacherService.findById(teacherId).orElseThrow(() -> new TeacherNotFoundException(teacherId));
+
+        // filter by teacher
         List<SubjectOutput> subjectsOfTeacher = subjectService.findSubjectsOfTeacher(teacher);
 
-        log.info("Returned list of all subjects related to teacher {}", teacherId);
+        // filter by name
+        SubjectRequest request = new SubjectRequest();
+        request.setName(subjectName);
+        List<SubjectOutput> subjectsFilteredByName = subjectService.findSubjects(request);
+
+        subjectsOfTeacher.retainAll(subjectsFilteredByName);
+
+        log.info("Returned list of all subjects related to teacher {}, with the following filters: subjectName={}", teacherId, subjectName);
 
         return ResponseEntity
                 .ok(CollectionModel.of(subjectModelAssembler.toCollectionModel(subjectsOfTeacher),
-                        linkTo(methodOn(SubjectController.class).getSubjectsOfCurrentUserAsTeacher())
+                        linkTo(methodOn(SubjectController.class).getSubjectsOfCurrentUserAsTeacher(subjectName))
                                 .withRel("subjects-of-teacher")));
     }
 
@@ -201,16 +227,26 @@ public class SubjectController {
             @ApiResponse(responseCode = "404", description = "Could not find student with given ID")
     })
     @PreAuthorize("hasRole('STUDENT')")
-    public ResponseEntity<CollectionModel<EntityModel<SubjectOutput>>> getSubjectsOfCurrentUserAsStudent() {
+    public ResponseEntity<CollectionModel<EntityModel<SubjectOutput>>> getSubjectsOfCurrentUserAsStudent(
+            @RequestParam(name = "subjectName", required = false) String subjectName) {
         Long studentId = userService.getStudentIdOfCurrentUser();
         StudentDto student = studentService.findById(studentId).orElseThrow(() -> new StudentNotFoundException(studentId));
+
+        // filter by student
         List<SubjectOutput> subjectsOfStudent = studentService.findSubjectsOfStudent(student);
 
-        log.info("Returned list of all subjects related to student {}", studentId);
+        // filter by name
+        SubjectRequest request = new SubjectRequest();
+        request.setName(subjectName);
+        List<SubjectOutput> subjectsFilteredByName = subjectService.findSubjects(request);
+
+        subjectsOfStudent.retainAll(subjectsFilteredByName);
+
+        log.info("Returned list of all subjects related to student {}, with the following filters: subjectName={}", studentId, subjectName);
 
         return ResponseEntity
                 .ok(CollectionModel.of(subjectModelAssembler.toCollectionModel(subjectsOfStudent),
-                        linkTo(methodOn(SubjectController.class).getSubjectsOfCurrentUserAsStudent())
+                        linkTo(methodOn(SubjectController.class).getSubjectsOfCurrentUserAsStudent(subjectName))
                                 .withRel("subjects-of-student")));
     }
 

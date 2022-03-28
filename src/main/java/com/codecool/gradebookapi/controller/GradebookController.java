@@ -19,6 +19,7 @@ import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.IanaLinkRelations;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
@@ -75,6 +76,7 @@ public class GradebookController {
             @ApiResponse(responseCode = "200", description = "Deleted gradebook entry with given ID"),
             @ApiResponse(responseCode = "404", description = "Could not find gradebook entry with given ID")
     })
+    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
     public ResponseEntity<EntityModel<GradebookOutput>> delete(@PathVariable("id") Long id) {
         gradebookService.findById(id).orElseThrow(() -> new GradebookEntryNotFoundException(id));
         gradebookService.deleteById(id);
@@ -138,6 +140,7 @@ public class GradebookController {
             @ApiResponse(responseCode = "409", description =
                     "Could not create gradebook entry because an entry already exists with the same IDs")
     })
+    @PreAuthorize("hasAnyRole('ADMIN','TEACHER')")
     public ResponseEntity<EntityModel<GradebookOutput>> gradeAssignment(@RequestBody @Valid GradebookInput gradebookInput) {
         Long studentId = gradebookInput.getStudentId();
         Long subjectId = gradebookInput.getSubjectId();
@@ -166,6 +169,7 @@ public class GradebookController {
             @ApiResponse(responseCode = "404", description = "Could not find student with given ID"),
             @ApiResponse(responseCode = "404", description = "Could not find subject with given ID")
     })
+    @PreAuthorize("hasRole('STUDENT')")
     public ResponseEntity<CollectionModel<EntityModel<GradebookOutput>>> getGradesOfCurrentUserAsStudent(
             @RequestParam(name = "subjectId", required = false) Long subjectId) {
         Long studentId = userService.getStudentIdOfCurrentUser();
@@ -207,11 +211,12 @@ public class GradebookController {
     }
 
     @GetMapping("/teacher-user/gradebook-entries")
-    @Operation(summary = "Find all gradebook entries related to the current user as teacher")
+    @Operation(summary = "Finds all gradebook entries related to the current user as teacher")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Returned list of gradebook entries related to current user as teacher"),
             @ApiResponse(responseCode = "404", description = "Could not find teacher with given ID")
     })
+    @PreAuthorize("hasRole('TEACHER')")
     public ResponseEntity<CollectionModel<EntityModel<GradebookOutput>>> getGradebookEntriesOfCurrentUserAsTeacher(
             @RequestParam(name = "gradeLevel", required = false) Integer gradeLevel,
             @RequestParam(name = "subjectId", required = false) Long subjectId) {
