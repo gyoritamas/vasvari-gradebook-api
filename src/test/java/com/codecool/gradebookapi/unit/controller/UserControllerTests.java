@@ -40,10 +40,8 @@ import java.util.List;
 import java.util.Optional;
 
 import static com.codecool.gradebookapi.security.ApplicationUserRole.STUDENT;
-import static com.codecool.gradebookapi.security.ApplicationUserRole.TEACHER;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
-import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
@@ -320,7 +318,7 @@ public class UserControllerTests {
                 .build();
 
         when(studentService.findById(1L)).thenReturn(Optional.of(student));
-        when(userService.getUserRelatedToSchoolActor(STUDENT, 1L))
+        when(userService.getUserRelatedToStudent(1L))
                 .thenReturn(Optional.of(studentUser));
 
         this.mockMvc
@@ -343,7 +341,7 @@ public class UserControllerTests {
                 .build();
 
         when(studentService.findById(1L)).thenReturn(Optional.of(student));
-        when(userService.getUserRelatedToSchoolActor(STUDENT, 1L))
+        when(userService.getUserRelatedToStudent(1L))
                 .thenThrow(StudentUserNotFoundException.class);
 
         this.mockMvc
@@ -374,7 +372,7 @@ public class UserControllerTests {
                 .build();
 
         when(teacherService.findById(1L)).thenReturn(Optional.of(teacher));
-        when(userService.getUserRelatedToSchoolActor(TEACHER, 1L))
+        when(userService.getUserRelatedToTeacher(1L))
                 .thenReturn(Optional.of(teacherUser));
 
         this.mockMvc
@@ -397,7 +395,7 @@ public class UserControllerTests {
                 .build();
 
         when(teacherService.findById(1L)).thenReturn(Optional.of(teacher));
-        when(userService.getUserRelatedToSchoolActor(STUDENT, 1L))
+        when(userService.getUserRelatedToTeacher(1L))
                 .thenThrow(TeacherUserNotFoundException.class);
 
         this.mockMvc
@@ -426,7 +424,7 @@ public class UserControllerTests {
 
         this.mockMvc
                 .perform(
-                        post("/api/users/1")
+                        post("/api/users/1/password-change")
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(requestAsString)
                 )
@@ -444,7 +442,7 @@ public class UserControllerTests {
 
         this.mockMvc
                 .perform(
-                        post("/api/users/1")
+                        post("/api/users/1/password-change")
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(requestAsString)
                 )
@@ -461,7 +459,7 @@ public class UserControllerTests {
 
         this.mockMvc
                 .perform(
-                        post("/api/users/99")
+                        post("/api/users/99/password-change")
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(requestAsString)
                 )
@@ -476,7 +474,7 @@ public class UserControllerTests {
 
         this.mockMvc
                 .perform(
-                        delete("/api/users/4")
+                        delete("/api/users/4/password-change")
                 )
                 .andDo(print())
                 .andExpect(status().isNoContent());

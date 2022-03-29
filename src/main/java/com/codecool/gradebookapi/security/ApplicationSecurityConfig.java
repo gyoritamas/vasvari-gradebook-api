@@ -43,20 +43,24 @@ public class ApplicationSecurityConfig extends WebSecurityConfigurerAdapter {
                         "/api/subjects/**",
                         "/api/assignments/**",
                         "/api/gradebook/**",
+                        "/api/users/password-change",
                         "/api/student_gradebook/**",
-                        "/api/subject_gradebook/**",
-                        "/api/users/**"
+                        "/api/subject_gradebook/**"
                 ).hasAnyRole(ADMIN.name(), TEACHER.name(), STUDENT.name())
                 .antMatchers(
-                        "/api/students/**",
-                        "/api/teachers/**"
+                        "/api/students/**"
                 ).hasAnyRole(ADMIN.name(), TEACHER.name())
+                .antMatchers(
+                        "/api/teachers/**",
+                        "/api/users/**"
+                ).hasRole(ADMIN.name())
                 .antMatchers(
                         "/api/student-user/**"
                 ).hasRole(STUDENT.name())
                 .antMatchers(
                         "/api/teacher-user/**"
                 ).hasRole(TEACHER.name())
+
                 .antMatchers("/api/authenticate/**").permitAll()
                 // Reject every unauthenticated request and send error code 401.
                 .and().exceptionHandling().authenticationEntryPoint(entryPoint)

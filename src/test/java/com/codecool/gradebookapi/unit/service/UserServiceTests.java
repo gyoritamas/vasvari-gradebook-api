@@ -9,7 +9,6 @@ import com.codecool.gradebookapi.exception.IncorrectPasswordException;
 import com.codecool.gradebookapi.exception.UserNotFoundException;
 import com.codecool.gradebookapi.exception.UsernameTakenException;
 import com.codecool.gradebookapi.model.request.PasswordChangeRequest;
-import com.codecool.gradebookapi.security.ApplicationUserRole;
 import com.codecool.gradebookapi.service.UserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -441,55 +440,10 @@ public class UserServiceTests {
     }
 
     @Test
-    @DisplayName("given current User is ADMIN, getRoleOfCurrentUser should return ADMIN")
-    public void givenCurrentUserIsAdmin_getRoleOfCurrentUserShouldReturnAdmin() {
-        InitialCredentials credentials = userService.createAdminUser("mrrobot");
-        setCurrentUser(credentials.getUsername());
-
-        ApplicationUserRole roleOfCurrentUser = userService.getRoleOfCurrentUser();
-
-        assertThat(roleOfCurrentUser).isEqualTo(ADMIN);
-    }
-
-    @Test
-    @DisplayName("given current User is TEACHER, getRoleOfCurrentUser should return TEACHER")
-    @DirtiesContext(methodMode = BEFORE_METHOD)
-    public void givenCurrentUserIsTeacher_getRoleOfCurrentUserShouldReturnTeacher() {
-        TeacherDto teacher = TeacherDto.builder()
-                .id(44L)
-                .firstname("Darrell")
-                .lastname("Bowen")
-                .build();
-        InitialCredentials credentials = userService.createTeacherUser(teacher);
-        setCurrentUser(credentials.getUsername());
-
-        ApplicationUserRole roleOfCurrentUser = userService.getRoleOfCurrentUser();
-
-        assertThat(roleOfCurrentUser).isEqualTo(TEACHER);
-    }
-
-    @Test
-    @DisplayName("given current User is STUDENT, getRoleOfCurrentUser should return STUDENT")
-    @DirtiesContext(methodMode = BEFORE_METHOD)
-    public void givenCurrentUserIsStudent_getRoleOfCurrentUserShouldReturnStudent() {
-        StudentDto student = StudentDto.builder()
-                .id(79L)
-                .firstname("John")
-                .lastname("Doe")
-                .build();
-        InitialCredentials credentials = userService.createStudentUser(student);
-        setCurrentUser(credentials.getUsername());
-
-        ApplicationUserRole roleOfCurrentUser = userService.getRoleOfCurrentUser();
-
-        assertThat(roleOfCurrentUser).isEqualTo(STUDENT);
-    }
-
-    @Test
     @Transactional
-    @DisplayName("given UserDto related to Student exists, getUserRelatedToSchoolActor should return UserDto")
+    @DisplayName("given UserDto related to Student exists, getUserRelatedToStudent should return UserDto")
     @DirtiesContext(methodMode = BEFORE_METHOD)
-    public void givenUserDtoRelatedToStudentExists_getUserRelatedToSchoolActor_shouldReturnUserDto() {
+    public void givenUserDtoRelatedToStudentExists_getUserRelatedToStudent_shouldReturnUserDto() {
         // create student user
         StudentDto student = StudentDto.builder()
                 .id(79L)
@@ -504,24 +458,24 @@ public class UserServiceTests {
         assertThat(userCreated.isPresent()).isTrue();
         long userId = userCreated.get().getId();
 
-        Optional<UserDto> userFound = userService.getUserRelatedToSchoolActor(STUDENT, 79L);
+        Optional<UserDto> userFound = userService.getUserRelatedToStudent( 79L);
         assertThat(userFound.isPresent()).isTrue();
         assertThat(userFound.get().getId()).isEqualTo(userId);
     }
 
     @Test
-    @DisplayName("given UserDto related to Student does not exist, getUserRelatedToSchoolActor should return empty Optional")
-    public void givenUserDtoRelatedToStudentDoesNotExist_getUserRelatedToSchoolActor_shouldReturnEmptyOptional() {
-        Optional<UserDto> userFound = userService.getUserRelatedToSchoolActor(STUDENT, 99L);
+    @DisplayName("given UserDto related to Student does not exist, getUserRelatedToStudent should return empty Optional")
+    public void givenUserDtoRelatedToStudentDoesNotExist_getUserRelatedToStudent_shouldReturnEmptyOptional() {
+        Optional<UserDto> userFound = userService.getUserRelatedToStudent( 99L);
 
         assertThat(userFound).isEqualTo(Optional.empty());
     }
 
     @Test
     @Transactional
-    @DisplayName("given UserDto related to Teacher exists, getUserRelatedToSchoolActor should return UserDto")
+    @DisplayName("given UserDto related to Teacher exists, getUserRelatedToTeacher should return UserDto")
     @DirtiesContext(methodMode = BEFORE_METHOD)
-    public void givenUserRelatedToTeacherExists_getUserRelatedToSchoolActor_shouldReturnUserDto() {
+    public void givenUserRelatedToTeacherExists_getUserRelatedToTeacher_shouldReturnUserDto() {
         // create teacher user
         TeacherDto teacher = TeacherDto.builder()
                 .id(44L)
@@ -536,15 +490,15 @@ public class UserServiceTests {
         assertThat(userCreated.isPresent()).isTrue();
         long userId = userCreated.get().getId();
 
-        Optional<UserDto> userFound = userService.getUserRelatedToSchoolActor(TEACHER, 44L);
+        Optional<UserDto> userFound = userService.getUserRelatedToTeacher( 44L);
         assertThat(userFound.isPresent()).isTrue();
         assertThat(userFound.get().getId()).isEqualTo(userId);
     }
 
     @Test
-    @DisplayName("given UserDto related to Teacher does not exist, getUserRelatedToSchoolActor should return empty Optional")
-    public void givenUserDtoRelatedToTeacherDoesNotExist_getUserRelatedToSchoolActor_shouldReturnEmptyOptional() {
-        Optional<UserDto> userFound = userService.getUserRelatedToSchoolActor(TEACHER, 99L);
+    @DisplayName("given UserDto related to Teacher does not exist, getUserRelatedToTeacher should return empty Optional")
+    public void givenUserDtoRelatedToTeacherDoesNotExist_getUserRelatedToTeacher_shouldReturnEmptyOptional() {
+        Optional<UserDto> userFound = userService.getUserRelatedToTeacher( 99L);
 
         assertThat(userFound).isEqualTo(Optional.empty());
     }

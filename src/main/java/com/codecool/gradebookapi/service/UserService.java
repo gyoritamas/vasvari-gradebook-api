@@ -16,7 +16,6 @@ import com.codecool.gradebookapi.repository.SchoolActorApplicationUserRelationRe
 import com.codecool.gradebookapi.repository.UserRepository;
 import com.codecool.gradebookapi.security.ApplicationUserRole;
 import org.apache.commons.lang3.RandomStringUtils;
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -149,6 +148,11 @@ public class UserService implements UserDetailsService {
         userRepository.save(user);
     }
 
+    public void changePasswordOfCurrentUser(PasswordChangeRequest request) {
+        long userId = getCurrentUser().getId();
+        changePassword(userId, request);
+    }
+
     public void deleteById(Long id) {
         userRepository.deleteById(id);
     }
@@ -165,7 +169,15 @@ public class UserService implements UserDetailsService {
         userRepository.save(user);
     }
 
-    public Optional<UserDto> getUserRelatedToSchoolActor(ApplicationUserRole role, Long schoolActorId) {
+    public Optional<UserDto> getUserRelatedToStudent(Long studentId) {
+        return getUserRelatedToSchoolActor(STUDENT, studentId);
+    }
+
+    public Optional<UserDto> getUserRelatedToTeacher(Long teacherId) {
+        return getUserRelatedToSchoolActor(TEACHER, teacherId);
+    }
+
+    private Optional<UserDto> getUserRelatedToSchoolActor(ApplicationUserRole role, Long schoolActorId) {
         if (role.equals(ADMIN)) return Optional.empty();
 
         Optional<SchoolActorApplicationUserRelation> relation =
@@ -192,30 +204,20 @@ public class UserService implements UserDetailsService {
     }
 
     public Long getStudentIdOfCurrentUser() {
-        String username = SecurityContextHolder.getContext().getAuthentication().getName();
-        UserDto user = findByUsername(username)
-                // this should not happen
-                .orElseThrow(() -> new RuntimeException(String.format("No user with the name '%s' exists", username)));
-
+        UserDto user = getCurrentUser();
         return findStudentIdByUserId(user.getId());
     }
 
     public Long getTeacherIdOfCurrentUser() {
-        String username = SecurityContextHolder.getContext().getAuthentication().getName();
-        UserDto user = findByUsername(username)
-                // this should not happen
-                .orElseThrow(() -> new RuntimeException(String.format("No user with the name '%s' exists", username)));
-
+        UserDto user = getCurrentUser();
         return findTeacherIdByUserId(user.getId());
     }
 
-    public ApplicationUserRole getRoleOfCurrentUser() {
-        String role = SecurityContextHolder.getContext().getAuthentication().getAuthorities().stream()
-                .map(GrantedAuthority::getAuthority)
-                .findFirst()
-                .orElseThrow(() -> new RuntimeException("Unable to determine user role"));
-
-        return ApplicationUserRole.valueOf(role.substring("ROLE_".length()));
+    private UserDto getCurrentUser() {
+        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+        return findByUsername(username)
+                // this should not happen
+                .orElseThrow(() -> new RuntimeException(String.format("No user with the name '%s' exists", username)));
     }
 
     @Override
