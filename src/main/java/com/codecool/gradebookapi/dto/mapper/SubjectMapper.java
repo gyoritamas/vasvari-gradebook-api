@@ -2,6 +2,7 @@ package com.codecool.gradebookapi.dto.mapper;
 
 import com.codecool.gradebookapi.dto.SubjectOutput;
 import com.codecool.gradebookapi.dto.dataTypes.SimpleData;
+import com.codecool.gradebookapi.dto.dataTypes.SimpleTeacher;
 import com.codecool.gradebookapi.model.Subject;
 import org.springframework.stereotype.Component;
 
@@ -23,7 +24,13 @@ public class SubjectMapper {
                 .build();
 
         if (subject.getTeacher() != null) {
-            subjectOutput.setTeacher(new SimpleData(subject.getTeacher().getId(), subject.getTeacher().getName()));
+            subjectOutput.setTeacher(
+                    SimpleTeacher.builder()
+                            .id(subject.getTeacher().getId())
+                            .firstname(subject.getTeacher().getFirstname())
+                            .lastname(subject.getTeacher().getLastname())
+                            .build()
+            );
         }
 
         return subjectOutput;

@@ -474,7 +474,7 @@ public class UserControllerTests {
 
         this.mockMvc
                 .perform(
-                        delete("/api/users/4/password-change")
+                        delete("/api/users/4")
                 )
                 .andDo(print())
                 .andExpect(status().isNoContent());

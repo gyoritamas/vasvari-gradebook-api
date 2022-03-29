@@ -7,6 +7,7 @@ import com.codecool.gradebookapi.dto.GradebookOutput;
 import com.codecool.gradebookapi.dto.SubjectOutput;
 import com.codecool.gradebookapi.dto.assembler.AssignmentModelAssembler;
 import com.codecool.gradebookapi.dto.dataTypes.SimpleData;
+import com.codecool.gradebookapi.dto.dataTypes.SimpleTeacher;
 import com.codecool.gradebookapi.jwt.JwtAuthenticationEntryPoint;
 import com.codecool.gradebookapi.jwt.JwtTokenUtil;
 import com.codecool.gradebookapi.model.AssignmentType;
@@ -71,7 +72,7 @@ public class AssignmentControllerTests {
         SubjectOutput subject = SubjectOutput.builder()
                 .id(1L)
                 .name("Algebra")
-                .teacher(new SimpleData(1L, "Darrell Bowen"))
+                .teacher(new SimpleTeacher(1L, "Darrell", "Bowen"))
                 .students(new ArrayList<>())
                 .build();
 

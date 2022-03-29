@@ -8,6 +8,7 @@ import com.codecool.gradebookapi.dto.TeacherDto;
 import com.codecool.gradebookapi.dto.assembler.SubjectModelAssembler;
 import com.codecool.gradebookapi.dto.assembler.StudentModelAssembler;
 import com.codecool.gradebookapi.dto.dataTypes.SimpleData;
+import com.codecool.gradebookapi.dto.dataTypes.SimpleTeacher;
 import com.codecool.gradebookapi.jwt.JwtAuthenticationEntryPoint;
 import com.codecool.gradebookapi.jwt.JwtTokenUtil;
 import com.codecool.gradebookapi.security.PasswordConfig;
@@ -90,7 +91,7 @@ public class StudentControllerTests {
                 .email("johndoe@email.com")
                 .address("666 Armstrong St., Mesa, AZ 85203")
                 .phone("202-555-0198")
-                .birthdate(LocalDate.of(2005,12,1))
+                .birthdate(LocalDate.of(2005, 12, 1))
                 .build();
 
         student2 = StudentDto.builder()
@@ -101,7 +102,7 @@ public class StudentControllerTests {
                 .email("janedoe@email.com")
                 .address("9351 Morris St., Reisterstown, MD 21136")
                 .phone("202-555-0198")
-                .birthdate(LocalDate.of(2007,4,13))
+                .birthdate(LocalDate.of(2007, 4, 13))
                 .build();
     }
 
@@ -312,7 +313,7 @@ public class StudentControllerTests {
         SimpleData simpleStudent1 = new SimpleData(student1.getId(), student1.getName());
         SimpleData simpleStudent2 = new SimpleData(student2.getId(), student2.getName());
         TeacherDto teacher = TeacherDto.builder().id(1L).firstname("Darrell").lastname("Bowen").build();
-        SimpleData simpleTeacher = new SimpleData(1L, "Darrell Bowen");
+        SimpleTeacher simpleTeacher = new SimpleTeacher(1L, "Darrell", "Bowen");
         SubjectOutput subject1 = SubjectOutput.builder()
                 .name("Biology")
                 .teacher(simpleTeacher)

@@ -3,6 +3,7 @@ package com.codecool.gradebookapi.integration;
 import com.codecool.gradebookapi.controller.*;
 import com.codecool.gradebookapi.dto.*;
 import com.codecool.gradebookapi.dto.dataTypes.SimpleData;
+import com.codecool.gradebookapi.dto.dataTypes.SimpleTeacher;
 import com.codecool.gradebookapi.integration.util.AuthorizationManager;
 import com.codecool.gradebookapi.model.AssignmentType;
 import org.junit.jupiter.api.*;
@@ -103,7 +104,7 @@ public class SubjectIntegrationTests {
                     .id(response.getBody().getId())
                     .name(subjectInput1.getName())
                     .teacher(
-                            new SimpleData(teacherId, teacher.getName())
+                            new SimpleTeacher(teacherId, teacher.getFirstname(), teacher.getLastname())
                     )
                     .students(Collections.emptyList())
                     .build();

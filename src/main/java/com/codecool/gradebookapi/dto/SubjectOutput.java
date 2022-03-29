@@ -1,6 +1,7 @@
 package com.codecool.gradebookapi.dto;
 
 import com.codecool.gradebookapi.dto.dataTypes.SimpleData;
+import com.codecool.gradebookapi.dto.dataTypes.SimpleTeacher;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.*;
 import org.springframework.hateoas.server.core.Relation;
@@ -21,7 +22,7 @@ public class SubjectOutput {
     @Schema(example = "Algebra")
     private String name;
 
-    private SimpleData teacher;
+    private SimpleTeacher teacher;
 
     private List<SimpleData> students;
 

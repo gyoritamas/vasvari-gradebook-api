@@ -5,6 +5,7 @@ import com.codecool.gradebookapi.dto.*;
 import com.codecool.gradebookapi.dto.assembler.SubjectModelAssembler;
 import com.codecool.gradebookapi.dto.assembler.StudentModelAssembler;
 import com.codecool.gradebookapi.dto.dataTypes.SimpleData;
+import com.codecool.gradebookapi.dto.dataTypes.SimpleTeacher;
 import com.codecool.gradebookapi.jwt.JwtAuthenticationEntryPoint;
 import com.codecool.gradebookapi.jwt.JwtTokenUtil;
 import com.codecool.gradebookapi.security.PasswordConfig;
@@ -83,22 +84,22 @@ public class SubjectControllerTests {
                 .id(1L)
                 .name("Algebra")
                 .students(List.of(
-                        new SimpleData(1L, "Diophantus"),
-                        new SimpleData(2L, "Brahmagupta")
+                        new SimpleData(1L, "John Doe"),
+                        new SimpleData(2L, "Jane Doe")
                 ))
                 .teacher(
-                        new SimpleData(1L, "teacher1")
+                        new SimpleTeacher(1L, "Darrell", "Bowen")
                 )
                 .build();
         subjectOutput2 = SubjectOutput.builder()
                 .id(2L)
                 .name("Biology")
                 .students(List.of(
-                        new SimpleData(3L, "Charles Darwin"),
-                        new SimpleData(4L, "Gregor Mendel")
+                        new SimpleData(3L, "John Smith"),
+                        new SimpleData(4L, "Jane Smith")
                 ))
                 .teacher(
-                        new SimpleData(2L, "teacher2")
+                        new SimpleTeacher(2L, "Lilian", "Stafford")
                 )
                 .build();
     }
@@ -311,7 +312,7 @@ public class SubjectControllerTests {
         SubjectOutput algebra = SubjectOutput.builder()
                 .id(1L)
                 .name("Algebra")
-                .teacher(new SimpleData(1L, "Darrell Bowen"))
+                .teacher(new SimpleTeacher(1L, "Darrell", "Bowen"))
                 .students(List.of(new SimpleData(1L, "John Doe")))
                 .build();
 
