@@ -5,6 +5,8 @@ import com.codecool.gradebookapi.dto.AssignmentOutput;
 import com.codecool.gradebookapi.dto.assembler.AssignmentModelAssembler;
 import com.codecool.gradebookapi.exception.AssignmentInUseException;
 import com.codecool.gradebookapi.exception.AssignmentNotFoundException;
+import com.codecool.gradebookapi.model.AssignmentType;
+import com.codecool.gradebookapi.model.request.AssignmentRequest;
 import com.codecool.gradebookapi.service.AssignmentService;
 import com.codecool.gradebookapi.service.GradebookService;
 import com.codecool.gradebookapi.service.SubjectService;
@@ -51,6 +53,28 @@ public class AssignmentController {
 
         return ResponseEntity
                 .ok(assembler.toCollectionModel(assignmentService.findAll()));
+    }
+
+    @GetMapping("/assignments/search")
+    @Operation(summary = "Lists all assignments, filtered by name, type and subject")
+    @ApiResponse(responseCode = "200", description = "Returned list of assignments")
+    public ResponseEntity<CollectionModel<EntityModel<AssignmentOutput>>> searchAssignments(
+            @RequestParam(value = "title", required = false) String title,
+            @RequestParam(value = "type", required = false) AssignmentType type,
+            @RequestParam(value = "subjectId", required = false) Long subjectId) {
+        AssignmentRequest request = new AssignmentRequest();
+        request.setTitle(title);
+        request.setType(type);
+        request.setSubjectId(subjectId);
+        List<AssignmentOutput> assignmentList = assignmentService.findAssignments(request);
+
+        log.info("Returned list of assignments with the following filters: " +
+                "title={}, type={}, subjectId={}", title, type, subjectId);
+
+        return ResponseEntity
+                .ok(CollectionModel.of(assembler.toCollectionModel(assignmentList),
+                        linkTo(methodOn(AssignmentController.class).searchAssignments(title, type, subjectId))
+                                .withRel("assignments-filtered")));
     }
 
     @GetMapping("/assignments/{id}")
@@ -135,15 +159,30 @@ public class AssignmentController {
             @ApiResponse(responseCode = "404", description = "Could not find teacher with given ID")
     })
     @PreAuthorize("hasRole('TEACHER')")
-    public ResponseEntity<CollectionModel<EntityModel<AssignmentOutput>>> getAssignmentsOfCurrentUserAsTeacher() {
+    public ResponseEntity<CollectionModel<EntityModel<AssignmentOutput>>> getAssignmentsOfCurrentUserAsTeacher(
+            @RequestParam(name = "title", required = false) String title,
+            @RequestParam(name = "type", required = false) AssignmentType type,
+            @RequestParam(name = "subjectId", required = false) Long subjectId) {
         Long teacherId = userService.getTeacherIdOfCurrentUser();
+
+        // filter by teacher
         List<AssignmentOutput> assignmentsOfTeacher = assignmentService.findAssignmentsOfTeacher(teacherId);
 
-        log.info("Returned list of all assignments created by teacher {}", teacherId);
+        // filter by request params
+        AssignmentRequest request = new AssignmentRequest();
+        request.setTitle(title);
+        request.setType(type);
+        request.setSubjectId(subjectId);
+        List<AssignmentOutput> assignmentsFiltered = assignmentService.findAssignments(request);
+
+        assignmentsOfTeacher.retainAll(assignmentsFiltered);
+
+        log.info("Returned assignments created by teacher {}," +
+                "with the following filters: title={}, type={}, subjectId={}", teacherId, title, type, subjectId);
 
         return ResponseEntity
                 .ok(CollectionModel.of(assembler.toCollectionModel(assignmentsOfTeacher),
-                        linkTo(methodOn(AssignmentController.class).getAssignmentsOfCurrentUserAsTeacher())
+                        linkTo(methodOn(AssignmentController.class).getAssignmentsOfCurrentUserAsTeacher(title, type, subjectId))
                                 .withRel("assignments-of-teacher")));
     }
 
@@ -154,16 +193,30 @@ public class AssignmentController {
             @ApiResponse(responseCode = "404", description = "Could not find student with given ID")
     })
     @PreAuthorize("hasRole('STUDENT')")
-    public ResponseEntity<CollectionModel<EntityModel<AssignmentOutput>>> getAssignmentsOfCurrentUserAsStudent() {
+    public ResponseEntity<CollectionModel<EntityModel<AssignmentOutput>>> getAssignmentsOfCurrentUserAsStudent(
+            @RequestParam(name = "title", required = false) String title,
+            @RequestParam(name = "type", required = false) AssignmentType type,
+            @RequestParam(name = "subjectId", required = false) Long subjectId) {
         Long studentId = userService.getStudentIdOfCurrentUser();
 
+        // filter by student
         List<AssignmentOutput> assignmentsOfStudent = assignmentService.findAssignmentsOfStudent(studentId);
 
-        log.info("Returned list of all assignments of student {}", studentId);
+        // filter by request params
+        AssignmentRequest request = new AssignmentRequest();
+        request.setTitle(title);
+        request.setType(type);
+        request.setSubjectId(subjectId);
+        List<AssignmentOutput> assignmentsFiltered = assignmentService.findAssignments(request);
+
+        assignmentsOfStudent.retainAll(assignmentsFiltered);
+
+        log.info("Returned assignments of student {}," +
+                "with the following filters: title={}, type={}, subjectId={}", studentId, title, type, subjectId);
 
         return ResponseEntity
                 .ok(CollectionModel.of(assembler.toCollectionModel(assignmentsOfStudent),
-                        linkTo(methodOn(AssignmentController.class).getAssignmentsOfCurrentUserAsStudent())
+                        linkTo(methodOn(AssignmentController.class).getAssignmentsOfCurrentUserAsStudent(title, type, subjectId))
                                 .withRel("assignments-of-student")));
     }
 }

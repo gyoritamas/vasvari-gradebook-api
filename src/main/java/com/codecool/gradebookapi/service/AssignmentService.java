@@ -9,6 +9,8 @@ import com.codecool.gradebookapi.model.Assignment;
 import com.codecool.gradebookapi.model.Student;
 import com.codecool.gradebookapi.model.Subject;
 import com.codecool.gradebookapi.model.Teacher;
+import com.codecool.gradebookapi.model.request.AssignmentRequest;
+import com.codecool.gradebookapi.model.specification.AssignmentSpecification;
 import com.codecool.gradebookapi.repository.AssignmentRepository;
 import com.codecool.gradebookapi.repository.StudentRepository;
 import com.codecool.gradebookapi.repository.SubjectRepository;
@@ -28,9 +30,14 @@ public class AssignmentService {
     private final SubjectRepository subjectRepository;
     private final StudentRepository studentRepository;
     private final AssignmentMapper mapper;
+    private final AssignmentSpecification specification;
 
     public List<AssignmentOutput> findAll() {
         return mapper.mapAll(assignmentRepository.findAll());
+    }
+
+    public List<AssignmentOutput> findAssignments(AssignmentRequest request){
+        return mapper.mapAll(assignmentRepository.findAll(specification.getAssignments(request)));
     }
 
     public AssignmentOutput save(AssignmentInput assignmentInput) {

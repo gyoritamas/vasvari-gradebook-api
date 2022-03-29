@@ -4,6 +4,7 @@ import com.codecool.gradebookapi.dto.*;
 import com.codecool.gradebookapi.exception.StudentNotFoundException;
 import com.codecool.gradebookapi.exception.TeacherNotFoundException;
 import com.codecool.gradebookapi.model.AssignmentType;
+import com.codecool.gradebookapi.model.request.AssignmentRequest;
 import com.codecool.gradebookapi.service.AssignmentService;
 import com.codecool.gradebookapi.service.StudentService;
 import com.codecool.gradebookapi.service.SubjectService;
@@ -17,7 +18,9 @@ import org.springframework.test.annotation.DirtiesContext;
 
 import javax.transaction.Transactional;
 import java.time.LocalDate;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -29,13 +32,10 @@ public class AssignmentServiceTests {
 
     @Autowired
     private AssignmentService assignmentService;
-
     @Autowired
     private TeacherService teacherService;
-
     @Autowired
     private SubjectService subjectService;
-
     @Autowired
     private StudentService studentService;
 
@@ -44,6 +44,7 @@ public class AssignmentServiceTests {
 
     private Long teacherId;
     private Long studentId;
+    private Long subjectId;
 
     @BeforeEach
     public void setUp() {
@@ -75,21 +76,21 @@ public class AssignmentServiceTests {
                 .teacherId(teacherId)
                 .build();
 
-        long subjectId = subjectService.save(subject).getId();
+        subjectId = subjectService.save(subject).getId();
 
         subjectService.addStudentToSubject(studentId, subjectId);
 
         assignmentInput1 = AssignmentInput.builder()
-                .name("Homework 1")
+                .name("Algebra Homework #11")
                 .type(AssignmentType.HOMEWORK)
-                .description("Read chapters 1 to 5")
+                .description("Read chapters 9 to 11")
                 .deadline(LocalDate.of(2051, 1, 1))
                 .subjectId(subjectId)
                 .build();
         assignmentInput2 = AssignmentInput.builder()
-                .name("Homework 2")
-                .type(AssignmentType.HOMEWORK)
-                .description("Read chapters 6 to 9")
+                .name("Algebra Test #5")
+                .type(AssignmentType.TEST)
+                .description("Quadratic equations")
                 .deadline(LocalDate.of(2052, 1, 1))
                 .subjectId(subjectId)
                 .build();
@@ -102,9 +103,9 @@ public class AssignmentServiceTests {
         AssignmentOutput assignmentSaved = assignmentService.save(assignmentInput1);
 
         assertThat(assignmentSaved.getId()).isNotNull();
-        assertThat(assignmentSaved.getName()).isEqualTo("Homework 1");
-        assertThat(assignmentSaved.getType()).isEqualTo(AssignmentType.HOMEWORK);
-        assertThat(assignmentSaved.getDescription()).isEqualTo("Read chapters 1 to 5");
+        assertThat(assignmentSaved.getName()).isEqualTo(assignmentInput1.getName());
+        assertThat(assignmentSaved.getType()).isEqualTo(assignmentInput1.getType());
+        assertThat(assignmentSaved.getDescription()).isEqualTo(assignmentInput1.getDescription());
         assertThat(assignmentSaved.getDeadline()).isNotNull();
     }
 
@@ -119,8 +120,8 @@ public class AssignmentServiceTests {
         List<AssignmentOutput> actualListOfAssignments = assignmentService.findAll();
 
         assertThat(actualListOfAssignments).hasSize(2);
-        assertThat(actualListOfAssignments.get(0).getName()).isEqualTo("Homework 1");
-        assertThat(actualListOfAssignments.get(1).getName()).isEqualTo("Homework 2");
+        assertThat(actualListOfAssignments.get(0).getName()).isEqualTo(assignmentInput1.getName());
+        assertThat(actualListOfAssignments.get(1).getName()).isEqualTo(assignmentInput2.getName());
     }
 
     @Test
@@ -232,6 +233,38 @@ public class AssignmentServiceTests {
                 .isInstanceOf(StudentNotFoundException.class)
                 .hasMessage(String.format(StudentNotFoundException.ERROR_MESSAGE, studentId + 1));
 
+    }
+
+    @Test
+    @Transactional
+    @DisplayName("when Assignment exists with given title, type and subjectId, findAssignments should return list of Assignments")
+    public void whenAssignmentExistsWithGivenTitleTypeAndSubjectId_findAssignmentsTests_shouldReturnListOfAssignments() {
+        AssignmentOutput assignment1 = assignmentService.save(assignmentInput1);
+        AssignmentOutput assignment2 = assignmentService.save(assignmentInput2);
+
+        AssignmentRequest[] requests = {
+                new AssignmentRequest(),
+                AssignmentRequest.builder().title("test #5").build(),
+                AssignmentRequest.builder().type(AssignmentType.PROJECT).build(),
+                AssignmentRequest.builder().subjectId(subjectId).build(),
+                AssignmentRequest.builder().type(AssignmentType.HOMEWORK).subjectId(subjectId).build(),
+                AssignmentRequest.builder().title("homework").type(AssignmentType.TEST).build(),
+                AssignmentRequest.builder().title("test").type(AssignmentType.TEST).subjectId(subjectId).build()
+        };
+
+        Map<Integer, List<AssignmentOutput>> results = new HashMap<>();
+
+        for (int i = 0; i < requests.length; i++) {
+            results.put(i, assignmentService.findAssignments(requests[i]));
+        }
+
+        assertThat(results.get(0)).containsExactly(assignment1, assignment2);
+        assertThat(results.get(1)).containsExactly(assignment2);
+        assertThat(results.get(2)).isEmpty();
+        assertThat(results.get(3)).containsExactly(assignment1, assignment2);
+        assertThat(results.get(4)).containsExactly(assignment1);
+        assertThat(results.get(5)).isEmpty();
+        assertThat(results.get(6)).containsExactly(assignment2);
     }
 
 }

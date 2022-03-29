@@ -138,7 +138,8 @@ public class StudentServiceTests {
         assertThat(studentsWithDoeInName).containsExactly(student1, student2);
 
         StudentRequest request3 = new StudentRequest();
-        request3.setName("john doe");
+        // since in StudentSpecification full name is searched as lastname + firstname
+        request3.setName("doe john");
         List<StudentDto> studentsWithJohnDoeInName = service.findStudents(request3);
 
         assertThat(studentsWithJohnDoeInName).containsExactly(student1);
