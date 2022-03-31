@@ -63,7 +63,7 @@ public class StudentController {
     @ApiResponse(responseCode = "200", description = "Returned list of students")
     public ResponseEntity<CollectionModel<EntityModel<StudentDto>>> searchStudents(@RequestParam(value = "studentName", required = false) String studentName,
                                                                                    @RequestParam(value = "gradeLevel", required = false) Integer gradeLevel,
-                                                                                   @RequestParam(name = "subjectId", required = false) Long subjectId) {
+                                                                                   @RequestParam(value = "subjectId", required = false) Long subjectId) {
 
         List<StudentDto> studentList = getStudentsFilteredByNameGradeLevelAndSubject(studentName, gradeLevel, subjectId);
 

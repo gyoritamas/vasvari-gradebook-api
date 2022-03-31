@@ -2,8 +2,11 @@ package com.codecool.gradebookapi.service;
 
 import com.codecool.gradebookapi.dto.GradebookInput;
 import com.codecool.gradebookapi.dto.GradebookOutput;
+import com.codecool.gradebookapi.dto.TeacherDto;
 import com.codecool.gradebookapi.dto.mapper.GradebookEntryMapper;
 import com.codecool.gradebookapi.model.GradebookEntry;
+import com.codecool.gradebookapi.model.request.GradebookRequest;
+import com.codecool.gradebookapi.model.specification.GradebookEntrySpecification;
 import com.codecool.gradebookapi.repository.GradebookEntryRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -17,9 +20,16 @@ public class GradebookService {
 
     private final GradebookEntryRepository repository;
     private final GradebookEntryMapper mapper;
+    private final GradebookEntrySpecification specification;
 
     public List<GradebookOutput> findAll() {
         return mapper.mapAll(repository.findAll());
+    }
+
+    public List<GradebookOutput> findGradebookEntries(GradebookRequest request) {
+        List<GradebookEntry> entries = repository.findAll(specification.getGradebookEntries(request));
+
+        return mapper.mapAll(entries);
     }
 
     public Optional<GradebookOutput> findById(Long id) {
