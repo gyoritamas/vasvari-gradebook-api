@@ -30,8 +30,4 @@ public class Assignment {
     @ManyToOne
     private Subject subject;
 
-    public Boolean isExpired(){
-        return LocalDate.now().isAfter(deadline);
-    }
-
 }

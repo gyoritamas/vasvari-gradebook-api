@@ -177,7 +177,7 @@ public class AssignmentController {
 
         assignmentsOfTeacher.retainAll(assignmentsFiltered);
 
-        log.info("Returned assignments created by teacher {}," +
+        log.info("Returned assignments created by teacher {}, " +
                 "with the following filters: title={}, type={}, subjectId={}", teacherId, title, type, subjectId);
 
         return ResponseEntity
@@ -211,7 +211,7 @@ public class AssignmentController {
 
         assignmentsOfStudent.retainAll(assignmentsFiltered);
 
-        log.info("Returned assignments of student {}," +
+        log.info("Returned assignments of student {}, " +
                 "with the following filters: title={}, type={}, subjectId={}", studentId, title, type, subjectId);
 
         return ResponseEntity

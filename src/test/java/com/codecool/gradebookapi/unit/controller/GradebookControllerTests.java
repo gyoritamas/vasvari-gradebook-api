@@ -4,6 +4,7 @@ import com.codecool.gradebookapi.controller.GradebookController;
 import com.codecool.gradebookapi.dto.*;
 import com.codecool.gradebookapi.dto.assembler.GradebookModelAssembler;
 import com.codecool.gradebookapi.dto.dataTypes.SimpleData;
+import com.codecool.gradebookapi.dto.dataTypes.SimpleStudent;
 import com.codecool.gradebookapi.jwt.JwtAuthenticationEntryPoint;
 import com.codecool.gradebookapi.jwt.JwtTokenUtil;
 import com.codecool.gradebookapi.security.PasswordConfig;
@@ -101,16 +102,26 @@ public class GradebookControllerTests {
                 .assignmentId(1L)
                 .grade(5)
                 .build();
+        SimpleStudent simpleStudent1 = SimpleStudent.builder()
+                .id(1L)
+                .firstname(student1.getFirstname())
+                .lastname(student1.getLastname())
+                .build();
+        SimpleStudent simpleStudent2 = SimpleStudent.builder()
+                .id(2L)
+                .firstname(student2.getFirstname())
+                .lastname(student2.getLastname())
+                .build();
         savedEntry1 = GradebookOutput.builder()
                 .id(1L)
-                .student(new SimpleData(1L, "John Doe"))
+                .student(simpleStudent1)
                 .subject(new SimpleData(1L, "Algebra"))
                 .assignment(new SimpleData(1L, "Homework 1"))
                 .grade(4)
                 .build();
         savedEntry2 = GradebookOutput.builder()
                 .id(1L)
-                .student(new SimpleData(2L, "Jane Doe"))
+                .student(simpleStudent2)
                 .subject(new SimpleData(1L, "Algebra"))
                 .assignment(new SimpleData(1L, "Homework 1"))
                 .grade(5)

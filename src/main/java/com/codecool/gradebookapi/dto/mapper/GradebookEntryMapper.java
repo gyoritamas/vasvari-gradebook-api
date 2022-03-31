@@ -3,6 +3,7 @@ package com.codecool.gradebookapi.dto.mapper;
 import com.codecool.gradebookapi.dto.GradebookInput;
 import com.codecool.gradebookapi.dto.GradebookOutput;
 import com.codecool.gradebookapi.dto.dataTypes.SimpleData;
+import com.codecool.gradebookapi.dto.dataTypes.SimpleStudent;
 import com.codecool.gradebookapi.model.GradebookEntry;
 import com.codecool.gradebookapi.repository.AssignmentRepository;
 import com.codecool.gradebookapi.repository.SubjectRepository;
@@ -24,7 +25,11 @@ public class GradebookEntryMapper {
         return GradebookOutput.builder()
                 .id(gradebookEntry.getId())
                 .student(
-                        new SimpleData(gradebookEntry.getStudent().getId(), gradebookEntry.getStudent().getName())
+                        SimpleStudent.builder()
+                                .id(gradebookEntry.getStudent().getId())
+                                .firstname(gradebookEntry.getStudent().getFirstname())
+                                .lastname(gradebookEntry.getStudent().getLastname())
+                                .build()
                 )
                 .subject(
                         new SimpleData(gradebookEntry.getSubject().getId(), gradebookEntry.getSubject().getName())

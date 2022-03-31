@@ -3,6 +3,7 @@ package com.codecool.gradebookapi.integration;
 import com.codecool.gradebookapi.controller.*;
 import com.codecool.gradebookapi.dto.*;
 import com.codecool.gradebookapi.dto.dataTypes.SimpleData;
+import com.codecool.gradebookapi.dto.dataTypes.SimpleStudent;
 import com.codecool.gradebookapi.integration.util.AuthorizationManager;
 import com.codecool.gradebookapi.model.AssignmentType;
 import org.junit.jupiter.api.*;
@@ -364,9 +365,14 @@ public class GradebookIntegrationTests {
             assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
             assertThat(response.getBody()).isNotNull();
 
+            SimpleStudent simpleStudent = SimpleStudent.builder()
+                    .id(studentId)
+                    .firstname(student1.getFirstname())
+                    .lastname(student1.getLastname())
+                    .build();
             GradebookOutput expected = GradebookOutput.builder()
                     .id(response.getBody().getId())
-                    .student(new SimpleData(studentId, student1.getName()))
+                    .student(simpleStudent)
                     .subject(new SimpleData(subjectId, subject.getName()))
                     .assignment(new SimpleData(assignmentId, assignment.getName()))
                     .grade(4)

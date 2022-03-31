@@ -8,6 +8,7 @@ import com.codecool.gradebookapi.dto.TeacherDto;
 import com.codecool.gradebookapi.dto.assembler.SubjectModelAssembler;
 import com.codecool.gradebookapi.dto.assembler.StudentModelAssembler;
 import com.codecool.gradebookapi.dto.dataTypes.SimpleData;
+import com.codecool.gradebookapi.dto.dataTypes.SimpleStudent;
 import com.codecool.gradebookapi.dto.dataTypes.SimpleTeacher;
 import com.codecool.gradebookapi.jwt.JwtAuthenticationEntryPoint;
 import com.codecool.gradebookapi.jwt.JwtTokenUtil;
@@ -294,8 +295,13 @@ public class StudentControllerTests {
     @WithMockUser(username = "admin", password = "admin", roles = "ADMIN")
     @DisplayName("when Student is used by a GradebookEntry, delete should return response 'Method Not Allowed'")
     public void whenStudentIsUsedByAnEntry_deleteShouldReturnResponseMethodNotAllowed() throws Exception {
+        SimpleStudent simpleStudent = SimpleStudent.builder()
+                .id(student1.getId())
+                .firstname(student1.getFirstname())
+                .lastname(student1.getLastname())
+                .build();
         GradebookOutput savedEntry = GradebookOutput.builder()
-                .student(new SimpleData(student1.getId(), student1.getName()))
+                .student(simpleStudent)
                 .build();
         when(studentService.findById(1L)).thenReturn(Optional.of(student1));
         when(gradebookService.findByStudentId(1L)).thenReturn(List.of(savedEntry));
