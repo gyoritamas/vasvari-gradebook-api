@@ -9,6 +9,8 @@ import com.codecool.gradebookapi.dto.dataTypes.InitialCredentials;
 import com.codecool.gradebookapi.dto.dataTypes.UsernameInput;
 import com.codecool.gradebookapi.exception.*;
 import com.codecool.gradebookapi.model.request.PasswordChangeRequest;
+import com.codecool.gradebookapi.model.request.UserRequest;
+import com.codecool.gradebookapi.security.ApplicationUserRole;
 import com.codecool.gradebookapi.service.StudentService;
 import com.codecool.gradebookapi.service.TeacherService;
 import com.codecool.gradebookapi.service.UserService;
@@ -26,6 +28,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import java.util.List;
+
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
 @RestController
 @RequestMapping("/api/users")
@@ -49,6 +55,30 @@ public class UserController {
 
         return ResponseEntity
                 .ok(userModelAssembler.toCollectionModel(userService.findAll()));
+    }
+
+    @GetMapping("/search")
+    @Operation(summary = "Lists all users, filtered by username, role and enabled")
+    @ApiResponse(responseCode = "200", description = "Returned list of users")
+    public ResponseEntity<CollectionModel<EntityModel<UserDto>>> searchUsers(
+            @RequestParam(value = "username", required = false) String username,
+            @RequestParam(value = "role", required = false) ApplicationUserRole role,
+            @RequestParam(value = "enabled", required = false) Boolean enabled) {
+
+        UserRequest request = new UserRequest();
+        request.setUsername(username);
+        request.setRole(role);
+        request.setEnabled(enabled);
+
+        List<UserDto> userList = userService.findUsers(request);
+
+        log.info("Returned list of users with the following filters: " +
+                "username={}, role={}, enabled={}", username, role, enabled);
+
+        return ResponseEntity
+                .ok(CollectionModel.of(userModelAssembler.toCollectionModel(userList),
+                        linkTo(methodOn(UserController.class).searchUsers(username, role, enabled))
+                                .withRel("users-filtered")));
     }
 
     @GetMapping("/{id}")

@@ -12,6 +12,8 @@ import com.codecool.gradebookapi.exception.UsernameTakenException;
 import com.codecool.gradebookapi.model.ApplicationUser;
 import com.codecool.gradebookapi.model.SchoolActorApplicationUserRelation;
 import com.codecool.gradebookapi.model.request.PasswordChangeRequest;
+import com.codecool.gradebookapi.model.request.UserRequest;
+import com.codecool.gradebookapi.model.specification.UserSpecification;
 import com.codecool.gradebookapi.repository.SchoolActorApplicationUserRelationRepository;
 import com.codecool.gradebookapi.repository.UserRepository;
 import com.codecool.gradebookapi.security.ApplicationUserRole;
@@ -37,15 +39,18 @@ public class UserService implements UserDetailsService {
     private final SchoolActorApplicationUserRelationRepository relationRepository;
     private final PasswordEncoder passwordEncoder;
     private final UserMapper mapper;
+    private final UserSpecification specification;
 
     public UserService(UserRepository userRepository,
                        SchoolActorApplicationUserRelationRepository relationRepository,
                        PasswordEncoder passwordEncoder,
-                       UserMapper mapper) {
+                       UserMapper mapper,
+                       UserSpecification specification) {
         this.userRepository = userRepository;
         this.relationRepository = relationRepository;
         this.passwordEncoder = passwordEncoder;
         this.mapper = mapper;
+        this.specification = specification;
         // TODO: remove
 //        userRepository.save(new ApplicationUser("admin", this.passwordEncoder.encode("admin"), ApplicationUserRole.ADMIN));
 //        userRepository.save(new ApplicationUser("teacher", this.passwordEncoder.encode("teacher"), ApplicationUserRole.TEACHER));
@@ -54,6 +59,10 @@ public class UserService implements UserDetailsService {
 
     public List<UserDto> findAll() {
         return mapper.mapAll(userRepository.findAll());
+    }
+
+    public List<UserDto> findUsers(UserRequest request) {
+        return mapper.mapAll(userRepository.findAll(specification.getUsers(request)));
     }
 
     public UserDto save(UserDto userDto) {
