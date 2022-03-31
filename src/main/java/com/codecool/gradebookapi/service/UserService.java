@@ -73,11 +73,13 @@ public class UserService implements UserDetailsService {
     }
 
     public InitialCredentials createStudentUser(StudentDto studentDto) {
-        return createNonAdminUser(studentDto.getId(), studentDto.getName(), STUDENT);
+        String name = String.format("%s %s", studentDto.getLastname(), studentDto.getFirstname());
+        return createNonAdminUser(studentDto.getId(), name, STUDENT);
     }
 
     public InitialCredentials createTeacherUser(TeacherDto teacherDto) {
-        return createNonAdminUser(teacherDto.getId(), teacherDto.getName(), TEACHER);
+        String name = String.format("%s %s", teacherDto.getLastname(), teacherDto.getFirstname());
+        return createNonAdminUser(teacherDto.getId(), name, TEACHER);
     }
 
     private InitialCredentials createNonAdminUser(Long id, String name, ApplicationUserRole role) {
@@ -163,6 +165,8 @@ public class UserService implements UserDetailsService {
     }
 
     public void deleteById(Long id) {
+        relationRepository.findFirstByAppUserId(id)
+                .ifPresent(relation -> relationRepository.deleteById(relation.getId()));
         userRepository.deleteById(id);
     }
 
