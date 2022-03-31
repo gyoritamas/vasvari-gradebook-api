@@ -98,7 +98,7 @@ public class UserServiceTests {
                 .build();
         InitialCredentials credentials = userService.createStudentUser(student);
 
-        Pattern usernamePattern = Pattern.compile("johndoe\\d{2}");
+        Pattern usernamePattern = Pattern.compile("doejohn\\d{2}");
         assertThat(credentials.getUsername()).matches(usernamePattern);
         assertThat(credentials.getPassword()).matches("([a-zA-Z0-9]){" + UserService.PASSWORD_LENGTH + "}");
     }
@@ -130,7 +130,7 @@ public class UserServiceTests {
                 .build();
         InitialCredentials credentials = userService.createTeacherUser(teacher);
 
-        Pattern usernamePattern = Pattern.compile("darrellbowen\\d{2}");
+        Pattern usernamePattern = Pattern.compile("bowendarrell\\d{2}");
         assertThat(credentials.getUsername()).matches(usernamePattern);
         assertThat(credentials.getPassword()).matches("([a-zA-Z0-9]){" + UserService.PASSWORD_LENGTH + "}");
     }
