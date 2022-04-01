@@ -2,8 +2,8 @@ package com.codecool.gradebookapi.service;
 
 import com.codecool.gradebookapi.dto.GradebookInput;
 import com.codecool.gradebookapi.dto.GradebookOutput;
-import com.codecool.gradebookapi.dto.TeacherDto;
 import com.codecool.gradebookapi.dto.mapper.GradebookEntryMapper;
+import com.codecool.gradebookapi.exception.DuplicateEntryException;
 import com.codecool.gradebookapi.model.GradebookEntry;
 import com.codecool.gradebookapi.model.request.GradebookRequest;
 import com.codecool.gradebookapi.model.specification.GradebookEntrySpecification;
@@ -61,10 +61,24 @@ public class GradebookService {
     }
 
     public GradebookOutput save(GradebookInput gradebookInput) {
+        if (isDuplicateEntry(gradebookInput)) throw new DuplicateEntryException(gradebookInput);
         GradebookEntry entryToSave = mapper.map(gradebookInput);
         GradebookEntry entrySaved = repository.save(entryToSave);
 
         return mapper.map(entrySaved);
+    }
+
+    public GradebookOutput update(Long id, GradebookInput gradebookInput) {
+        GradebookEntry oldEntry = repository.getById(id);
+        GradebookEntry update = mapper.map(gradebookInput);
+        if (!areEntriesOnlyDifferInGrade(oldEntry, update) && isDuplicateEntry(gradebookInput)) {
+            throw new DuplicateEntryException(gradebookInput);
+        }
+
+        update.setId(id);
+        GradebookEntry entryUpdated = repository.save(update);
+
+        return mapper.map(entryUpdated);
     }
 
     public void deleteById(Long id) {
@@ -75,5 +89,11 @@ public class GradebookService {
         return repository
                 .findByStudent_IdAndSubject_IdAndAssignment_Id(entry.getStudentId(), entry.getSubjectId(), entry.getAssignmentId())
                 .isPresent();
+    }
+
+    public boolean areEntriesOnlyDifferInGrade(GradebookEntry entry1, GradebookEntry entry2) {
+        return entry1.getSubject().equals(entry2.getSubject())
+                && entry1.getStudent().equals(entry2.getStudent())
+                && entry1.getAssignment().equals(entry2.getAssignment());
     }
 }

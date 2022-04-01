@@ -169,6 +169,40 @@ public class GradebookController {
     })
     @PreAuthorize("hasAnyRole('ADMIN','TEACHER')")
     public ResponseEntity<EntityModel<GradebookOutput>> gradeAssignment(@RequestBody @Valid GradebookInput gradebookInput) {
+        checkForErrors(gradebookInput);
+
+        GradebookOutput entryCreated = gradebookService.save(gradebookInput);
+        EntityModel<GradebookOutput> entityModel = gradebookModelAssembler.toModel(entryCreated);
+        log.info("Created gradebook entry with ID {}", entryCreated.getId());
+
+        return ResponseEntity
+                .created(entityModel.getRequiredLink(IanaLinkRelations.SELF).toUri())
+                .body(entityModel);
+    }
+
+    @PutMapping("/gradebook/{id}")
+    @ResponseStatus(HttpStatus.CREATED)
+    @Operation(summary = "Updates a gradebook entry")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Updated a gradebook entry"),
+            @ApiResponse(responseCode = "400", description =
+                    "Could not update gradebook entry due to invalid/missing parameters " +
+                            "or because student is not enrolled in given subject"),
+            @ApiResponse(responseCode = "404", description = "Could not find student/subject/assignment with given ID")
+    })
+    @PreAuthorize("hasAnyRole('ADMIN','TEACHER')")
+    public ResponseEntity<EntityModel<GradebookOutput>> updateGradebookEntry(@RequestBody @Valid GradebookInput gradebookInput,
+                                                                             @PathVariable("id") Long id) {
+        checkForErrors(gradebookInput);
+
+        GradebookOutput entryUpdated = gradebookService.update(id, gradebookInput);
+        EntityModel<GradebookOutput> entityModel = gradebookModelAssembler.toModel(entryUpdated);
+        log.info("Updated gradebook entry {}", id);
+
+        return ResponseEntity.ok(entityModel);
+    }
+
+    private void checkForErrors(GradebookInput gradebookInput) {
         Long studentId = gradebookInput.getStudentId();
         Long subjectId = gradebookInput.getSubjectId();
         Long assignmentId = gradebookInput.getAssignmentId();
@@ -178,15 +212,6 @@ public class GradebookController {
         assignmentService.findById(assignmentId).orElseThrow(() -> new AssignmentNotFoundException(assignmentId));
         if (!subjectService.isStudentAddedToSubject(studentId, subjectId))
             throw new SubjectRelationNotFoundException(studentId, subjectId);
-        if (gradebookService.isDuplicateEntry(gradebookInput)) throw new DuplicateEntryException(gradebookInput);
-
-        GradebookOutput entryCreated = gradebookService.save(gradebookInput);
-        EntityModel<GradebookOutput> entityModel = gradebookModelAssembler.toModel(entryCreated);
-        log.info("Created gradebook entry with ID {}", entryCreated.getId());
-
-        return ResponseEntity
-                .created(entityModel.getRequiredLink(IanaLinkRelations.SELF).toUri())
-                .body(entityModel);
     }
 
     @GetMapping("/student-user/gradebook-entries")

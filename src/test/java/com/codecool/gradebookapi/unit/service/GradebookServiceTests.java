@@ -1,6 +1,7 @@
 package com.codecool.gradebookapi.unit.service;
 
 import com.codecool.gradebookapi.dto.*;
+import com.codecool.gradebookapi.exception.DuplicateEntryException;
 import com.codecool.gradebookapi.model.AssignmentType;
 import com.codecool.gradebookapi.service.*;
 import org.junit.jupiter.api.BeforeEach;
@@ -15,6 +16,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -46,7 +48,7 @@ public class GradebookServiceTests {
                 .phone("202-555-0198")
                 .birthdate(LocalDate.of(1990, 12, 1))
                 .build();
-        long student1Id = studentService.save(student1).getId();
+        Long student1Id = studentService.save(student1).getId();
 
         StudentDto student2 = StudentDto.builder()
                 .firstname("Jane")
@@ -57,7 +59,7 @@ public class GradebookServiceTests {
                 .phone("202-555-0198")
                 .birthdate(LocalDate.of(1990, 4, 13))
                 .build();
-        long student2Id = studentService.save(student2).getId();
+        Long student2Id = studentService.save(student2).getId();
 
         TeacherDto teacher = TeacherDto.builder()
                 .firstname("Darrell")
@@ -67,18 +69,18 @@ public class GradebookServiceTests {
                 .phone("619-446-8496")
                 .birthdate(LocalDate.of(1984, 2, 1))
                 .build();
-        long teacherId = teacherService.save(teacher).getId();
+        Long teacherId = teacherService.save(teacher).getId();
         SubjectInput subject1 = SubjectInput.builder()
                 .name("Algebra")
                 .teacherId(teacherId)
                 .build();
-        long subject1Id = subjectService.save(subject1).getId();
+        Long subject1Id = subjectService.save(subject1).getId();
 
         SubjectInput subject2 = SubjectInput.builder()
                 .name("Biology")
                 .teacherId(teacherId)
                 .build();
-        long subject2Id = subjectService.save(subject2).getId();
+        Long subject2Id = subjectService.save(subject2).getId();
 
         AssignmentInput assignment = AssignmentInput.builder()
                 .name("Homework 1")
@@ -86,7 +88,7 @@ public class GradebookServiceTests {
                 .deadline(LocalDate.of(2051, 1, 1))
                 .subjectId(subject1Id)
                 .build();
-        long assignmentId = assignmentService.save(assignment).getId();
+        Long assignmentId = assignmentService.save(assignment).getId();
 
         entry1 = GradebookInput.builder()
                 .studentId(student1Id)
@@ -227,6 +229,40 @@ public class GradebookServiceTests {
         boolean isDuplicate = gradebookService.isDuplicateEntry(entry2);
 
         assertFalse(isDuplicate);
+    }
+
+    @Test
+    @Transactional
+    @DisplayName("when no GradebookEntry exists with same student, subject and assignment, update should overwrite GradebookEntry with given ID")
+    public void whenNoGradebookEntryExistsWithSameStudentSubjectAndAssignment_update_shouldUpdateGradebookEntryWithGivenId() {
+        GradebookOutput entry1Saved = gradebookService.save(entry1);
+        GradebookOutput entry2Saved = gradebookService.save(entry2);
+        GradebookInput update = GradebookInput.builder()
+                .studentId(entry2.getStudentId())
+                .subjectId(entry1.getSubjectId())
+                .assignmentId(entry1.getAssignmentId())
+                .grade(5)
+                .build();
+        GradebookOutput entry1Updated = gradebookService.update(entry1Saved.getId(), update);
+
+        assertThat(entry1Updated.getStudent().getId()).isEqualTo(entry2.getStudentId());
+    }
+
+    @Test
+    @Transactional
+    @DisplayName("when GradebookEntry exists with same student, subject and assignment, update should throw exception")
+    public void whenGradebookEntryExistsWithSameStudentSubjectAndAssignment_update_shouldThrowException() {
+        GradebookOutput entry1Saved = gradebookService.save(entry1);
+        GradebookOutput entry2Saved = gradebookService.save(entry2);
+        GradebookInput update = GradebookInput.builder()
+                .studentId(entry2.getStudentId())
+                .subjectId(entry2.getSubjectId())
+                .assignmentId(entry2.getAssignmentId())
+                .grade(5)
+                .build();
+
+        assertThatThrownBy(() -> gradebookService.update(entry1Saved.getId(), update))
+                .isInstanceOf(DuplicateEntryException.class);
     }
 
     @Test
