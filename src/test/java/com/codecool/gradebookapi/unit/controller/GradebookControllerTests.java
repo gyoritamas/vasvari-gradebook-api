@@ -5,6 +5,7 @@ import com.codecool.gradebookapi.dto.*;
 import com.codecool.gradebookapi.dto.assembler.GradebookModelAssembler;
 import com.codecool.gradebookapi.dto.dataTypes.SimpleData;
 import com.codecool.gradebookapi.dto.dataTypes.SimpleStudent;
+import com.codecool.gradebookapi.exception.DuplicateEntryException;
 import com.codecool.gradebookapi.jwt.JwtAuthenticationEntryPoint;
 import com.codecool.gradebookapi.jwt.JwtTokenUtil;
 import com.codecool.gradebookapi.security.PasswordConfig;
@@ -319,7 +320,7 @@ public class GradebookControllerTests {
         when(subjectService.findById(1L)).thenReturn(Optional.of(subject));
         when(assignmentService.findById(1L)).thenReturn(Optional.of(assignment));
         when(subjectService.isStudentAddedToSubject(2L, 1L)).thenReturn(true);
-        when(gradebookService.isDuplicateEntry(entry2)).thenReturn(true);
+        when(gradebookService.save(entry2)).thenThrow(DuplicateEntryException.class);
 
         String entry2AsString = mapper.writeValueAsString(entry2);
 
