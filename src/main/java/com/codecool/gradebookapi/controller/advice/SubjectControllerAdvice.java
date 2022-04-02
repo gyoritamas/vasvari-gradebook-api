@@ -19,8 +19,8 @@ public class SubjectControllerAdvice {
     @ExceptionHandler(SubjectNotFoundException.class)
     ResponseEntity<Problem> handleCannotFindClass(SubjectNotFoundException ex) {
         Problem problem = Problem.builder()
-                .withType(URI.create("classes/not-found"))
-                .withTitle("Class not found")
+                .withType(URI.create("subjects/not-found"))
+                .withTitle("Subject not found")
                 .withStatus(Status.NOT_FOUND)
                 .withDetail(ex.getMessage())
                 .build();
@@ -36,8 +36,8 @@ public class SubjectControllerAdvice {
     @ExceptionHandler(SubjectInUseException.class)
     ResponseEntity<Problem> handleAssignmentInUse(SubjectInUseException ex) {
         Problem problem = Problem.builder()
-                .withType(URI.create("classes/method-not-allowed"))
-                .withTitle("Class in use")
+                .withType(URI.create("subjects/method-not-allowed"))
+                .withTitle("Subject in use")
                 .withStatus(Status.METHOD_NOT_ALLOWED)
                 .withDetail(ex.getMessage())
                 .build();
