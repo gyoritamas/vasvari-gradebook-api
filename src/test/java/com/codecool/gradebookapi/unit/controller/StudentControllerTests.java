@@ -1,13 +1,12 @@
 package com.codecool.gradebookapi.unit.controller;
 
 import com.codecool.gradebookapi.controller.StudentController;
-import com.codecool.gradebookapi.dto.SubjectOutput;
 import com.codecool.gradebookapi.dto.GradebookOutput;
 import com.codecool.gradebookapi.dto.StudentDto;
+import com.codecool.gradebookapi.dto.SubjectOutput;
 import com.codecool.gradebookapi.dto.TeacherDto;
-import com.codecool.gradebookapi.dto.assembler.SubjectModelAssembler;
 import com.codecool.gradebookapi.dto.assembler.StudentModelAssembler;
-import com.codecool.gradebookapi.dto.dataTypes.SimpleData;
+import com.codecool.gradebookapi.dto.assembler.SubjectModelAssembler;
 import com.codecool.gradebookapi.dto.dataTypes.SimpleStudent;
 import com.codecool.gradebookapi.dto.dataTypes.SimpleTeacher;
 import com.codecool.gradebookapi.jwt.JwtAuthenticationEntryPoint;
@@ -316,8 +315,8 @@ public class StudentControllerTests {
     @WithMockUser(username = "admin", password = "admin", roles = "ADMIN")
     @DisplayName("when Student exists with given ID, getSubjectsOfStudent should return list of Subjects")
     public void whenStudentExistsWithGivenId_getSubjectsOfStudentShouldReturnListOfSubjects() throws Exception {
-        SimpleData simpleStudent1 = new SimpleData(student1.getId(), student1.getName());
-        SimpleData simpleStudent2 = new SimpleData(student2.getId(), student2.getName());
+        SimpleStudent simpleStudent1 = new SimpleStudent(student1.getId(), student1.getFirstname(), student1.getLastname());
+        SimpleStudent simpleStudent2 = new SimpleStudent(student2.getId(), student2.getFirstname(), student2.getLastname());
         TeacherDto teacher = TeacherDto.builder().id(1L).firstname("Darrell").lastname("Bowen").build();
         SimpleTeacher simpleTeacher = new SimpleTeacher(1L, "Darrell", "Bowen");
         SubjectOutput subject1 = SubjectOutput.builder()

@@ -1,6 +1,6 @@
 package com.codecool.gradebookapi.dto;
 
-import com.codecool.gradebookapi.dto.dataTypes.SimpleData;
+import com.codecool.gradebookapi.dto.dataTypes.SimpleStudent;
 import com.codecool.gradebookapi.dto.dataTypes.SimpleTeacher;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.*;
@@ -24,6 +24,6 @@ public class SubjectOutput {
 
     private SimpleTeacher teacher;
 
-    private List<SimpleData> students;
+    private List<SimpleStudent> students;
 
 }

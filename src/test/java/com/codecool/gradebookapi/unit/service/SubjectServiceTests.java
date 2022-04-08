@@ -4,7 +4,7 @@ import com.codecool.gradebookapi.dto.StudentDto;
 import com.codecool.gradebookapi.dto.SubjectInput;
 import com.codecool.gradebookapi.dto.SubjectOutput;
 import com.codecool.gradebookapi.dto.TeacherDto;
-import com.codecool.gradebookapi.dto.dataTypes.SimpleData;
+import com.codecool.gradebookapi.dto.dataTypes.SimpleStudent;
 import com.codecool.gradebookapi.exception.SubjectNotFoundException;
 import com.codecool.gradebookapi.service.StudentService;
 import com.codecool.gradebookapi.service.SubjectService;
@@ -13,7 +13,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.annotation.DirtiesContext;
 
@@ -177,10 +176,14 @@ public class SubjectServiceTests {
         SubjectOutput subjectSaved = subjectService.save(subject1);
 
         subjectSaved = subjectService.addStudentToSubject(student.getId(), subjectSaved.getId());
-        List<SimpleData> listOfStudents = subjectSaved.getStudents();
-        SimpleData simpleStudentData = new SimpleData(student.getId(), student.getName());
+        List<SimpleStudent> listOfStudents = subjectSaved.getStudents();
+        SimpleStudent simpleStudent = SimpleStudent.builder()
+                .id(student.getId())
+                .firstname(student.getFirstname())
+                .lastname(student.getLastname())
+                .build();
 
-        assertThat(listOfStudents).containsExactly(simpleStudentData);
+        assertThat(listOfStudents).containsExactly(simpleStudent);
     }
 
     @Test
@@ -194,7 +197,7 @@ public class SubjectServiceTests {
         subject = subjectService.addStudentToSubject(student.getId(), subject.getId());
 
         subject = subjectService.removeStudentFromSubject(student.getId(), subject.getId());
-        List<SimpleData> listOfStudents = subject.getStudents();
+        List<SimpleStudent> listOfStudents = subject.getStudents();
 
         assertThat(listOfStudents).isEmpty();
     }

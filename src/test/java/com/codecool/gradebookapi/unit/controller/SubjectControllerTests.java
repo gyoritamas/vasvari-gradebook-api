@@ -5,6 +5,7 @@ import com.codecool.gradebookapi.dto.*;
 import com.codecool.gradebookapi.dto.assembler.SubjectModelAssembler;
 import com.codecool.gradebookapi.dto.assembler.StudentModelAssembler;
 import com.codecool.gradebookapi.dto.dataTypes.SimpleData;
+import com.codecool.gradebookapi.dto.dataTypes.SimpleStudent;
 import com.codecool.gradebookapi.dto.dataTypes.SimpleTeacher;
 import com.codecool.gradebookapi.jwt.JwtAuthenticationEntryPoint;
 import com.codecool.gradebookapi.jwt.JwtTokenUtil;
@@ -22,6 +23,7 @@ import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -84,22 +86,22 @@ public class SubjectControllerTests {
                 .id(1L)
                 .name("Algebra")
                 .students(List.of(
-                        new SimpleData(1L, "John Doe"),
-                        new SimpleData(2L, "Jane Doe")
+                        SimpleStudent.builder().id(1L).firstname("John").lastname("Doe").build(),
+                        SimpleStudent.builder().id(2L).firstname("Jane").lastname("Doe").build()
                 ))
                 .teacher(
-                        new SimpleTeacher(1L, "Darrell", "Bowen")
+                        SimpleTeacher.builder().id(1L).firstname("Darrell").lastname("Bowen").build()
                 )
                 .build();
         subjectOutput2 = SubjectOutput.builder()
                 .id(2L)
                 .name("Biology")
                 .students(List.of(
-                        new SimpleData(3L, "John Smith"),
-                        new SimpleData(4L, "Jane Smith")
+                        SimpleStudent.builder().id(3L).firstname("John").lastname("Smith").build(),
+                        SimpleStudent.builder().id(4L).firstname("Jane").lastname("Smith").build()
                 ))
                 .teacher(
-                        new SimpleTeacher(2L, "Lilian", "Stafford")
+                        SimpleTeacher.builder().id(2L).firstname("Lilian").lastname("Stafford").build()
                 )
                 .build();
     }
@@ -312,8 +314,8 @@ public class SubjectControllerTests {
         SubjectOutput algebra = SubjectOutput.builder()
                 .id(1L)
                 .name("Algebra")
-                .teacher(new SimpleTeacher(1L, "Darrell", "Bowen"))
-                .students(List.of(new SimpleData(1L, "John Doe")))
+                .teacher(SimpleTeacher.builder().id(1L).firstname("Darrell").lastname("Bowen").build())
+                .students(Collections.singletonList(SimpleStudent.builder().id(1L).firstname("John").lastname("Doe").build()))
                 .build();
 
         when(studentService.findById(1L)).thenReturn(Optional.of(johnDoe));
@@ -329,7 +331,8 @@ public class SubjectControllerTests {
                 .andExpect(jsonPath("$.name", is("Algebra")))
                 .andExpect(jsonPath("$.students", hasSize(1)))
                 .andExpect(jsonPath("$.students[0].id", is(1)))
-                .andExpect(jsonPath("$.students[0].name", is("John Doe")));
+                .andExpect(jsonPath("$.students[0].firstname", is("John")))
+                .andExpect(jsonPath("$.students[0].lastname", is("Doe")));
     }
 
     @Test

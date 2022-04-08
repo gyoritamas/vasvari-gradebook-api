@@ -2,7 +2,7 @@ package com.codecool.gradebookapi.integration;
 
 import com.codecool.gradebookapi.controller.*;
 import com.codecool.gradebookapi.dto.*;
-import com.codecool.gradebookapi.dto.dataTypes.SimpleData;
+import com.codecool.gradebookapi.dto.dataTypes.SimpleStudent;
 import com.codecool.gradebookapi.dto.dataTypes.SimpleTeacher;
 import com.codecool.gradebookapi.integration.util.AuthorizationManager;
 import com.codecool.gradebookapi.model.AssignmentType;
@@ -127,8 +127,8 @@ public class SubjectIntegrationTests {
         }
 
         @Test
-        @DisplayName("add Student to Class should return Class with added Student")
-        public void addStudentToClass_shouldReturnClassWithAddedStudent() {
+        @DisplayName("add Student to Subject should return Subject with added Student")
+        public void addStudentToSubject_shouldReturnSubjectWithAddedStudent() {
             long studentId = postStudent(student).getId();
             long teacherId = postTeacher(teacher).getId();
             subjectInput1.setTeacherId(teacherId);
@@ -144,9 +144,14 @@ public class SubjectIntegrationTests {
                     SubjectOutput.class
             );
 
+            SimpleStudent expectedStudent = SimpleStudent.builder()
+                    .id(studentId)
+                    .firstname(student.getFirstname())
+                    .lastname(student.getLastname())
+                    .build();
             assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
             assertThat(response.getBody()).isNotNull();
-            assertThat(response.getBody().getStudents()).containsExactly(new SimpleData(studentId, student.getName()));
+            assertThat(response.getBody().getStudents()).containsExactly(expectedStudent);
         }
 
         @Test
