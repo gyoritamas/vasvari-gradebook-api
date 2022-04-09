@@ -1,4 +1,32 @@
-insert into teacher
-(firstname, lastname, email, address, phone, birthdate)
-values ('Darrell', 'Bowen', 'darrellbowen@email.com', '3982 Turnpike Drive, Birmingham, AL 35203', '619-446-8496', '1984-02-01'),
-       ('Lilian', 'Stafford', 'lilianstafford@email.com', '4498 Sugar Camp Road, Vernon Center, MN 56090', '507-549-1665', '1985-04-13');
+INSERT INTO gradebook.teacher (address, birthdate, email, firstname, lastname, phone)
+VALUES ('6800 Hódmezővásárhely, Tóalj u. 31.', '1979-12-29', 'bogdanmelinda@gmail.com', 'Melinda', 'Bogdán',
+        '+36305515230'),
+       ('6800 Hódmezővásárhely, Rapcsák András u. 41.', '1978-07-12', 'jakabgergely@gmail.com', 'Gergely', 'Jakab',
+        '+36208184335'),
+       ('6700 Szeged, Petőfi u. 11/a', '1977-10-02', 'katonavivien@gmail.com', 'Vivien', 'Katona', '+36305585292'),
+       ('6701 Szeged, József Attila krt. 122.', '1970-05-11', 'varadidominik@gmail.com', 'Dominik', 'Váradi',
+        '+36705594180'),
+       ('6800 Hódmezővásárhely, Királyszék u. 35', '1979-03-19', 'sandorrenata@gmail.com', 'Renáta', 'Sándor',
+        '+36309838105'),
+       ('6800 Hódmezővásárhely, Kígyó u. 32.', '1980-07-30', 'boroskristof@gmail.com', 'Kristóf', 'Boros',
+        '+36709417703'),
+       ('6800 Hódmezővásárhely Tóalj u. 45.', '1974-12-11', 'fazekasmarianna@gmail.com', 'Marianna', 'Fazekas',
+        '+36703922950'),
+       ('6800 Hódmezővásárhely, Oldalkosár u. 30.', '1969-12-15', 'kelemenmarton@gmail.com', 'Márton', 'Kelemen',
+        '+36700199495'),
+       ('6800 Hódmezővásárhely, Holló u. 20.', '1972-04-19', 'oroszbarbara@gmail.com', 'Barbara', 'Orosz',
+        '+36205591043'),
+       ('6800 Hódmezővásárhely, Hattyas u. 14', '1977-01-25', 'antalmarcell@gmail.com', 'Marcell', 'Antal',
+        '+36304299031');
+INSERT INTO gradebook.teacher (address, birthdate, email, firstname, lastname, phone)
+VALUES ('6800 Hódmezővásárhely, Munkácsy Mihány u. 5.', '1986-08-05', 'somogyipetra@gmail.com', 'Petra', 'Somogyi',
+        '+36207944190'),
+       ('6800 Hódmezővásárhely, Lázár u. 49.', '1991-04-12', 'fuloppatrik@gmail.com', 'Patrik', 'Fülöp',
+        '+36708488014'),
+       ('6800 Hódmezővásárhely, Teleki u 74.', '1985-04-19', 'budaigizella@gmail.com', 'Gizella', 'Budai',
+        '+36205944013'),
+       ('Hódmezővásárhely, Bajcsy-Zsilinszky u. 57.', '1979-10-03', 'veresaron@gmail.com', 'Áron', 'Veres',
+        '+36701353963'),
+       ('6800 Hódmezővásárhely, Szellő sor 11.', '1974-02-28', 'vinczerita@gmail.com', 'Rita', 'Vincze',
+        '+36702709224'),
+       ('1270 Budapest, Nagy krt. 19/c', '1980-04-01', 'deakbarnabas@gmail.com', 'Barnabás', 'Deák', '+36702715549');
