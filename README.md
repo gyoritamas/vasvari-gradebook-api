@@ -32,27 +32,27 @@ A *school_actor_application_user_relation* tábla kapcsolja össze a felhasznál
 
 ## Az alkalmazás futtatása
 
+A futtatáshoz szükség van maven-re, a telepítés lépései [itt](https://maven.apache.org/install.html) találhatók.
+
 ### Futtatás XAMPP-pal
 
-Az alkalmazás futtatásához indítsuk el a XAMPP-ot, majd [phpMyAdmin](http://localhost/phpmyadmin/) felületen hozzuk létre az adatbázist a *create-database.sql* állomány importálásával.
+Indítsuk el a XAMPP-ot, majd [phpMyAdmin](http://localhost/phpmyadmin/) felületen hozzuk létre az adatbázist a *create-database.sql* állomány importálásával.
 A gradebook-api project gyökérkönyvtárából indított parancssorból adjuk ki a 
 ```
 mvn exec:java -D exec.mainClass=com.codecool.gradebookapi.GradebookApiApplication
 ```
-parancsot vagy futtassuk a gradebook-api.bat állományt.
+parancsot vagy futtassuk a *gradebook-api.bat* állományt.
 
 ### Futtatás Dockerrel
-Az alkalmazás futtatásához indítsuk el a Dockert, majd adjuk ki a project gyökérkönyvtárából a
+Indítsuk el a Dockert, majd adjuk ki a project gyökérkönyvtárából a
 ```
 docker-compose -f docker-compose.dev.yml up --build
 ```
-parancsot, vagy használjuk a gradebook-api-docker.bat állományt.
+parancsot, vagy használjuk a *gradebook-api-docker.bat* állományt.
 
 ## Dokumentáció
-A dokumentáció böngészőből érhető el a
-
+A dokumentáció a
 [http://localhost:8080/swagger-ui.html](http://localhost:8080/swagger-ui.html)
-
-címen.
+címen érhető el.
 
 
