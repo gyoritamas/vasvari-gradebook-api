@@ -20,7 +20,7 @@ services:
     environment:
       - MYSQL_ROOT_PASSWORD=
       - MYSQL_ALLOW_EMPTY_PASSWORD=true
-      - MYSQL_USER=gradebook
+      - MYSQL_USER=gradebookuser
       - MYSQL_PASSWORD=gradebook
       - MYSQL_DATABASE=gradebook
     volumes:
