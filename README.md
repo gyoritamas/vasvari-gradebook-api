@@ -2,9 +2,11 @@
 
 ## Az alkalmazás célja
 
-A *Gradebook API* egy Spring Boot segítségével létrehozott háromrétegű alkalmazás. Célja, hogy napjlóbejegyzéset tárolhassunk 
-egy adatbázisban, ill. HTTP-kéréseken keresztül hozzáférhessünk azokhoz. Az alkalmazást Docker kapcsolja össze egy 
-MySQL-szerverrel. Swagger-rel készített dokumentáció biztosítja az elérhető végpontok ellenőrzését. 
+A *Gradebook API* egy Spring Boot segítségével létrehozott háromrétegű alkalmazás. Az alkalmazás a következő feladatokat
+látja el:
+- hitelesíti a felhasználót
+- a felhasználó jogosultságától függően lekérdezések küldését teszi lehetővé az adatbázis felé
+- ellenőrzi a beérkező adatokat az adatbázisban való tárolás előtt
 
 ## Az adatbázis felépítése
 
@@ -12,15 +14,11 @@ Az adatbázis felépítése a következő:
 
 <img src="https://github.com/gyoritamas/vasvari-gradebook-api/blob/master/docs/images/db-schema.png" alt="schema"></a>
 
-A *student* tábla tartalma:
-- tanuló vezeték- és keresztneve,
-- évfolyama,
-- email- és lakcíme, telefonszáma
-- születési dátuma
+A *student* és *teacher* táblák a tanulók ill. tanárok személyes adatait tárolják.
 
-A *course* tábla a kurzus vagy tantárgy nevét tárolja.
+A *subject* tábla tantárgy nevét és a tantárgyat tanító tanár azonosítóját tartalmazza.
 
-Az *assignment* tábla tárolja a tanár által kiosztott feladatokat és osztályozásra kerülő tevékenységeket (pl. házi feladat, dolgozat, projektmunka). A feladat neve és típusa mellett opcionálisan megadható egy rövid leírás.
+Az *assignment* tábla tárolja a tanár által kiosztott feladatokat és osztályozásra kerülő tevékenységeket (pl. házi feladat, dolgozat, projektmunka). A feladat neve és típusa mellett opcionálisan megadható egy rövid leírás. 
 
 A *gradebook_entry* táblában kerülnek tárolásra a naplóbejegyzések. Egy naplóbejegyzés áll
 - egy tanulói azonosítóból
@@ -28,13 +26,27 @@ A *gradebook_entry* táblában kerülnek tárolásra a naplóbejegyzések. Egy n
 - egy feladat azonosítóból
 - és egy érdemjegyből
 
+A *user* tábla tartalmazza a felhasználók bejelentkezési adatait, szerepkörüket (ADMIN, TEACHER vagy STUDENT) és egy boolean értéket ami meghatározza, hogy aktív-e a felhasználói fiók.
+
+A *school_actor_application_user_relation* tábla kapcsolja össze a felhasználókat az iskolai szereplőkkel (TEACHER vagy STUDENT).
+
 ## Az alkalmazás futtatása
 
-Az alkalmazás futtatásához indítsuk el a Dockert, majd adjuk ki a
+### Futtatás XAMPP-pal
+
+Az alkalmazás futtatásához indítsuk el a XAMPP-ot, majd [phpMyAdmin](http://localhost/phpmyadmin/) felületen hozzuk létre az adatbázist a *create-database.sql* állomány importálásával.
+A gradebook-api project gyökérkönyvtárából indított parancssorból adjuk ki a 
+```
+mvn exec:java -D exec.mainClass=com.codecool.gradebookapi.GradebookApiApplication
+```
+parancsot vagy futtassuk a gradebook-api.bat állományt.
+
+### Futtatás Dockerrel
+Az alkalmazás futtatásához indítsuk el a Dockert, majd adjuk ki a project gyökérkönyvtárából a
 ```
 docker-compose -f docker-compose.dev.yml up --build
 ```
-parancsot, vagy használjuk a gradebookapi_run.bat fájlt.
+parancsot, vagy használjuk a gradebook-api-docker.bat állományt.
 
 ## Dokumentáció
 A dokumentáció böngészőből érhető el a
