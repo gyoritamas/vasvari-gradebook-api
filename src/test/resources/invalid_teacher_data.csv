@@ -1,0 +1,14 @@
+firstname;lastname;email;address;phone;birthdate
+;Doe;johndoe@gmail.com;666 Armstrong St., Mesa, AZ 85203;202-555-0198;2005-12-01
+John;;johndoe@gmail.com;666 Armstrong St., Mesa, AZ 85203;202-555-0198;2005-12-01
+John;Doe;;666 Armstrong St., Mesa, AZ 85203;202-555-0198;2005-12-01
+John;Doe;johndoe@gmail.com;;202-555-0198;2005-12-01
+John;Doe;johndoe@gmail.com;666 Armstrong St., Mesa, AZ 85203;;2005-12-01
+J;Doe;johndoe@gmail.com;666 Armstrong St., Mesa, AZ 85203;202-555-0198;2005-12-01
+John;D;johndoe@gmail.com;666 Armstrong St., Mesa, AZ 85203;202-555-0198;2005-12-01
+John;Doe;johndoe?gmail.com;666 Armstrong St., Mesa, AZ 85203;202-555-0198;2005-12-01
+John;Doe;johndoe@.com;666 Armstrong St., Mesa, AZ 85203;202-555-0198;2005-12-01
+John;Doe;johndoe@gmail.;666 Armstrong St., Mesa, AZ 85203;202-555-0198;2005-12-01
+John;Doe;@gmail.com;666 Armstrong St., Mesa, AZ 85203;202-555-0198;2005-12-01
+John;Doe;johndoe@gmail.com;666 Armstrong St., Mesa, AZ 85203;12345;2005-12-01
+John;Doe;johndoe@gmail.com;666 Armstrong St., Mesa, AZ 85203;202-555-0198;2051-12-01

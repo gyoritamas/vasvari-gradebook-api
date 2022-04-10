@@ -19,9 +19,9 @@ public class GradebookInput {
     @Schema(example = "1")
     private Long studentId;
 
-    @NotNull(message = "Class ID cannot be empty")
+    @NotNull(message = "Subject ID cannot be empty")
     @Schema(example = "1")
-    private Long classId;
+    private Long subjectId;
 
     @NotNull(message = "Assignment ID cannot be empty")
     @Schema(example = "1")

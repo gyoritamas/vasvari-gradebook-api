@@ -1,0 +1,4 @@
+username;password;role;enabled
+;password1234;ADMIN;true
+admin;;ADMIN;true
+admin;password1234;;true

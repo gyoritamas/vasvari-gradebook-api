@@ -6,7 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
-import java.time.Instant;
+import java.time.LocalDate;
 
 @Entity
 @Data
@@ -25,6 +25,9 @@ public class Assignment {
 
     private String description;
 
-    private Instant createdAt;
+    private LocalDate deadline;
+
+    @ManyToOne
+    private Subject subject;
 
 }

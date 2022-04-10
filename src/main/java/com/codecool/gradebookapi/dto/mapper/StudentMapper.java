@@ -4,7 +4,8 @@ import com.codecool.gradebookapi.dto.StudentDto;
 import com.codecool.gradebookapi.model.Student;
 import org.springframework.stereotype.Component;
 
-import java.time.LocalDate;
+import java.util.Collection;
+import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -19,7 +20,7 @@ public class StudentMapper {
                 .email(studentDto.getEmail())
                 .address(studentDto.getAddress())
                 .phone(studentDto.getPhone())
-                .birthdate(LocalDate.parse(studentDto.getBirthdate()))
+                .birthdate(studentDto.getBirthdate())
                 .build();
     }
 
@@ -32,13 +33,14 @@ public class StudentMapper {
                 .email(student.getEmail())
                 .address(student.getAddress())
                 .phone(student.getPhone())
-                .birthdate(student.getBirthdate().toString())
+                .birthdate(student.getBirthdate())
                 .build();
     }
 
-    public List<StudentDto> mapAll(List<Student> students){
+    public List<StudentDto> mapAll(Collection<Student> students){
         return students.stream()
                 .map(this::map)
+                .sorted(Comparator.comparing(StudentDto::getId))
                 .collect(Collectors.toList());
     }
 }

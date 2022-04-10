@@ -1,14 +1,18 @@
 package com.codecool.gradebookapi.unit.controller;
 
 import com.codecool.gradebookapi.controller.StudentController;
-import com.codecool.gradebookapi.dto.CourseOutput;
 import com.codecool.gradebookapi.dto.GradebookOutput;
 import com.codecool.gradebookapi.dto.StudentDto;
-import com.codecool.gradebookapi.dto.assembler.CourseModelAssembler;
+import com.codecool.gradebookapi.dto.SubjectOutput;
+import com.codecool.gradebookapi.dto.TeacherDto;
 import com.codecool.gradebookapi.dto.assembler.StudentModelAssembler;
-import com.codecool.gradebookapi.service.CourseService;
-import com.codecool.gradebookapi.service.GradebookService;
-import com.codecool.gradebookapi.service.StudentService;
+import com.codecool.gradebookapi.dto.assembler.SubjectModelAssembler;
+import com.codecool.gradebookapi.dto.dataTypes.SimpleStudent;
+import com.codecool.gradebookapi.dto.dataTypes.SimpleTeacher;
+import com.codecool.gradebookapi.jwt.JwtAuthenticationEntryPoint;
+import com.codecool.gradebookapi.jwt.JwtTokenUtil;
+import com.codecool.gradebookapi.security.PasswordConfig;
+import com.codecool.gradebookapi.service.*;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
@@ -27,19 +31,22 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.is;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(StudentController.class)
-@Import({StudentModelAssembler.class, CourseModelAssembler.class})
+@Import({StudentModelAssembler.class, SubjectModelAssembler.class, PasswordConfig.class, JwtAuthenticationEntryPoint.class})
 public class StudentControllerTests {
 
     @Autowired
@@ -49,7 +56,16 @@ public class StudentControllerTests {
     private StudentService studentService;
 
     @MockBean
-    private CourseService courseService;
+    private SubjectService subjectService;
+
+    @MockBean
+    private TeacherService teacherService;
+
+    @MockBean
+    private UserService userService;
+
+    @MockBean
+    private JwtTokenUtil jwtTokenUtil;
 
     @MockBean
     private GradebookService gradebookService;
@@ -75,7 +91,7 @@ public class StudentControllerTests {
                 .email("johndoe@email.com")
                 .address("666 Armstrong St., Mesa, AZ 85203")
                 .phone("202-555-0198")
-                .birthdate("2005-12-01")
+                .birthdate(LocalDate.of(2005, 12, 1))
                 .build();
 
         student2 = StudentDto.builder()
@@ -86,11 +102,12 @@ public class StudentControllerTests {
                 .email("janedoe@email.com")
                 .address("9351 Morris St., Reisterstown, MD 21136")
                 .phone("202-555-0198")
-                .birthdate("2007-04-13")
+                .birthdate(LocalDate.of(2007, 4, 13))
                 .build();
     }
 
     @Test
+    @WithMockUser(username = "admin", password = "admin", roles = "ADMIN")
     @DisplayName("given empty database, getAll should return empty list")
     public void givenEmptyDatabase_getAllShouldReturnEmptyList() throws Exception {
         when(studentService.findAll()).thenReturn(List.of());
@@ -103,6 +120,7 @@ public class StudentControllerTests {
     }
 
     @Test
+    @WithMockUser(username = "admin", password = "admin", roles = "ADMIN")
     @DisplayName("when Students posted, getAll should return list of Students")
     public void whenStudentsPosted_getAllShouldReturnListOfStudents() throws Exception {
         when(studentService.findAll()).thenReturn(List.of(student1, student2));
@@ -117,6 +135,7 @@ public class StudentControllerTests {
     }
 
     @Test
+    @WithMockUser(username = "admin", password = "admin", roles = "ADMIN")
     @DisplayName("when Student with given ID exists, getById should return Student")
     public void whenStudentWithGivenIdExists_getByIdShouldReturnStudent() throws Exception {
         when(studentService.findById(1L)).thenReturn(Optional.of(student1));
@@ -129,6 +148,7 @@ public class StudentControllerTests {
     }
 
     @Test
+    @WithMockUser(username = "admin", password = "admin", roles = "ADMIN")
     @DisplayName("when Student with given ID does not exist, getById should return response 'Not Found'")
     public void whenStudentWithGivenIdDoesNotExist_getByIdShouldReturnResponseNotFound() throws Exception {
         when(studentService.findById(99L)).thenReturn(Optional.empty());
@@ -140,6 +160,7 @@ public class StudentControllerTests {
     }
 
     @Test
+    @WithMockUser(username = "admin", password = "admin", roles = "ADMIN")
     @DisplayName("given valid Student parameters, add should return create Student")
     public void givenValidStudentParameters_addShouldReturnCreatedStudent() throws Exception {
         when(studentService.save(student2)).thenReturn(student2);
@@ -159,6 +180,7 @@ public class StudentControllerTests {
 
     @ParameterizedTest
     @CsvFileSource(resources = "/invalid_student_data.csv", numLinesToSkip = 1, delimiter = ';')
+    @WithMockUser(username = "admin", password = "admin", roles = "ADMIN")
     @DisplayName("when Student has invalid parameters, add should return response 'Bad Request'")
     public void whenStudentHasInvalidParameters_addShouldReturnResponseBadRequest(
             @AggregateWith(StudentAggregator.class) StudentDto student) throws Exception {
@@ -176,6 +198,7 @@ public class StudentControllerTests {
     }
 
     @Test
+    @WithMockUser(username = "admin", password = "admin", roles = "ADMIN")
     @DisplayName("when Student does not exist with given ID, update should return response 'Not Found'")
     public void whenStudentDoesNotExistWithGivenId_updateShouldReturnResponseNotFound() throws Exception {
         when(studentService.findById(99L)).thenReturn(Optional.empty());
@@ -193,6 +216,7 @@ public class StudentControllerTests {
 
     @ParameterizedTest
     @CsvFileSource(resources = "/invalid_student_data.csv", numLinesToSkip = 1, delimiter = ';')
+    @WithMockUser(username = "admin", password = "admin", roles = "ADMIN")
     @DisplayName("when Student has invalid parameters, update should return response 'Bad Request'")
     public void whenStudentHasInvalidParameters_updateShouldReturnResponseBadRequest(
             @AggregateWith(StudentAggregator.class) StudentDto student) throws Exception {
@@ -210,6 +234,7 @@ public class StudentControllerTests {
     }
 
     @Test
+    @WithMockUser(username = "admin", password = "admin", roles = "ADMIN")
     @DisplayName("when Student exists with given ID, update should return updated Student")
     public void whenStudentExistsWithGivenId_updateShouldReturnUpdatedStudent() throws Exception {
         when(studentService.findById(1L)).thenReturn(Optional.of(student1));
@@ -230,6 +255,7 @@ public class StudentControllerTests {
     }
 
     @Test
+    @WithMockUser(username = "admin", password = "admin", roles = "ADMIN")
     @DisplayName("when Student does not exist with given ID, delete should return response 'Not Found'")
     public void whenStudentDoesNotExistWithGivenId_deleteShouldReturnResponseNotFound() throws Exception {
         when(studentService.findById(99L)).thenReturn(Optional.empty());
@@ -241,6 +267,7 @@ public class StudentControllerTests {
     }
 
     @Test
+    @WithMockUser(username = "admin", password = "admin", roles = "ADMIN")
     @DisplayName("when Student exists with given ID, delete should return response 'No Content'")
     public void whenStudentExistsWithGivenId_deleteShouldReturnResponseNoContent() throws Exception {
         when(studentService.findById(1L)).thenReturn(Optional.of(student1));
@@ -252,20 +279,29 @@ public class StudentControllerTests {
     }
 
     @Test
-    @DisplayName("when Student does not exist with given ID, getClassesOfStudent should return response 'Not Found'")
-    public void whenStudentDoesNotExistWithGivenId_getClassesOfStudentShouldReturnResponseNotFound() throws Exception {
+    @WithMockUser(username = "admin", password = "admin", roles = "ADMIN")
+    @DisplayName("when Student does not exist with given ID, getSubjectsOfStudent should return response 'Not Found'")
+    public void whenStudentDoesNotExistWithGivenId_getSubjectsOfStudentShouldReturnResponseNotFound() throws Exception {
         when(studentService.findById(99L)).thenReturn(Optional.empty());
 
         this.mockMvc
-                .perform(get("/api/students/99/classes"))
+                .perform(get("/api/students/99/subjects"))
                 .andDo(print())
                 .andExpect(status().isNotFound());
     }
 
     @Test
+    @WithMockUser(username = "admin", password = "admin", roles = "ADMIN")
     @DisplayName("when Student is used by a GradebookEntry, delete should return response 'Method Not Allowed'")
     public void whenStudentIsUsedByAnEntry_deleteShouldReturnResponseMethodNotAllowed() throws Exception {
-        GradebookOutput savedEntry = GradebookOutput.builder().studentId(1L).build();
+        SimpleStudent simpleStudent = SimpleStudent.builder()
+                .id(student1.getId())
+                .firstname(student1.getFirstname())
+                .lastname(student1.getLastname())
+                .build();
+        GradebookOutput savedEntry = GradebookOutput.builder()
+                .student(simpleStudent)
+                .build();
         when(studentService.findById(1L)).thenReturn(Optional.of(student1));
         when(gradebookService.findByStudentId(1L)).thenReturn(List.of(savedEntry));
 
@@ -276,28 +312,36 @@ public class StudentControllerTests {
     }
 
     @Test
-    @DisplayName("when Student exists with given ID, getClassesOfStudent should return list of Classes")
-    public void whenStudentExistsWithGivenId_getClassesOfStudentShouldReturnListOfClasses() throws Exception {
-        CourseOutput class1 = CourseOutput.builder()
-                .course("Biology")
-                .students(List.of("John Doe"))
+    @WithMockUser(username = "admin", password = "admin", roles = "ADMIN")
+    @DisplayName("when Student exists with given ID, getSubjectsOfStudent should return list of Subjects")
+    public void whenStudentExistsWithGivenId_getSubjectsOfStudentShouldReturnListOfSubjects() throws Exception {
+        SimpleStudent simpleStudent1 = new SimpleStudent(student1.getId(), student1.getFirstname(), student1.getLastname());
+        SimpleStudent simpleStudent2 = new SimpleStudent(student2.getId(), student2.getFirstname(), student2.getLastname());
+        TeacherDto teacher = TeacherDto.builder().id(1L).firstname("Darrell").lastname("Bowen").build();
+        SimpleTeacher simpleTeacher = new SimpleTeacher(1L, "Darrell", "Bowen");
+        SubjectOutput subject1 = SubjectOutput.builder()
+                .name("Biology")
+                .teacher(simpleTeacher)
+                .students(List.of(simpleStudent1))
                 .build();
-        CourseOutput class2 = CourseOutput.builder()
-                .course("Social science")
-                .students(List.of("John Doe", "Jane Doe"))
+        SubjectOutput subject2 = SubjectOutput.builder()
+                .name("Social science")
+                .teacher(simpleTeacher)
+                .students(List.of(simpleStudent1, simpleStudent2))
                 .build();
-        List<CourseOutput> classesOfStudent1 = List.of(class1, class2);
+        List<SubjectOutput> subjectsOfStudent1 = List.of(subject1, subject2);
 
         when(studentService.findById(1L)).thenReturn(Optional.of(student1));
-        when(courseService.findClassesOfStudent(student1)).thenReturn(classesOfStudent1);
+        when(teacherService.findById(1L)).thenReturn(Optional.of(teacher));
+        when(studentService.findSubjectsOfStudent(student1)).thenReturn(subjectsOfStudent1);
 
         this.mockMvc
-                .perform(get("/api/students/1/classes"))
+                .perform(get("/api/students/1/subjects"))
                 .andDo(print())
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$._embedded.classes", hasSize(2)))
-                .andExpect(jsonPath("$._embedded.classes[0].course", is("Biology")))
-                .andExpect(jsonPath("$._embedded.classes[1].course", is("Social science")));
+                .andExpect(jsonPath("$._embedded.subjects", hasSize(2)))
+                .andExpect(jsonPath("$._embedded.subjects[0].name", is("Biology")))
+                .andExpect(jsonPath("$._embedded.subjects[1].name", is("Social science")));
     }
 
     private static class StudentAggregator implements ArgumentsAggregator {
@@ -311,7 +355,7 @@ public class StudentControllerTests {
                     .email(accessor.getString(3))
                     .address(accessor.getString(4))
                     .phone(accessor.getString(5))
-                    .birthdate(accessor.getString(6))
+                    .birthdate(LocalDate.parse(accessor.getString(6)))
                     .build();
         }
     }

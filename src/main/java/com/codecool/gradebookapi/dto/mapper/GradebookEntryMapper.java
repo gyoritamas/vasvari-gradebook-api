@@ -2,33 +2,41 @@ package com.codecool.gradebookapi.dto.mapper;
 
 import com.codecool.gradebookapi.dto.GradebookInput;
 import com.codecool.gradebookapi.dto.GradebookOutput;
+import com.codecool.gradebookapi.dto.dataTypes.SimpleData;
+import com.codecool.gradebookapi.dto.dataTypes.SimpleStudent;
 import com.codecool.gradebookapi.model.GradebookEntry;
 import com.codecool.gradebookapi.repository.AssignmentRepository;
-import com.codecool.gradebookapi.repository.CourseRepository;
+import com.codecool.gradebookapi.repository.SubjectRepository;
 import com.codecool.gradebookapi.repository.StudentRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
 @Component
+@RequiredArgsConstructor
 public class GradebookEntryMapper {
-    @Autowired
-    private StudentRepository studentRepository;
-
-    @Autowired
-    private CourseRepository courseRepository;
-
-    @Autowired
-    private AssignmentRepository assignmentRepository;
+    private final StudentRepository studentRepository;
+    private final SubjectRepository subjectRepository;
+    private final AssignmentRepository assignmentRepository;
 
     public GradebookOutput map(GradebookEntry gradebookEntry) {
         return GradebookOutput.builder()
                 .id(gradebookEntry.getId())
-                .studentId(gradebookEntry.getStudent().getId())
-                .classId(gradebookEntry.getCourse().getId())
-                .assignmentId(gradebookEntry.getAssignment().getId())
+                .student(
+                        SimpleStudent.builder()
+                                .id(gradebookEntry.getStudent().getId())
+                                .firstname(gradebookEntry.getStudent().getFirstname())
+                                .lastname(gradebookEntry.getStudent().getLastname())
+                                .build()
+                )
+                .subject(
+                        new SimpleData(gradebookEntry.getSubject().getId(), gradebookEntry.getSubject().getName())
+                )
+                .assignment(
+                        new SimpleData(gradebookEntry.getAssignment().getId(), gradebookEntry.getAssignment().getName())
+                )
                 .grade(gradebookEntry.getGrade())
                 .build();
     }
@@ -38,8 +46,8 @@ public class GradebookEntryMapper {
                 .student(
                         studentRepository.getById(gradebookInput.getStudentId())
                 )
-                .course(
-                        courseRepository.getById(gradebookInput.getClassId())
+                .subject(
+                        subjectRepository.getById(gradebookInput.getSubjectId())
                 )
                 .assignment(
                         assignmentRepository.getById(gradebookInput.getAssignmentId())

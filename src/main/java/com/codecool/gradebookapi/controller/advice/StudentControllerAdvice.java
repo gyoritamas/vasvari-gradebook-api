@@ -6,6 +6,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.zalando.problem.Problem;
@@ -46,6 +47,23 @@ public class StudentControllerAdvice {
 
         return ResponseEntity
                 .status(HttpStatus.METHOD_NOT_ALLOWED)
+                .contentType(MediaType.APPLICATION_PROBLEM_JSON)
+                .body(problem);
+    }
+
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    ResponseEntity<Problem> handleInvalidMethodArgument(MethodArgumentNotValidException ex) {
+        Problem problem = Problem.builder()
+                .withType(URI.create("gradebook/invalid-argument"))
+                .withTitle("Invalid argument")
+                .withStatus(Status.BAD_REQUEST)
+                .withDetail(ex.getMessage())
+                .build();
+
+        log.warn(ex.getMessage());
+
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
                 .contentType(MediaType.APPLICATION_PROBLEM_JSON)
                 .body(problem);
     }
