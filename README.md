@@ -39,9 +39,15 @@ A futtatáshoz szükség van maven-re, a telepítés lépései [itt](https://mav
 Indítsuk el a XAMPP-ot, majd [phpMyAdmin](http://localhost/phpmyadmin/) felületen hozzuk létre az adatbázist a *create-database.sql* állomány importálásával.
 A gradebook-api project gyökérkönyvtárából indított parancssorból adjuk ki a 
 ```
-mvn exec:java -D exec.mainClass=com.codecool.gradebookapi.GradebookApiApplication
+mvn clean install -DskipTests
 ```
-parancsot vagy futtassuk a *gradebook-api.bat* állományt.
+majd a 
+```
+java -jar target/gradebook-api-0.0.1-SNAPSHOT.jar
+```
+parancsot.
+
+(A parancs használatához Apache Maven szükséges, a telepítés lépései [itt](https://maven.apache.org/install.html) találhatók.)
 
 ### Futtatás Dockerrel
 Indítsuk el a Dockert, majd adjuk ki a project gyökérkönyvtárából a
