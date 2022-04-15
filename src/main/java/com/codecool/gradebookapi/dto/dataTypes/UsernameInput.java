@@ -17,7 +17,7 @@ public class UsernameInput {
 
     @Schema(example = "johndoe91")
     @Size(min = 4, max = 20)
-    @Pattern(regexp = "^[a-zA-Z]([0-9a-zA-Z]){3,20}",
+    @Pattern(regexp = "^[a-zA-Z]([\\da-zA-Z]){3,20}",
             message = "username can only contain letters and numbers and must start with a letter")
     private String username;
 }

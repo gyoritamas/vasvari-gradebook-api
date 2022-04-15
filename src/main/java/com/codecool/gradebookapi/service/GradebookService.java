@@ -85,13 +85,13 @@ public class GradebookService {
         repository.deleteById(id);
     }
 
-    public boolean isDuplicateEntry(GradebookInput entry) {
+    private boolean isDuplicateEntry(GradebookInput entry) {
         return repository
                 .findByStudent_IdAndSubject_IdAndAssignment_Id(entry.getStudentId(), entry.getSubjectId(), entry.getAssignmentId())
                 .isPresent();
     }
 
-    public boolean areEntriesOnlyDifferInGrade(GradebookEntry entry1, GradebookEntry entry2) {
+    private boolean areEntriesOnlyDifferInGrade(GradebookEntry entry1, GradebookEntry entry2) {
         return entry1.getSubject().equals(entry2.getSubject())
                 && entry1.getStudent().equals(entry2.getStudent())
                 && entry1.getAssignment().equals(entry2.getAssignment());

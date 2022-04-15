@@ -1,7 +1,6 @@
 package com.codecool.gradebookapi.dto.mapper;
 
 import com.codecool.gradebookapi.dto.SubjectOutput;
-import com.codecool.gradebookapi.dto.dataTypes.SimpleData;
 import com.codecool.gradebookapi.dto.dataTypes.SimpleStudent;
 import com.codecool.gradebookapi.dto.dataTypes.SimpleTeacher;
 import com.codecool.gradebookapi.model.Subject;

@@ -17,8 +17,6 @@ import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @SpringBootTest
 public class GradebookServiceTests {
@@ -207,28 +205,6 @@ public class GradebookServiceTests {
         List<GradebookOutput> entries = gradebookService.findBySubjectId(99L);
 
         assertThat(entries).isEmpty();
-    }
-
-    @Test
-    @Transactional
-    @DisplayName("when entry exists with same IDs as given entry, isDuplicate should return true")
-    public void whenEntryExistsWithSameIdsAsGivenEntry_isDuplicateShouldReturnTrue() {
-        gradebookService.save(entry1);
-
-        boolean isDuplicate = gradebookService.isDuplicateEntry(entry1);
-
-        assertTrue(isDuplicate);
-    }
-
-    @Test
-    @Transactional
-    @DisplayName("when no entry exists with same IDs as given entry, isDuplicate should return false")
-    public void whenNoEntryExistsWithSameIdsAsGivenEntry_isDuplicateShouldReturnFalse() {
-        gradebookService.save(entry1);
-
-        boolean isDuplicate = gradebookService.isDuplicateEntry(entry2);
-
-        assertFalse(isDuplicate);
     }
 
     @Test

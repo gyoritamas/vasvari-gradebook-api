@@ -51,10 +51,6 @@ public class UserService implements UserDetailsService {
         this.passwordEncoder = passwordEncoder;
         this.mapper = mapper;
         this.specification = specification;
-        // TODO: remove
-//        userRepository.save(new ApplicationUser("admin", this.passwordEncoder.encode("admin"), ApplicationUserRole.ADMIN));
-//        userRepository.save(new ApplicationUser("teacher", this.passwordEncoder.encode("teacher"), ApplicationUserRole.TEACHER));
-//        userRepository.save(new ApplicationUser("student", this.passwordEncoder.encode("student"), STUDENT));
     }
 
     public List<UserDto> findAll() {

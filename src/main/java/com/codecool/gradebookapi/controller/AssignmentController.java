@@ -181,7 +181,7 @@ public class AssignmentController {
                 "with the following filters: title={}, type={}, subjectId={}", teacherId, title, type, subjectId);
 
         return ResponseEntity
-                .ok(CollectionModel.of(assembler.toCollectionModel(assignmentsOfTeacher),
+                   .ok(CollectionModel.of(assembler.toCollectionModel(assignmentsOfTeacher),
                         linkTo(methodOn(AssignmentController.class).getAssignmentsOfCurrentUserAsTeacher(title, type, subjectId))
                                 .withRel("assignments-of-teacher")));
     }
