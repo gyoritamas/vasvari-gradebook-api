@@ -10,6 +10,7 @@ import com.codecool.gradebookapi.exception.SubjectInUseException;
 import com.codecool.gradebookapi.exception.SubjectNotFoundException;
 import com.codecool.gradebookapi.exception.StudentNotFoundException;
 import com.codecool.gradebookapi.exception.TeacherNotFoundException;
+import com.codecool.gradebookapi.model.request.GradebookRequest;
 import com.codecool.gradebookapi.model.request.SubjectRequest;
 import com.codecool.gradebookapi.service.*;
 import io.swagger.v3.oas.annotations.Operation;
@@ -133,7 +134,8 @@ public class SubjectController {
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> delete(@PathVariable("id") Long id) {
         subjectService.findById(id).orElseThrow(() -> new SubjectNotFoundException(id));
-        if (!gradebookService.findBySubjectId(id).isEmpty()) throw new SubjectInUseException(id);
+        GradebookRequest request = GradebookRequest.builder().subjectId(id).build();
+        if (!gradebookService.findGradebookEntries(request).isEmpty()) throw new SubjectInUseException(id);
         subjectService.deleteById(id);
         log.info("Deleted subject {}", id);
 

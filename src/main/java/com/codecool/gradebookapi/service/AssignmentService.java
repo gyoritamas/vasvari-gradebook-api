@@ -36,7 +36,7 @@ public class AssignmentService {
         return mapper.mapAll(assignmentRepository.findAll());
     }
 
-    public List<AssignmentOutput> findAssignments(AssignmentRequest request){
+    public List<AssignmentOutput> findAssignments(AssignmentRequest request) {
         return mapper.mapAll(assignmentRepository.findAll(specification.getAssignments(request)));
     }
 
@@ -63,6 +63,13 @@ public class AssignmentService {
         assignmentRepository.deleteById(id);
     }
 
+    /**
+     * Returns the list of assignments created by the teacher specified by the teacherId param
+     *
+     * @param teacherId the ID of the teacher whose assignments are looked for
+     * @return list of assignments
+     * @throws TeacherNotFoundException if teacher does not exist with the given ID
+     */
     public List<AssignmentOutput> findAssignmentsOfTeacher(Long teacherId) {
         Teacher teacher = teacherRepository.findById(teacherId).orElseThrow(() -> new TeacherNotFoundException(teacherId));
         List<Subject> subjectsOfTeacher = subjectRepository.findSubjectsByTeacher(teacher);
@@ -71,6 +78,13 @@ public class AssignmentService {
         return mapper.mapAll(assignmentsOfTeacher);
     }
 
+    /**
+     * Returns the list of assignments created for the student specified by the studentId param
+     *
+     * @param studentId the ID of the student whose assignments are looked for
+     * @return list of assignments
+     * @throws StudentNotFoundException if student does not exist with the given ID
+     */
     public List<AssignmentOutput> findAssignmentsOfStudent(Long studentId) {
         Student student = studentRepository.findById(studentId).orElseThrow(() -> new StudentNotFoundException(studentId));
         List<Subject> subjectsOfStudent = subjectRepository.findSubjectsByStudentsContaining(student);

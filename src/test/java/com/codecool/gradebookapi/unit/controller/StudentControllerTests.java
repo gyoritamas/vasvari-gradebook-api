@@ -11,6 +11,7 @@ import com.codecool.gradebookapi.dto.dataTypes.SimpleStudent;
 import com.codecool.gradebookapi.dto.dataTypes.SimpleTeacher;
 import com.codecool.gradebookapi.jwt.JwtAuthenticationEntryPoint;
 import com.codecool.gradebookapi.jwt.JwtTokenUtil;
+import com.codecool.gradebookapi.model.request.GradebookRequest;
 import com.codecool.gradebookapi.security.PasswordConfig;
 import com.codecool.gradebookapi.service.*;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -303,7 +304,8 @@ public class StudentControllerTests {
                 .student(simpleStudent)
                 .build();
         when(studentService.findById(1L)).thenReturn(Optional.of(student1));
-        when(gradebookService.findByStudentId(1L)).thenReturn(List.of(savedEntry));
+        GradebookRequest request = GradebookRequest.builder().studentId(1L).build();
+        when(gradebookService.findGradebookEntries(request)).thenReturn(List.of(savedEntry));
 
         this.mockMvc
                 .perform(delete("/api/students/1"))

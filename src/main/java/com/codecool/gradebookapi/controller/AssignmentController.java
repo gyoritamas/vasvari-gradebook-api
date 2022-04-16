@@ -7,6 +7,7 @@ import com.codecool.gradebookapi.exception.AssignmentInUseException;
 import com.codecool.gradebookapi.exception.AssignmentNotFoundException;
 import com.codecool.gradebookapi.model.AssignmentType;
 import com.codecool.gradebookapi.model.request.AssignmentRequest;
+import com.codecool.gradebookapi.model.request.GradebookRequest;
 import com.codecool.gradebookapi.service.AssignmentService;
 import com.codecool.gradebookapi.service.GradebookService;
 import com.codecool.gradebookapi.service.SubjectService;
@@ -145,7 +146,8 @@ public class AssignmentController {
     @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
     public ResponseEntity<?> delete(@PathVariable("id") Long id) {
         assignmentService.findById(id).orElseThrow(() -> new AssignmentNotFoundException(id));
-        if (!gradebookService.findByAssignmentId(id).isEmpty()) throw new AssignmentInUseException(id);
+        GradebookRequest request = GradebookRequest.builder().assignmentId(id).build();
+        if (!gradebookService.findGradebookEntries(request).isEmpty()) throw new AssignmentInUseException(id);
         assignmentService.deleteById(id);
         log.info("Deleted assignment {}", id);
 

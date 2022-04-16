@@ -237,7 +237,8 @@ public class GradebookController {
         List<GradebookOutput> gradebookEntries = new ArrayList<>();
         List<SubjectOutput> subjectsOfTeacher = subjectService.findSubjectsOfTeacher(teacher);
         for (SubjectOutput subject : subjectsOfTeacher) {
-            gradebookEntries.addAll(gradebookService.findBySubjectId(subject.getId()));
+            GradebookRequest request = GradebookRequest.builder().subjectId(subject.getId()).build();
+            gradebookEntries.addAll(gradebookService.findGradebookEntries(request));
         }
 
         return gradebookEntries;

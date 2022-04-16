@@ -36,30 +36,6 @@ public class GradebookService {
         return repository.findById(id).map(mapper::map);
     }
 
-    public List<GradebookOutput> findByStudentId(Long studentId) {
-        List<GradebookEntry> entries = repository.findAllByStudent_Id(studentId);
-
-        return mapper.mapAll(entries);
-    }
-
-    public List<GradebookOutput> findBySubjectId(Long subjectId) {
-        List<GradebookEntry> entriesFound = repository.findAllBySubject_Id(subjectId);
-
-        return mapper.mapAll(entriesFound);
-    }
-
-    public List<GradebookOutput> findByStudentIdAndSubjectId(Long studentId, Long subjectId) {
-        List<GradebookEntry> entriesFound = repository.findAllByStudent_IdAndSubject_Id(studentId, subjectId);
-
-        return mapper.mapAll(entriesFound);
-    }
-
-    public List<GradebookOutput> findByAssignmentId(Long assignmentId) {
-        List<GradebookEntry> entries = repository.findAllByAssignment_Id(assignmentId);
-
-        return mapper.mapAll(entries);
-    }
-
     public GradebookOutput save(GradebookInput gradebookInput) {
         if (isDuplicateEntry(gradebookInput)) throw new DuplicateEntryException(gradebookInput);
         GradebookEntry entryToSave = mapper.map(gradebookInput);
@@ -85,12 +61,29 @@ public class GradebookService {
         repository.deleteById(id);
     }
 
+    /**
+     * Determines if an entry is a duplicate entry. An entry is duplicate if another entry already exists with
+     * the same subject, student and assignment
+     *
+     * @param entry the examined gradebook entry
+     * @return true if the entry is duplicate entry, false otherwise
+     */
     private boolean isDuplicateEntry(GradebookInput entry) {
-        return repository
-                .findByStudent_IdAndSubject_IdAndAssignment_Id(entry.getStudentId(), entry.getSubjectId(), entry.getAssignmentId())
-                .isPresent();
+        GradebookRequest request = GradebookRequest.builder()
+                .subjectId(entry.getSubjectId())
+                .studentId(entry.getStudentId())
+                .assignmentId(entry.getAssignmentId())
+                .build();
+        return !findGradebookEntries(request).isEmpty();
     }
 
+    /**
+     * Compares two entries and determines if they only differ in grade value
+     *
+     * @param entry1 one of the examined gradebook entries
+     * @param entry2 the other examined gradebook entry
+     * @return true if the entries only differ in grade value, false otherwise
+     */
     private boolean areEntriesOnlyDifferInGrade(GradebookEntry entry1, GradebookEntry entry2) {
         return entry1.getSubject().equals(entry2.getSubject())
                 && entry1.getStudent().equals(entry2.getStudent())
