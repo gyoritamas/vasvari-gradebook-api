@@ -1,4 +1,4 @@
-package com.codecool.gradebookapi.dto.dataTypes;
+package com.codecool.gradebookapi.dto.simpleTypes;
 
 import lombok.*;
 
@@ -8,9 +8,8 @@ import lombok.*;
 @Setter
 @Builder
 @EqualsAndHashCode
-public class SimpleStudent {
+public class SimpleTeacher {
     private Long id;
     private String firstname;
     private String lastname;
 }
-

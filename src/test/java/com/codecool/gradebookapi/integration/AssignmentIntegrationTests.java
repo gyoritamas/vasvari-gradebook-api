@@ -2,7 +2,7 @@ package com.codecool.gradebookapi.integration;
 
 import com.codecool.gradebookapi.controller.*;
 import com.codecool.gradebookapi.dto.*;
-import com.codecool.gradebookapi.dto.dataTypes.SimpleData;
+import com.codecool.gradebookapi.dto.simpleTypes.SimpleData;
 import com.codecool.gradebookapi.integration.util.AuthorizationManager;
 import com.codecool.gradebookapi.model.AssignmentType;
 import org.junit.jupiter.api.*;

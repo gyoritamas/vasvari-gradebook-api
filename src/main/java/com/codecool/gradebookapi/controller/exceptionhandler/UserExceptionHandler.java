@@ -1,4 +1,4 @@
-package com.codecool.gradebookapi.controller.advice;
+package com.codecool.gradebookapi.controller.exceptionhandler;
 
 import com.codecool.gradebookapi.exception.*;
 import lombok.extern.slf4j.Slf4j;
@@ -14,7 +14,7 @@ import java.net.URI;
 
 @ControllerAdvice
 @Slf4j
-public class UserControllerAdvice {
+public class UserExceptionHandler {
     @ExceptionHandler(UserNotFoundException.class)
     ResponseEntity<Problem> handleCannotFindUser(UserNotFoundException ex) {
         Problem problem = Problem.builder()

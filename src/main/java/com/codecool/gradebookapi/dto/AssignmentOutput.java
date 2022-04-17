@@ -1,6 +1,6 @@
 package com.codecool.gradebookapi.dto;
 
-import com.codecool.gradebookapi.dto.dataTypes.SimpleData;
+import com.codecool.gradebookapi.dto.simpleTypes.SimpleData;
 import com.codecool.gradebookapi.model.AssignmentType;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateDeserializer;

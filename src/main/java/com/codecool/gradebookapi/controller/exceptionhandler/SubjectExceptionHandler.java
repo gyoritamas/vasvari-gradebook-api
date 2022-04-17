@@ -1,4 +1,4 @@
-package com.codecool.gradebookapi.controller.advice;
+package com.codecool.gradebookapi.controller.exceptionhandler;
 
 import com.codecool.gradebookapi.exception.SubjectInUseException;
 import com.codecool.gradebookapi.exception.SubjectNotFoundException;
@@ -15,9 +15,9 @@ import java.net.URI;
 
 @ControllerAdvice
 @Slf4j
-public class SubjectControllerAdvice {
+public class SubjectExceptionHandler {
     @ExceptionHandler(SubjectNotFoundException.class)
-    ResponseEntity<Problem> handleCannotFindClass(SubjectNotFoundException ex) {
+    ResponseEntity<Problem> handleCannotFindSubject(SubjectNotFoundException ex) {
         Problem problem = Problem.builder()
                 .withType(URI.create("subjects/not-found"))
                 .withTitle("Subject not found")
@@ -34,7 +34,7 @@ public class SubjectControllerAdvice {
     }
 
     @ExceptionHandler(SubjectInUseException.class)
-    ResponseEntity<Problem> handleAssignmentInUse(SubjectInUseException ex) {
+    ResponseEntity<Problem> handleSubjectInUse(SubjectInUseException ex) {
         Problem problem = Problem.builder()
                 .withType(URI.create("subjects/method-not-allowed"))
                 .withTitle("Subject in use")

@@ -3,7 +3,7 @@ package com.codecool.gradebookapi.unit.service;
 import com.codecool.gradebookapi.dto.StudentDto;
 import com.codecool.gradebookapi.dto.TeacherDto;
 import com.codecool.gradebookapi.dto.UserDto;
-import com.codecool.gradebookapi.dto.dataTypes.InitialCredentials;
+import com.codecool.gradebookapi.dto.simpleTypes.InitialCredentials;
 import com.codecool.gradebookapi.exception.DuplicateAccountException;
 import com.codecool.gradebookapi.exception.IncorrectPasswordException;
 import com.codecool.gradebookapi.exception.UserNotFoundException;
