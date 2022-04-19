@@ -2,8 +2,8 @@ package com.codecool.gradebookapi.integration;
 
 import com.codecool.gradebookapi.controller.*;
 import com.codecool.gradebookapi.dto.*;
-import com.codecool.gradebookapi.dto.dataTypes.SimpleData;
-import com.codecool.gradebookapi.dto.dataTypes.SimpleStudent;
+import com.codecool.gradebookapi.dto.simpleTypes.SimpleData;
+import com.codecool.gradebookapi.dto.simpleTypes.SimpleStudent;
 import com.codecool.gradebookapi.integration.util.AuthorizationManager;
 import com.codecool.gradebookapi.model.AssignmentType;
 import org.junit.jupiter.api.*;
@@ -210,120 +210,6 @@ public class GradebookIntegrationTests {
             Link linkToGradebook = linkTo(methodOn(GradebookController.class).getById(99L)).withSelfRel();
             ResponseEntity<?> response = template.exchange(
                     linkToGradebook.getHref(),
-                    HttpMethod.GET,
-                    auth.createHttpEntityWithAuthorization(null),
-                    String.class
-            );
-
-            assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
-        }
-
-        @Test
-        @DisplayName("when Student exists with given ID, getGradesOfStudent should return list of GradebookEntries")
-        public void whenStudentExistsWithGivenId_getGradesOfStudentShouldReturnListOfEntries() {
-            long student1Id = postStudent(student1).getId();
-            long student2Id = postStudent(student2).getId();
-            long teacherId = postTeacher(teacher).getId();
-            subject.setTeacherId(teacherId);
-            long subjectId = postSubject(subject).getId();
-            assignment.setSubjectId(subjectId);
-            long assignmentId = postAssignment(assignment).getId();
-
-            subjectId = addStudentToSubject(student1Id, subjectId).getId();
-            subjectId = addStudentToSubject(student2Id, subjectId).getId();
-
-            GradebookInput gradebookInput1 = GradebookInput.builder()
-                    .studentId(student1Id)
-                    .subjectId(subjectId)
-                    .assignmentId(assignmentId)
-                    .grade(4)
-                    .build();
-            GradebookInput gradebookInput2 = GradebookInput.builder()
-                    .studentId(student2Id)
-                    .subjectId(subjectId)
-                    .assignmentId(assignmentId)
-                    .grade(5)
-                    .build();
-            GradebookOutput entry1Posted = postGradebookEntry(gradebookInput1);
-            GradebookOutput entry2Posted = postGradebookEntry(gradebookInput2);
-
-            String urlToEntriesOfStudent = String.format("http://localhost:%d/api/student_gradebook/%d", port, student1Id);
-            Traverson traverson = new Traverson(URI.create(urlToEntriesOfStudent), MediaTypes.HAL_JSON);
-            TypeReferences.CollectionModelType<GradebookOutput> collectionModelType =
-                    new TypeReferences.CollectionModelType<>() {
-                    };
-            CollectionModel<GradebookOutput> gradebookResource = traverson
-                    .follow("$._links.student_gradebook.href")
-                    .withHeaders(auth.getHeadersWithAuthorization())
-                    .toObject(collectionModelType);
-
-            assertThat(gradebookResource).isNotNull();
-            assertThat(gradebookResource.getContent()).containsExactly(entry1Posted);
-        }
-
-        @Test
-        @DisplayName("when Student does not exist with given ID, getGradesOfStudent should return response 'Not Found'")
-        public void whenStudentDoesNotExistWithGivenId_getGradesOfStudentShouldReturnResponseNotFound() {
-            String requestUrl = baseUrl + "/student_gradebook/99";
-            ResponseEntity<?> response = template.exchange(
-                    requestUrl,
-                    HttpMethod.GET,
-                    auth.createHttpEntityWithAuthorization(null),
-                    String.class
-            );
-
-            assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
-        }
-
-        @Test
-        @DisplayName("when Subject exists with given ID, getGradesOfSubject should return list of GradebookEntries")
-        public void whenSubjectExistsWithGivenId_getGradesOfSubjectShouldReturnListOfEntries() {
-            long student1Id = postStudent(student1).getId();
-            long student2Id = postStudent(student2).getId();
-            long teacherId = postTeacher(teacher).getId();
-            subject.setTeacherId(teacherId);
-            long subjectId = postSubject(subject).getId();
-            assignment.setSubjectId(subjectId);
-            long assignmentId = postAssignment(assignment).getId();
-
-            subjectId = addStudentToSubject(student1Id, subjectId).getId();
-            subjectId = addStudentToSubject(student2Id, subjectId).getId();
-
-            GradebookInput gradebookInput1 = GradebookInput.builder()
-                    .studentId(student1Id)
-                    .subjectId(subjectId)
-                    .assignmentId(assignmentId)
-                    .grade(4)
-                    .build();
-            GradebookInput gradebookInput2 = GradebookInput.builder()
-                    .studentId(student2Id)
-                    .subjectId(subjectId)
-                    .assignmentId(assignmentId)
-                    .grade(5)
-                    .build();
-            GradebookOutput entry1 = postGradebookEntry(gradebookInput1);
-            GradebookOutput entry2 = postGradebookEntry(gradebookInput2);
-
-            String urlToEntriesOfStudent = String.format("http://localhost:%d/api/subject_gradebook/%d", port, subjectId);
-            Traverson traverson = new Traverson(URI.create(urlToEntriesOfStudent), MediaTypes.HAL_JSON);
-            TypeReferences.CollectionModelType<GradebookOutput> collectionModelType =
-                    new TypeReferences.CollectionModelType<>() {
-                    };
-            CollectionModel<GradebookOutput> gradebookResource = traverson
-                    .follow("$._links.subject_gradebook.href")
-                    .withHeaders(auth.getHeadersWithAuthorization())
-                    .toObject(collectionModelType);
-
-            assertThat(gradebookResource).isNotNull();
-            assertThat(gradebookResource.getContent()).containsExactly(entry1, entry2);
-        }
-
-        @Test
-        @DisplayName("when Subject does not exist with given ID, getGradesOfStudent should return response 'Not Found'")
-        public void whenSubjectDoesNotExistWithGivenId_getGradesOfStudentShouldReturnResponseNotFound() {
-            Link linkToEntriesOfSubject = linkTo(methodOn(GradebookController.class).getGradesOfSubject(99L)).withSelfRel();
-            ResponseEntity<?> response = template.exchange(
-                    linkToEntriesOfSubject.getHref(),
                     HttpMethod.GET,
                     auth.createHttpEntityWithAuthorization(null),
                     String.class

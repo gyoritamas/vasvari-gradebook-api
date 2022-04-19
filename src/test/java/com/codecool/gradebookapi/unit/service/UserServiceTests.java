@@ -3,7 +3,7 @@ package com.codecool.gradebookapi.unit.service;
 import com.codecool.gradebookapi.dto.StudentDto;
 import com.codecool.gradebookapi.dto.TeacherDto;
 import com.codecool.gradebookapi.dto.UserDto;
-import com.codecool.gradebookapi.dto.dataTypes.InitialCredentials;
+import com.codecool.gradebookapi.dto.simpleTypes.InitialCredentials;
 import com.codecool.gradebookapi.exception.DuplicateAccountException;
 import com.codecool.gradebookapi.exception.IncorrectPasswordException;
 import com.codecool.gradebookapi.exception.UserNotFoundException;
@@ -100,7 +100,7 @@ public class UserServiceTests {
 
         Pattern usernamePattern = Pattern.compile("doejohn\\d{2}");
         assertThat(credentials.getUsername()).matches(usernamePattern);
-        assertThat(credentials.getPassword()).matches("([a-zA-Z0-9]){" + UserService.PASSWORD_LENGTH + "}");
+        assertThat(credentials.getPassword()).matches("([a-zA-Z\\d]){" + UserService.PASSWORD_LENGTH + "}");
     }
 
     @Test
@@ -132,7 +132,7 @@ public class UserServiceTests {
 
         Pattern usernamePattern = Pattern.compile("bowendarrell\\d{2}");
         assertThat(credentials.getUsername()).matches(usernamePattern);
-        assertThat(credentials.getPassword()).matches("([a-zA-Z0-9]){" + UserService.PASSWORD_LENGTH + "}");
+        assertThat(credentials.getPassword()).matches("([a-zA-Z\\d]){" + UserService.PASSWORD_LENGTH + "}");
     }
 
     @Test
@@ -158,7 +158,7 @@ public class UserServiceTests {
         InitialCredentials credentials = userService.createAdminUser("admin");
 
         assertThat(credentials.getUsername()).isEqualTo("admin");
-        assertThat(credentials.getPassword()).matches("([a-zA-Z0-9]){" + UserService.PASSWORD_LENGTH + "}");
+        assertThat(credentials.getPassword()).matches("([a-zA-Z\\d]){" + UserService.PASSWORD_LENGTH + "}");
     }
 
     @Test

@@ -3,7 +3,7 @@ package com.codecool.gradebookapi.service;
 import com.codecool.gradebookapi.dto.StudentDto;
 import com.codecool.gradebookapi.dto.TeacherDto;
 import com.codecool.gradebookapi.dto.UserDto;
-import com.codecool.gradebookapi.dto.dataTypes.InitialCredentials;
+import com.codecool.gradebookapi.dto.simpleTypes.InitialCredentials;
 import com.codecool.gradebookapi.dto.mapper.UserMapper;
 import com.codecool.gradebookapi.exception.DuplicateAccountException;
 import com.codecool.gradebookapi.exception.IncorrectPasswordException;
@@ -51,10 +51,6 @@ public class UserService implements UserDetailsService {
         this.passwordEncoder = passwordEncoder;
         this.mapper = mapper;
         this.specification = specification;
-        // TODO: remove
-//        userRepository.save(new ApplicationUser("admin", this.passwordEncoder.encode("admin"), ApplicationUserRole.ADMIN));
-//        userRepository.save(new ApplicationUser("teacher", this.passwordEncoder.encode("teacher"), ApplicationUserRole.TEACHER));
-//        userRepository.save(new ApplicationUser("student", this.passwordEncoder.encode("student"), STUDENT));
     }
 
     public List<UserDto> findAll() {

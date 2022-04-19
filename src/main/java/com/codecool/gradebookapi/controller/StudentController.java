@@ -9,6 +9,7 @@ import com.codecool.gradebookapi.exception.StudentInUseException;
 import com.codecool.gradebookapi.exception.StudentNotFoundException;
 import com.codecool.gradebookapi.exception.SubjectNotFoundException;
 import com.codecool.gradebookapi.exception.TeacherNotFoundException;
+import com.codecool.gradebookapi.model.request.GradebookRequest;
 import com.codecool.gradebookapi.model.request.StudentRequest;
 import com.codecool.gradebookapi.service.*;
 import io.swagger.v3.oas.annotations.Operation;
@@ -134,7 +135,8 @@ public class StudentController {
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> delete(@PathVariable("id") Long id) {
         studentService.findById(id).orElseThrow(() -> new StudentNotFoundException(id));
-        if (!gradebookService.findByStudentId(id).isEmpty()) throw new StudentInUseException(id);
+        GradebookRequest request = GradebookRequest.builder().studentId(id).build();
+        if (!gradebookService.findGradebookEntries(request).isEmpty()) throw new StudentInUseException(id);
         studentService.deleteById(id);
         log.info("Deleted student {}", id);
 

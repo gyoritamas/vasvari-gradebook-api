@@ -6,11 +6,12 @@ import com.codecool.gradebookapi.dto.AssignmentOutput;
 import com.codecool.gradebookapi.dto.GradebookOutput;
 import com.codecool.gradebookapi.dto.SubjectOutput;
 import com.codecool.gradebookapi.dto.assembler.AssignmentModelAssembler;
-import com.codecool.gradebookapi.dto.dataTypes.SimpleData;
-import com.codecool.gradebookapi.dto.dataTypes.SimpleTeacher;
+import com.codecool.gradebookapi.dto.simpleTypes.SimpleData;
+import com.codecool.gradebookapi.dto.simpleTypes.SimpleTeacher;
 import com.codecool.gradebookapi.jwt.JwtAuthenticationEntryPoint;
 import com.codecool.gradebookapi.jwt.JwtTokenUtil;
 import com.codecool.gradebookapi.model.AssignmentType;
+import com.codecool.gradebookapi.model.request.GradebookRequest;
 import com.codecool.gradebookapi.security.PasswordConfig;
 import com.codecool.gradebookapi.service.*;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -351,7 +352,8 @@ public class AssignmentControllerTests {
                 .assignment(new SimpleData(assignmentOutput1.getId(), assignmentOutput1.getName()))
                 .build();
         when(assignmentService.findById(1L)).thenReturn(Optional.of(assignmentOutput1));
-        when(gradebookService.findByAssignmentId(1L)).thenReturn(List.of(entry));
+        GradebookRequest request = GradebookRequest.builder().assignmentId(1L).build();
+        when(gradebookService.findGradebookEntries(request)).thenReturn(List.of(entry));
 
         this.mockMvc
                 .perform(delete("/api/assignments/1"))

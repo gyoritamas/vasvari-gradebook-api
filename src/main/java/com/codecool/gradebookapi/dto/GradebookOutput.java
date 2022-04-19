@@ -1,7 +1,7 @@
 package com.codecool.gradebookapi.dto;
 
-import com.codecool.gradebookapi.dto.dataTypes.SimpleData;
-import com.codecool.gradebookapi.dto.dataTypes.SimpleStudent;
+import com.codecool.gradebookapi.dto.simpleTypes.SimpleData;
+import com.codecool.gradebookapi.dto.simpleTypes.SimpleStudent;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.*;
 import org.springframework.hateoas.server.core.Relation;

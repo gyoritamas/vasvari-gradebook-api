@@ -51,10 +51,4 @@ public class ApplicationUser implements UserDetails {
         return true;
     }
 
-    public ApplicationUser(String username, String password, ApplicationUserRole role) {
-        this.username = username;
-        this.password = password;
-        this.role = role;
-        this.enabled = true;
-    }
 }

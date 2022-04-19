@@ -1,4 +1,4 @@
-package com.codecool.gradebookapi.controller.advice;
+package com.codecool.gradebookapi.controller.exceptionhandler;
 
 import com.codecool.gradebookapi.exception.AssignmentInUseException;
 import com.codecool.gradebookapi.exception.AssignmentNotFoundException;
@@ -16,7 +16,7 @@ import java.net.URI;
 
 @ControllerAdvice
 @Slf4j
-public class AssignmentControllerAdvice {
+public class AssignmentExceptionHandler {
     @ExceptionHandler(AssignmentNotFoundException.class)
     ResponseEntity<Problem> handleCannotFindAssignment(AssignmentNotFoundException ex) {
         Problem problem = Problem.builder()

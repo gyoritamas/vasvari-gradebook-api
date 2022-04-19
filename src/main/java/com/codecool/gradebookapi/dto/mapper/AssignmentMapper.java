@@ -2,7 +2,7 @@ package com.codecool.gradebookapi.dto.mapper;
 
 import com.codecool.gradebookapi.dto.AssignmentInput;
 import com.codecool.gradebookapi.dto.AssignmentOutput;
-import com.codecool.gradebookapi.dto.dataTypes.SimpleData;
+import com.codecool.gradebookapi.dto.simpleTypes.SimpleData;
 import com.codecool.gradebookapi.model.Assignment;
 import com.codecool.gradebookapi.repository.SubjectRepository;
 import lombok.RequiredArgsConstructor;

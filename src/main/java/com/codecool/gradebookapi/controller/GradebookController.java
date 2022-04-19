@@ -26,7 +26,6 @@ import org.springframework.web.bind.annotation.*;
 import javax.validation.Valid;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
@@ -108,51 +107,6 @@ public class GradebookController {
         log.info("Deleted gradebook entry {}", id);
 
         return ResponseEntity.noContent().build();
-    }
-
-    @GetMapping("/student_gradebook/{studentId}")
-    @Operation(summary = "Finds all gradebook entries related to student given by ID")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Returned list of all gradebook entries related to student"),
-            @ApiResponse(responseCode = "404", description = "Could not find student with given ID")
-    })
-    @Deprecated
-    public ResponseEntity<CollectionModel<EntityModel<GradebookOutput>>> getGradesOfStudent(
-            @PathVariable("studentId") Long studentId) {
-        studentService.findById(studentId).orElseThrow(() -> new StudentNotFoundException(studentId));
-
-        List<EntityModel<GradebookOutput>> entityModels = gradebookService.findByStudentId(studentId).stream()
-                .map(gradebookModelAssembler::toModel)
-                .collect(Collectors.toList());
-
-        log.info("Returned list of all gradebook entries related to student {}", studentId);
-
-        return ResponseEntity
-                .ok(CollectionModel.of(entityModels,
-                        linkTo(methodOn(GradebookController.class).getGradesOfStudent(studentId))
-                                .withRel("student_gradebook")));
-    }
-
-    @GetMapping("/subject_gradebook/{subjectId}")
-    @Operation(summary = "Finds all gradebook entries related to subject given by ID")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Returned list of all gradebook entries related to subject"),
-            @ApiResponse(responseCode = "404", description = "Could not find subject with given ID")
-    })
-    @Deprecated
-    public ResponseEntity<CollectionModel<EntityModel<GradebookOutput>>> getGradesOfSubject(
-            @PathVariable("subjectId") Long subjectId) {
-        subjectService.findById(subjectId).orElseThrow(() -> new SubjectNotFoundException(subjectId));
-
-        List<EntityModel<GradebookOutput>> entityModels = gradebookService.findBySubjectId(subjectId).stream()
-                .map(gradebookModelAssembler::toModel)
-                .collect(Collectors.toList());
-
-        log.info("Returned list of all gradebook entries related to subject {}", subjectId);
-
-        return ResponseEntity
-                .ok(CollectionModel.of(entityModels,
-                        linkTo(methodOn(GradebookController.class).getGradesOfSubject(subjectId)).withRel("subject_gradebook")));
     }
 
     @PostMapping("/gradebook")
@@ -283,7 +237,8 @@ public class GradebookController {
         List<GradebookOutput> gradebookEntries = new ArrayList<>();
         List<SubjectOutput> subjectsOfTeacher = subjectService.findSubjectsOfTeacher(teacher);
         for (SubjectOutput subject : subjectsOfTeacher) {
-            gradebookEntries.addAll(gradebookService.findBySubjectId(subject.getId()));
+            GradebookRequest request = GradebookRequest.builder().subjectId(subject.getId()).build();
+            gradebookEntries.addAll(gradebookService.findGradebookEntries(request));
         }
 
         return gradebookEntries;

@@ -1,4 +1,4 @@
-package com.codecool.gradebookapi.controller.advice;
+package com.codecool.gradebookapi.controller.exceptionhandler;
 
 import com.codecool.gradebookapi.exception.DuplicateEntryException;
 import com.codecool.gradebookapi.exception.GradebookEntryNotFoundException;
@@ -16,7 +16,7 @@ import java.net.URI;
 
 @ControllerAdvice
 @Slf4j
-public class GradebookControllerAdvice {
+public class GradebookExceptionHandler {
     @ExceptionHandler(GradebookEntryNotFoundException.class)
     ResponseEntity<Problem> handleEntryNotFound(GradebookEntryNotFoundException ex) {
         Problem problem = Problem.builder()

@@ -6,8 +6,8 @@ import com.codecool.gradebookapi.dto.TeacherDto;
 import com.codecool.gradebookapi.dto.UserDto;
 import com.codecool.gradebookapi.dto.assembler.InitialCredentialsModelAssembler;
 import com.codecool.gradebookapi.dto.assembler.UserModelAssembler;
-import com.codecool.gradebookapi.dto.dataTypes.InitialCredentials;
-import com.codecool.gradebookapi.dto.dataTypes.UsernameInput;
+import com.codecool.gradebookapi.dto.simpleTypes.InitialCredentials;
+import com.codecool.gradebookapi.dto.simpleTypes.UsernameInput;
 import com.codecool.gradebookapi.exception.*;
 import com.codecool.gradebookapi.jwt.JwtAuthenticationEntryPoint;
 import com.codecool.gradebookapi.jwt.JwtTokenUtil;
@@ -21,13 +21,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ParameterContext;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.aggregator.AggregateWith;
-import org.junit.jupiter.params.aggregator.ArgumentsAccessor;
-import org.junit.jupiter.params.aggregator.ArgumentsAggregationException;
-import org.junit.jupiter.params.aggregator.ArgumentsAggregator;
-import org.junit.jupiter.params.provider.CsvFileSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -38,6 +31,7 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import static com.codecool.gradebookapi.security.ApplicationUserRole.STUDENT;
 import static org.hamcrest.Matchers.hasSize;
@@ -150,46 +144,6 @@ public class UserControllerTests {
                 .perform(get("/api/users/99"))
                 .andDo(print())
                 .andExpect(status().isNotFound());
-    }
-
-    @Test
-    @DisplayName("given valid UserDto values, add should return created User")
-    public void givenValidUserDtoValues_add_shouldReturnCreatedUser() throws Exception {
-        when(userService.save(adminUser)).thenReturn(adminUser);
-
-        String adminUserAsString = mapper.writeValueAsString(adminUser);
-
-        this.mockMvc
-                .perform(
-                        post("/api/users")
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content(adminUserAsString)
-                )
-                .andDo(print())
-                .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.id", is(1)))
-                .andExpect(jsonPath("$.username", is(adminUser.getUsername())))
-                .andExpect(jsonPath("$.password", is(adminUser.getPassword())))
-                .andExpect(jsonPath("$.role", is(adminUser.getRole().name())))
-                .andExpect(jsonPath("$.enabled", is(true)));
-    }
-
-    @ParameterizedTest
-    @CsvFileSource(resources = "/invalid_user_data.csv", numLinesToSkip = 1, delimiter = ';')
-    @DisplayName("given invalid UserDto parameters, add should return response 'Bad Request'")
-    public void givenInvalidUserDtoParameters_add_shouldReturnResponseBadRequest(
-            @AggregateWith(UserControllerTests.UserDtoAggregator.class) UserDto user) throws Exception {
-
-        String userAsString = mapper.writeValueAsString(user);
-
-        this.mockMvc
-                .perform(
-                        post("/api/users")
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content(userAsString)
-                )
-                .andDo(print())
-                .andExpect(status().isBadRequest());
     }
 
     @Test
@@ -308,6 +262,31 @@ public class UserControllerTests {
                 .andExpect(status().isBadRequest());
     }
 
+
+    @Test
+    @DisplayName("given invalid UserDto parameters, createAccountForAdmin should return response 'Bad Request'")
+    public void givenInvalidUserDtoParameters_createAccountForAdmin_shouldReturnResponseBadRequest() throws Exception {
+        List<String> invalidUsernames = List.of("abc", "_abcd", "1abcd", "ab+cd", "ab cd", "ab\tcd", "thisusernameistoolong");
+        List<String> usernameInputsAsString = invalidUsernames.stream().map(username -> {
+            try {
+                return mapper.writeValueAsString(new UsernameInput(username));
+            } catch (Exception ex) {
+                throw new RuntimeException("Failed to map usernameInput to JSON string");
+            }
+        }).collect(Collectors.toList());
+
+        for (String userAsString : usernameInputsAsString) {
+            this.mockMvc
+                    .perform(
+                            post("/api/users/create-admin-user")
+                                    .contentType(MediaType.APPLICATION_JSON)
+                                    .content(userAsString)
+                    )
+                    .andDo(print())
+                    .andExpect(status().isBadRequest());
+        }
+    }
+
     @Test
     @DisplayName("when student-user exists, findUserRelatedToStudent should return UserDto")
     public void whenStudentUserExists_findUserRelatedToStudent_shouldReturnUserDto() throws Exception {
@@ -424,7 +403,7 @@ public class UserControllerTests {
 
         this.mockMvc
                 .perform(
-                        post("/api/users/1/password-change")
+                        post("/api/users/password-change")
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(requestAsString)
                 )
@@ -435,36 +414,18 @@ public class UserControllerTests {
     @Test
     @DisplayName("when User exists with given ID and PasswordChangeRequest is invalid, changePassword should return response 'Bad Request'")
     public void whenUserExistsWithGivenIdAndPasswordChangeRequestIsInvalid_changePassword_shouldReturnResponseBadRequest() throws Exception {
-        when(userService.findById(1L)).thenReturn(Optional.of(adminUser));
         PasswordChangeRequest request = new PasswordChangeRequest("wrongpassword", "NeWPaSSWoRD1234");
-        doThrow(IncorrectPasswordException.class).when(userService).changePassword(1L, request);
+        doThrow(IncorrectPasswordException.class).when(userService).changePasswordOfCurrentUser( request);
         String requestAsString = mapper.writeValueAsString(request);
 
         this.mockMvc
                 .perform(
-                        post("/api/users/1/password-change")
+                        post("/api/users/password-change")
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(requestAsString)
                 )
                 .andDo(print())
                 .andExpect(status().isBadRequest());
-    }
-
-    @Test
-    @DisplayName("when User does not exist with given ID, changePassword should return response 'Not Found'")
-    public void whenUserDoesNotExistWithGivenId_changePassword_shouldReturnResponseNotFound() throws Exception {
-        when(userService.findById(99L)).thenReturn(Optional.empty());
-        PasswordChangeRequest request = new PasswordChangeRequest(adminUser.getPassword(), "NeWPaSSWoRD1234");
-        String requestAsString = mapper.writeValueAsString(request);
-
-        this.mockMvc
-                .perform(
-                        post("/api/users/99/password-change")
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content(requestAsString)
-                )
-                .andDo(print())
-                .andExpect(status().isNotFound());
     }
 
     @Test
@@ -556,25 +517,6 @@ public class UserControllerTests {
                 .andExpect(status().isNotFound());
 
         verify(userService).setUserDisabled(99L);
-    }
-
-
-    private static class UserDtoAggregator implements ArgumentsAggregator {
-
-        @Override
-        public Object aggregateArguments(ArgumentsAccessor accessor, ParameterContext context)
-                throws ArgumentsAggregationException {
-            return UserDto.builder()
-                    .username(accessor.getString(0))
-                    .password(accessor.getString(1))
-                    .role(convertStringToRole(accessor.getString(2)))
-                    .enabled(accessor.getBoolean(3))
-                    .build();
-        }
-
-        private ApplicationUserRole convertStringToRole(String string) {
-            return string == null ? null : ApplicationUserRole.valueOf(string);
-        }
     }
 
 }

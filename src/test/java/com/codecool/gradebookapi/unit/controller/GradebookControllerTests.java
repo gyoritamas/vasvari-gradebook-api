@@ -3,8 +3,8 @@ package com.codecool.gradebookapi.unit.controller;
 import com.codecool.gradebookapi.controller.GradebookController;
 import com.codecool.gradebookapi.dto.*;
 import com.codecool.gradebookapi.dto.assembler.GradebookModelAssembler;
-import com.codecool.gradebookapi.dto.dataTypes.SimpleData;
-import com.codecool.gradebookapi.dto.dataTypes.SimpleStudent;
+import com.codecool.gradebookapi.dto.simpleTypes.SimpleData;
+import com.codecool.gradebookapi.dto.simpleTypes.SimpleStudent;
 import com.codecool.gradebookapi.exception.DuplicateEntryException;
 import com.codecool.gradebookapi.jwt.JwtAuthenticationEntryPoint;
 import com.codecool.gradebookapi.jwt.JwtTokenUtil;
@@ -183,70 +183,6 @@ public class GradebookControllerTests {
                 .perform(get("/api/gradebook/99"))
                 .andDo(print())
                 .andExpect(status().isNotFound());
-    }
-
-    @Test
-    @WithMockUser(username = "admin", password = "admin", roles = "ADMIN")
-    @DisplayName("when Subject does not exist with given ID, getGradesOfSubject should return response 'Not Found'")
-    public void whenSubjectDoesNotExistWithGivenId_getGradesOfSubjectShouldReturnResponseNotFound() throws Exception {
-        when(studentService.findById(99L)).thenReturn(Optional.empty());
-
-        this.mockMvc
-                .perform(get("/api/subject_gradebook/99"))
-                .andDo(print())
-                .andExpect(status().isNotFound());
-    }
-
-    @Test
-    @WithMockUser(username = "admin", password = "admin", roles = "ADMIN")
-    @DisplayName("when Student exists with given ID, getGradesOfStudent should return list of entries")
-    public void whenStudentExistsWithGivenId_getGradesOfStudentShouldReturnListOfEntries() throws Exception {
-        when(studentService.findById(1L)).thenReturn(Optional.of(student1));
-        when(gradebookService.findByStudentId(1L)).thenReturn(List.of(savedEntry1));
-
-        this.mockMvc
-                .perform(get("/api/student_gradebook/1"))
-                .andDo(print())
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$._embedded.entries", hasSize(1)))
-                .andExpect(jsonPath("$._embedded.entries[0].student.id", is(1)))
-                .andExpect(jsonPath("$._embedded.entries[0].subject.id", is(1)))
-                .andExpect(jsonPath("$._embedded.entries[0].assignment.id", is(1)))
-                .andExpect(jsonPath("$._embedded.entries[0].grade", is(4)));
-    }
-
-    @Test
-    @WithMockUser(username = "admin", password = "admin", roles = "ADMIN")
-    @DisplayName("when Student does not exist with given ID, getGradesOfStudent should return response 'Not Found'")
-    public void whenStudentDoesNotExistWithGivenId_getGradesOfStudentShouldReturnResponseNotFound() throws Exception {
-        when(studentService.findById(99L)).thenReturn(Optional.empty());
-
-        this.mockMvc
-                .perform(get("/api/student_gradebook/99"))
-                .andDo(print())
-                .andExpect(status().isNotFound());
-    }
-
-    @Test
-    @WithMockUser(username = "admin", password = "admin", roles = "ADMIN")
-    @DisplayName("when Subject exists with given ID, getGradesOfSubject should return list of GradebookEntries")
-    public void whenSubjectExistsWithGivenId_getGradesOfSubjectShouldReturnListOfGradebookEntries() throws Exception {
-        when(subjectService.findById(1L)).thenReturn(Optional.of(subject));
-        when(gradebookService.findBySubjectId(1L)).thenReturn(List.of(savedEntry1, savedEntry2));
-
-        this.mockMvc
-                .perform(get("/api/subject_gradebook/1"))
-                .andDo(print())
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$._embedded.entries", hasSize(2)))
-
-                .andExpect(jsonPath("$._embedded.entries[0].student.id", is(1)))
-                .andExpect(jsonPath("$._embedded.entries[0].subject.id", is(1)))
-                .andExpect(jsonPath("$._embedded.entries[0].grade", is(4)))
-
-                .andExpect(jsonPath("$._embedded.entries[1].student.id", is(2)))
-                .andExpect(jsonPath("$._embedded.entries[1].subject.id", is(1)))
-                .andExpect(jsonPath("$._embedded.entries[1].grade", is(5)));
     }
 
     @Test

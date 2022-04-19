@@ -16,7 +16,7 @@ public class PasswordChangeRequest {
     private String oldPassword;
 
     @Size(min = 8, max = 20)
-    @Pattern(regexp = "^(?=.*[0-9])"
+    @Pattern(regexp = "^(?=.*\\d)"
             + "(?=.*[a-z])(?=.*[A-Z])"
             + "(?=\\S+$).{8,20}$",
             message = "password must contain a number, a lower- and an uppercase letter")

@@ -1,7 +1,6 @@
 package com.codecool.gradebookapi.model.specification;
 
 import com.codecool.gradebookapi.model.Assignment;
-import com.codecool.gradebookapi.model.AssignmentType;
 import com.codecool.gradebookapi.model.request.AssignmentRequest;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;

@@ -5,8 +5,8 @@ import com.codecool.gradebookapi.dto.TeacherDto;
 import com.codecool.gradebookapi.dto.UserDto;
 import com.codecool.gradebookapi.dto.assembler.InitialCredentialsModelAssembler;
 import com.codecool.gradebookapi.dto.assembler.UserModelAssembler;
-import com.codecool.gradebookapi.dto.dataTypes.InitialCredentials;
-import com.codecool.gradebookapi.dto.dataTypes.UsernameInput;
+import com.codecool.gradebookapi.dto.simpleTypes.InitialCredentials;
+import com.codecool.gradebookapi.dto.simpleTypes.UsernameInput;
 import com.codecool.gradebookapi.exception.*;
 import com.codecool.gradebookapi.model.request.PasswordChangeRequest;
 import com.codecool.gradebookapi.model.request.UserRequest;
@@ -93,23 +93,6 @@ public class UserController {
 
         return ResponseEntity
                 .ok(userModelAssembler.toModel(userFound));
-    }
-
-    @PostMapping
-    @Operation(summary = "Creates a new user")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "201", description = "Created new user"),
-            @ApiResponse(responseCode = "400", description = "Could not create user due to invalid parameters")
-    })
-    @Deprecated
-    public ResponseEntity<EntityModel<UserDto>> add(@RequestBody @Valid UserDto user) {
-        UserDto userCreated = userService.save(user);
-        EntityModel<UserDto> entityModel = userModelAssembler.toModel(userCreated);
-        log.info("Created user with ID {}", userCreated.getId());
-
-        return ResponseEntity
-                .created(entityModel.getRequiredLink(IanaLinkRelations.SELF).toUri())
-                .body(entityModel);
     }
 
     @PostMapping("/create-student-user")
@@ -202,46 +185,11 @@ public class UserController {
         return ResponseEntity.ok(entityModel);
     }
 
-    @PutMapping("/{id}")
-    @Operation(summary = "Updates the user given by ID")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Updated user with given ID"),
-            @ApiResponse(responseCode = "400", description = "Could not update user due to invalid parameters"),
-            @ApiResponse(responseCode = "404", description = "Could not find user with given ID")
-    })
-    @Deprecated
-    public ResponseEntity<EntityModel<UserDto>> update(@RequestBody @Valid UserDto user,
-                                                       @PathVariable("id") Long id) {
-        userService.findById(id).orElseThrow(() -> new UserNotFoundException(id));
-        user.setId(id);
-        log.info("Updated user {}", id);
-
-        return ResponseEntity
-                .ok(userModelAssembler.toModel(userService.save(user)));
-    }
-
-    @PostMapping("/{id}/password-change")
-    @Operation(summary = "Changes the password of user given by ID")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Updated user with given ID"),
-            @ApiResponse(responseCode = "400", description = "Could not change password due to incorrect old password"),
-            @ApiResponse(responseCode = "404", description = "Could not find user with given ID")
-    })
-    @Deprecated
-    public ResponseEntity<?> changePassword(@PathVariable("id") Long userId, @RequestBody @Valid PasswordChangeRequest request) {
-        UserDto user = userService.findById(userId).orElseThrow(() -> new UserNotFoundException(userId));
-        userService.changePassword(userId, request);
-
-        log.info("Password of user {} has changed", user.getUsername());
-        return ResponseEntity.ok().build();
-    }
-
     @PostMapping("/password-change")
     @Operation(summary = "Changes the current user's password")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Updated current user's password"),
-            @ApiResponse(responseCode = "400", description = "Could not change password due to incorrect old password"),
-            @ApiResponse(responseCode = "404", description = "Could not find user with given ID")
+            @ApiResponse(responseCode = "400", description = "Could not change password due to incorrect old password")
     })
     public ResponseEntity<?> changePasswordOfCurrentUser(@RequestBody @Valid PasswordChangeRequest request) {
         userService.changePasswordOfCurrentUser(request);

@@ -1,4 +1,4 @@
-package com.codecool.gradebookapi.controller.advice;
+package com.codecool.gradebookapi.controller.exceptionhandler;
 
 import com.codecool.gradebookapi.exception.StudentInUseException;
 import com.codecool.gradebookapi.exception.StudentNotFoundException;
@@ -16,7 +16,7 @@ import java.net.URI;
 
 @ControllerAdvice
 @Slf4j
-public class StudentControllerAdvice {
+public class StudentExceptionHandler {
     @ExceptionHandler(StudentNotFoundException.class)
     ResponseEntity<Problem> handleCannotFindStudent(StudentNotFoundException ex) {
         Problem problem = Problem.builder()

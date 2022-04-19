@@ -12,8 +12,8 @@ import java.util.List;
 
 @Component
 public class TeacherSpecification {
-    public static final String FULL_NAME_FIRST_PART = "firstname";
-    public static final String FULL_NAME_SECOND_PART = "lastname";
+    private static final String FULL_NAME_FIRST_PART = "lastname";
+    private static final String FULL_NAME_SECOND_PART = "firstname";
 
     public Specification<Teacher> getTeachers(TeacherRequest request) {
         return (root, criteriaQuery, criteriaBuilder) -> {
