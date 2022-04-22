@@ -1,1 +1,1 @@
-mvn exec:java -D exec.mainClass=com.codecool.gradebookapi.GradebookApiApplication
+mvn exec:java -D exec.mainClass=GradebookApiApplication
